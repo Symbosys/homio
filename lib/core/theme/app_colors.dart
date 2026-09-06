@@ -55,6 +55,14 @@ abstract class AppColors {
   static const Color darkTextSecondary = Color(0xFF94A3B8); // Slate 400
   static const Color darkTextMuted = Color(0xFF64748B); // Slate 500
 
+  // Semantic Card and Text Aliases
+  static const Color lightCard = lightSurface;
+  static const Color darkCard = darkSurface;
+  static const Color lightMutedText = lightTextMuted;
+  static const Color darkMutedText = darkTextMuted;
+  static const Color lightText = lightTextPrimary;
+  static const Color darkText = darkTextPrimary;
+
   // Gradients for Hero & Highlights
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],

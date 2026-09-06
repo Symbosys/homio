@@ -23,6 +23,8 @@ import '../../features/landing/presentation/pages/landing_page.dart';
 import '../../features/reports/index.dart';
 import '../../features/sales/index.dart';
 import '../../features/quotation/index.dart';
+import '../../features/execution/index.dart';
+import '../../features/designs/index.dart';
 import 'route_names.dart';
 
 export 'route_names.dart';
@@ -157,6 +159,43 @@ abstract class AppRouter {
                   }
                   if (sub.routeName == RouteNames.quoteSelfService) {
                     return const QuotationSelfServicePage();
+                  }
+
+                  // Project Execution Submenus
+                  if (sub.routeName == RouteNames.execProjects) {
+                    return const ExecutionProjectsPage();
+                  }
+                  if (sub.routeName == RouteNames.execGantt) {
+                    return const ExecutionGanttPage();
+                  }
+                  if (sub.routeName == RouteNames.execSiteProgress) {
+                    return const ExecutionSiteProgressPage();
+                  }
+                  if (sub.routeName == RouteNames.execComplaints) {
+                    return const ExecutionComplaintsPage();
+                  }
+                  if (sub.routeName == RouteNames.execWorkApprovals) {
+                    return const ExecutionWorkApprovalsPage();
+                  }
+                  if (sub.routeName == RouteNames.execCommercials) {
+                    return const ExecutionCommercialsPage();
+                  }
+                  if (sub.routeName == RouteNames.execRatings) {
+                    return const ExecutionRatingsPage();
+                  }
+                  if (sub.routeName == RouteNames.execSpreadsheet) {
+                    return const ExecutionSpreadsheetPage();
+                  }
+
+                  // Designs & DAM Submenus
+                  if (sub.routeName == RouteNames.damWorkspace) {
+                    return const DesignWorkspacePage();
+                  }
+                  if (sub.routeName == RouteNames.damApprovalLoop) {
+                    return const DesignApprovalLoopPage();
+                  }
+                  if (sub.routeName == RouteNames.damCloudDrive) {
+                    return const DesignCloudDrivePage();
                   }
 
                   return PanelPageTemplate.fromPath(sub.routePath);
