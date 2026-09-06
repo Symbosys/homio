@@ -1,0 +1,876 @@
+import 'package:flutter/material.dart';
+import '../../app/router/route_names.dart';
+import 'navigation_models.dart';
+
+class RouteDisplayInfo {
+  final String title;
+  final String clusterTitle;
+  final String description;
+  final IconData icon;
+
+  const RouteDisplayInfo({
+    required this.title,
+    required this.clusterTitle,
+    required this.description,
+    required this.icon,
+  });
+}
+
+/// Central static registry containing all 16 modules, 62 submenus, and 6 clusters
+/// mapping both camelCase routeName and direct routePath.
+abstract class NavigationMenuRegistry {
+  static const List<NavigationCluster> clusters = [
+    // -------------------------------------------------------------------------
+    // CLUSTER 1: CORE & ANALYTICS
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.coreAnalytics,
+      title: 'CORE & ANALYTICS',
+      items: [
+        NavigationMenuItem(
+          id: 'dashboard',
+          title: 'Dashboard',
+          icon: Icons.dashboard_rounded,
+          tooltip: 'Live productivity, tasks, wallet, and operational pulse',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'dash_overview',
+              title: 'Overview & Score',
+              icon: Icons.speed_rounded,
+              routeName: RouteNames.dashboardOverview,
+              routePath: RouteNames.dashboardOverviewPath,
+              description: 'Daily productivity score & task metrics',
+            ),
+            NavigationSubMenuItem(
+              id: 'dash_tasks',
+              title: "Today's Tasks & Followups",
+              icon: Icons.checklist_rtl_rounded,
+              routeName: RouteNames.dashboardTasks,
+              routePath: RouteNames.dashboardTasksPath,
+              badgeCount: 8,
+              badgeColor: Color(0xFFEF4444),
+              description: 'Pending followups & overdue items',
+            ),
+            NavigationSubMenuItem(
+              id: 'dash_attendance',
+              title: 'Attendance & Geofence',
+              icon: Icons.fingerprint_rounded,
+              routeName: RouteNames.dashboardAttendance,
+              routePath: RouteNames.dashboardAttendancePath,
+              description: 'Present days & total working hours',
+            ),
+            NavigationSubMenuItem(
+              id: 'dash_travel',
+              title: 'Field Visits & Mileage',
+              icon: Icons.directions_car_filled_rounded,
+              routeName: RouteNames.dashboardTravel,
+              routePath: RouteNames.dashboardTravelPath,
+              description: 'GPS distance KM tracking & allowances',
+            ),
+            NavigationSubMenuItem(
+              id: 'dash_wallet',
+              title: 'My Earnings & Wallet',
+              icon: Icons.account_balance_wallet_rounded,
+              routeName: RouteNames.dashboardWallet,
+              routePath: RouteNames.dashboardWalletPath,
+              description: 'Salary, incentives, deductions & balance',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'reports',
+          title: 'Reports & Analytics',
+          icon: Icons.analytics_rounded,
+          tooltip: 'Marketing CPL, Sales funnels, Design CSAT & Execution health',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'rep_marketing',
+              title: 'Marketing & Funnel Analytics',
+              icon: Icons.campaign_rounded,
+              routeName: RouteNames.reportsMarketing,
+              routePath: RouteNames.reportsMarketingPath,
+              description: 'CPL, CAC, Organic vs Paid & Social Growth',
+            ),
+            NavigationSubMenuItem(
+              id: 'rep_sales',
+              title: 'Sales & Telecalling Reports',
+              icon: Icons.phone_in_talk_rounded,
+              routeName: RouteNames.reportsSales,
+              routePath: RouteNames.reportsSalesPath,
+              description: 'Objections, Call minutes & Top Rankers',
+            ),
+            NavigationSubMenuItem(
+              id: 'rep_design',
+              title: 'Design Productivity & CSAT',
+              icon: Icons.draw_rounded,
+              routeName: RouteNames.reportsDesign,
+              routePath: RouteNames.reportsDesignPath,
+              description: 'File approvals, revisions & score /10',
+            ),
+            NavigationSubMenuItem(
+              id: 'rep_execution',
+              title: 'Execution & Delays',
+              icon: Icons.construction_rounded,
+              routeName: RouteNames.reportsExecution,
+              routePath: RouteNames.reportsExecutionPath,
+              badgeCount: 2,
+              badgeColor: Color(0xFFEF4444),
+              description: 'Green on-time vs Red 1-week delays',
+            ),
+            NavigationSubMenuItem(
+              id: 'rep_vendor_ratings',
+              title: 'Vendor & Labour Ratings',
+              icon: Icons.star_half_rounded,
+              routeName: RouteNames.reportsVendorRatings,
+              routePath: RouteNames.reportsVendorRatingsPath,
+              description: 'Ratings /10 & automated alerts < 5.0',
+            ),
+            NavigationSubMenuItem(
+              id: 'rep_finances',
+              title: 'Financial Summary',
+              icon: Icons.payments_rounded,
+              routeName: RouteNames.reportsFinances,
+              routePath: RouteNames.reportsFinancesPath,
+              description: 'Material, Labour, Design & Consulting totals',
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // -------------------------------------------------------------------------
+    // CLUSTER 2: GROWTH & PIPELINE
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.growthPipeline,
+      title: 'GROWTH & PIPELINE',
+      items: [
+        NavigationMenuItem(
+          id: 'sales_crm',
+          title: 'Sales & CRM',
+          icon: Icons.hub_rounded,
+          badgeCount: 14,
+          badgeColor: Color(0xFF4F46E5),
+          tooltip: 'Lead pipelines, WhatsApp drips, AI calling & meetings',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'sales_overview',
+              title: 'Sales Dashboard & Goals',
+              icon: Icons.track_changes_rounded,
+              routeName: RouteNames.salesOverview,
+              routePath: RouteNames.salesOverviewPath,
+              description: 'Bookings target vs actuals & incentives',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_funnels',
+              title: 'Lead Pipelines & Funnels',
+              icon: Icons.view_kanban_rounded,
+              routeName: RouteNames.salesFunnels,
+              routePath: RouteNames.salesFunnelsPath,
+              description: 'Interior, Designer recruitment & Vendor funnels',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_directory',
+              title: 'Lead Directory & Forms',
+              icon: Icons.contacts_rounded,
+              routeName: RouteNames.salesDirectory,
+              routePath: RouteNames.salesDirectoryPath,
+              description: 'Dynamic intake forms, single cards & master grid',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_whatsapp_api',
+              title: 'WhatsApp Cloud API Hub',
+              icon: Icons.chat_bubble_rounded,
+              routeName: RouteNames.salesWhatsappApi,
+              routePath: RouteNames.salesWhatsappApiPath,
+              badgeCount: 5,
+              badgeColor: Color(0xFF10B981),
+              description: 'Bulk broadcasts, drip builder & AI chatbot',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_ai_calling',
+              title: 'AI Autodialer & Voice Calling',
+              icon: Icons.record_voice_over_rounded,
+              routeName: RouteNames.salesAiCalling,
+              routePath: RouteNames.salesAiCallingPath,
+              description: 'Bulk voice calls, transcripts & IVR reminders',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_calendar',
+              title: 'Meeting Calendar',
+              icon: Icons.event_available_rounded,
+              routeName: RouteNames.salesCalendar,
+              routePath: RouteNames.salesCalendarPath,
+              description: 'Slot booking & 24h/morning/1h reminders',
+            ),
+            NavigationSubMenuItem(
+              id: 'sales_tasks',
+              title: 'Sales Tasks & Site Surveys',
+              icon: Icons.explore_rounded,
+              routeName: RouteNames.salesTasks,
+              routePath: RouteNames.salesTasksPath,
+              description: 'Laser dimensions & requirement collection',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'quotation',
+          title: 'Quotation & Estimation',
+          icon: Icons.request_quote_rounded,
+          tooltip: 'Item catalogue, dynamic pricing, and 24h expiry urgency',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'quote_builder',
+              title: 'Quotation Builder',
+              icon: Icons.calculate_rounded,
+              routeName: RouteNames.quoteBuilder,
+              routePath: RouteNames.quoteBuilderPath,
+              description: 'Room grouping & Hide Rate/Sqft toggles',
+            ),
+            NavigationSubMenuItem(
+              id: 'quote_item_master',
+              title: 'Item & Rate Master',
+              icon: Icons.inventory_2_rounded,
+              routeName: RouteNames.quoteItemMaster,
+              routePath: RouteNames.quoteItemMasterPath,
+              description: 'Standard specs, Sq.Ft / Nos / R.Ft rates',
+            ),
+            NavigationSubMenuItem(
+              id: 'quote_documents',
+              title: 'Quotation Documents & PDF',
+              icon: Icons.picture_as_pdf_rounded,
+              routeName: RouteNames.quoteDocuments,
+              routePath: RouteNames.quoteDocumentsPath,
+              description: 'Branded cover, BOQs, warranties & terms',
+            ),
+            NavigationSubMenuItem(
+              id: 'quote_urgency',
+              title: 'Dynamic Pricing & 24h Alerts',
+              icon: Icons.timer_rounded,
+              routeName: RouteNames.quoteUrgency,
+              routePath: RouteNames.quoteUrgencyPath,
+              badgeCount: 3,
+              badgeColor: Color(0xFFF59E0B),
+              description: 'Early bird discount timers & WhatsApp alerts',
+            ),
+            NavigationSubMenuItem(
+              id: 'quote_self_service',
+              title: 'Customer Self-Estimator',
+              icon: Icons.touch_app_rounded,
+              routeName: RouteNames.quoteSelfService,
+              routePath: RouteNames.quoteSelfServicePath,
+              description: 'Public B2C OTP-gated lead generator',
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // -------------------------------------------------------------------------
+    // CLUSTER 3: EXECUTION & DESIGN
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.executionDesign,
+      title: 'EXECUTION & DESIGN',
+      items: [
+        NavigationMenuItem(
+          id: 'execution',
+          title: 'Project Execution',
+          icon: Icons.architecture_rounded,
+          tooltip: 'Gantt WBS, site videos, snags, and 3 commercial billing models',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'exec_projects',
+              title: 'All Projects & WBS',
+              icon: Icons.domain_rounded,
+              routeName: RouteNames.execProjects,
+              routePath: RouteNames.execProjectsPath,
+              description: 'False ceiling, carpentry, civil & MEP streams',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_gantt',
+              title: 'Interactive Gantt Chart',
+              icon: Icons.waterfall_chart_rounded,
+              routeName: RouteNames.execGantt,
+              routePath: RouteNames.execGanttPath,
+              description: 'Critical path & reschedule delay tracking',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_site_progress',
+              title: 'Daily Site Progress & Videos',
+              icon: Icons.videocam_rounded,
+              routeName: RouteNames.execSiteProgress,
+              routePath: RouteNames.execSiteProgressPath,
+              description: 'Geotagged 4K video timeline uploads',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_complaints',
+              title: 'Client Complaints & Snagging',
+              icon: Icons.report_problem_rounded,
+              routeName: RouteNames.execComplaints,
+              routePath: RouteNames.execComplaintsPath,
+              badgeCount: 4,
+              badgeColor: Color(0xFFEF4444),
+              description: 'Quality, timeline, behaviour SLA tickets',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_work_approvals',
+              title: 'Stage Work Approvals',
+              icon: Icons.verified_rounded,
+              routeName: RouteNames.execWorkApprovals,
+              routePath: RouteNames.execWorkApprovalsPath,
+              description: 'WhatsApp OTP digital client sign-offs',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_commercials',
+              title: 'Contract Commercials',
+              icon: Icons.price_check_rounded,
+              routeName: RouteNames.execCommercials,
+              routePath: RouteNames.execCommercialsPath,
+              description: 'Fixed Consulting, Percentage & Turnkey models',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_ratings_360',
+              title: '360° Multi-Stakeholder Ratings',
+              icon: Icons.rate_review_rounded,
+              routeName: RouteNames.execRatings,
+              routePath: RouteNames.execRatingsPath,
+              description: 'Supervisor, Labour, Vendor & Designer feedback',
+            ),
+            NavigationSubMenuItem(
+              id: 'exec_spreadsheet',
+              title: 'Master Project Grid',
+              icon: Icons.table_chart_rounded,
+              routeName: RouteNames.execSpreadsheet,
+              routePath: RouteNames.execSpreadsheetPath,
+              description: 'Excel-style multi-project control sheet',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'designs_dam',
+          title: 'Designs & DAM',
+          icon: Icons.palette_rounded,
+          tooltip: '2D/3D deliverables, approval loops, and secure cloud drive',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'dam_workspace',
+              title: '2D CAD & 3D Render Submissions',
+              icon: Icons.view_in_ar_rounded,
+              routeName: RouteNames.damWorkspace,
+              routePath: RouteNames.damWorkspacePath,
+              description: 'Deliverable lifecycle & revision tracking',
+            ),
+            NavigationSubMenuItem(
+              id: 'dam_approval_loop',
+              title: 'Client Review & Approval Loop',
+              icon: Icons.published_with_changes_rounded,
+              routeName: RouteNames.damApprovalLoop,
+              routePath: RouteNames.damApprovalLoopPath,
+              description: 'Approved -> Execution / Rejected -> Changes',
+            ),
+            NavigationSubMenuItem(
+              id: 'dam_cloud_drive',
+              title: 'Secure Cloud Drive',
+              icon: Icons.lock_clock_rounded,
+              routeName: RouteNames.damCloudDrive,
+              routePath: RouteNames.damCloudDrivePath,
+              description: 'Folder tree with Admin-only delete locks',
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // -------------------------------------------------------------------------
+    // CLUSTER 4: COMMERCE, LABOUR & COMMS
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.commerceLabourComms,
+      title: 'COMMERCE, LABOUR & COMMS',
+      items: [
+        NavigationMenuItem(
+          id: 'service_booking',
+          title: 'Service Booking & Labour',
+          icon: Icons.handyman_rounded,
+          tooltip: 'On-demand trade hiring, KYC, and Labour Court legal protections',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'srv_hire_labour',
+              title: 'Hire On-Demand Labour',
+              icon: Icons.person_search_rounded,
+              routeName: RouteNames.srvHireLabour,
+              routePath: RouteNames.srvHireLabourPath,
+              description: 'Carpenters, Masons, Electricians, Plumbers',
+            ),
+            NavigationSubMenuItem(
+              id: 'srv_labour_kyc',
+              title: 'Labour Onboarding & KYC',
+              icon: Icons.badge_rounded,
+              routeName: RouteNames.srvLabourKyc,
+              routePath: RouteNames.srvLabourKycPath,
+              description: 'Aadhaar verification, selfie KYC & rates',
+            ),
+            NavigationSubMenuItem(
+              id: 'srv_active_bookings',
+              title: 'Active Service Bookings',
+              icon: Icons.engineering_rounded,
+              routeName: RouteNames.srvActiveBookings,
+              routePath: RouteNames.srvActiveBookingsPath,
+              description: 'Acceptance, reassignment & daily task checklists',
+            ),
+            NavigationSubMenuItem(
+              id: 'srv_legal_hub',
+              title: 'Legal Dispute & Protection Hub',
+              icon: Icons.gavel_rounded,
+              routeName: RouteNames.srvLegalHub,
+              routePath: RouteNames.srvLegalHubPath,
+              badgeCount: 1,
+              badgeColor: Color(0xFFEF4444),
+              description: 'Labour Court escalation, panel lawyer & blacklists',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'shopping',
+          title: 'Shopping & Marketplace',
+          icon: Icons.storefront_rounded,
+          tooltip: 'Digital guide store, home decor affiliates, and Rs. 500 property paywall',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'shop_digital_store',
+              title: 'Digital Guides Store',
+              icon: Icons.menu_book_rounded,
+              routeName: RouteNames.shopDigitalStore,
+              routePath: RouteNames.shopDigitalStorePath,
+              description: 'Vastu guide, styling & material handbooks',
+            ),
+            NavigationSubMenuItem(
+              id: 'shop_decor_affiliates',
+              title: 'Home Decor & Materials',
+              icon: Icons.chair_rounded,
+              routeName: RouteNames.shopDecorAffiliates,
+              routePath: RouteNames.shopDecorAffiliatesPath,
+              description: 'Affiliate links & direct vendor catalog orders',
+            ),
+            NavigationSubMenuItem(
+              id: 'shop_properties',
+              title: 'Rental & Properties (Rs. 500)',
+              icon: Icons.real_estate_agent_rounded,
+              routeName: RouteNames.shopProperties,
+              routePath: RouteNames.shopPropertiesPath,
+              description: 'Listings & Rs. 500 owner unlock paywall',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'communication',
+          title: 'Communication Hub',
+          icon: Icons.forum_rounded,
+          badgeCount: 7,
+          badgeColor: Color(0xFF10B981),
+          tooltip: 'Unified WhatsApp chats, templates, bulk broadcasts & drip campaigns',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'comm_chats',
+              title: 'Live Customer Chats',
+              icon: Icons.forum_rounded,
+              routeName: RouteNames.commChats,
+              routePath: RouteNames.commChatsPath,
+              badgeCount: 5,
+              badgeColor: Color(0xFF10B981),
+              description: 'Unified 1-on-1 thread: Lead -> Project -> After Sales',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_bulk_messages',
+              title: 'Bulk Broadcast Messages',
+              icon: Icons.campaign_rounded,
+              routeName: RouteNames.commBulkMessages,
+              routePath: RouteNames.commBulkMessagesPath,
+              description: 'Broadcasts via lists & custom CSV uploads',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_templates',
+              title: 'Message Templates',
+              icon: Icons.text_snippet_rounded,
+              routeName: RouteNames.commTemplates,
+              routePath: RouteNames.commTemplatesPath,
+              description: 'Meta WhatsApp templates with dynamic variables & CTAs',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_scheduled',
+              title: 'Scheduled Messages',
+              icon: Icons.schedule_send_rounded,
+              routeName: RouteNames.commScheduled,
+              routePath: RouteNames.commScheduledPath,
+              description: 'Individual & bulk scheduled message queue',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_drip_campaigns',
+              title: 'Drip Campaigns & Funnels',
+              icon: Icons.auto_mode_rounded,
+              routeName: RouteNames.commDripCampaigns,
+              routePath: RouteNames.commDripCampaignsPath,
+              description: 'Stage change auto-messages & nurture sequences',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_history',
+              title: 'Call & Message History',
+              icon: Icons.history_rounded,
+              routeName: RouteNames.commHistory,
+              routePath: RouteNames.commHistoryPath,
+              description: 'Unified timeline of WhatsApp, AI calls & transcripts',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_site_progress',
+              title: 'Live Site Progress Feed',
+              icon: Icons.photo_library_rounded,
+              routeName: RouteNames.commSiteProgress,
+              routePath: RouteNames.commSiteProgressPath,
+              description: 'Photos & video milestone updates inside chat',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_blueprints',
+              title: 'Blueprints & DAM Files',
+              icon: Icons.folder_open_rounded,
+              routeName: RouteNames.commBlueprints,
+              routePath: RouteNames.commBlueprintsPath,
+              description: 'Contracts, invoices, and approved CAD drawings',
+            ),
+            NavigationSubMenuItem(
+              id: 'comm_meetings',
+              title: 'Meeting Scheduling Tab',
+              icon: Icons.calendar_month_rounded,
+              routeName: RouteNames.commMeetings,
+              routePath: RouteNames.commMeetingsPath,
+              description: 'Slot booking & reminder links inside communication',
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // -------------------------------------------------------------------------
+    // CLUSTER 5: AI & ARCHITECTURAL SUITE
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.aiArchitecturalSuite,
+      title: 'AI & ARCHITECTURAL SUITE',
+      items: [
+        NavigationMenuItem(
+          id: 'ai_suite',
+          title: 'AI Architectural Suite',
+          icon: Icons.auto_awesome_rounded,
+          badgeCount: 1,
+          badgeColor: Color(0xFF7C3AED),
+          tooltip: 'Generative room styling, Vastu Shastra, budget estimator & doubt solver',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'ai_room_generator',
+              title: 'AI Room & Video Generator',
+              icon: Icons.burst_mode_rounded,
+              routeName: RouteNames.aiRoomGenerator,
+              routePath: RouteNames.aiRoomGeneratorPath,
+              description: '4K Renders, videos & 50-50 designer revenue split',
+            ),
+            NavigationSubMenuItem(
+              id: 'ai_vastu_consultant',
+              title: 'AI Vastu Consultant',
+              icon: Icons.compass_calibration_rounded,
+              routeName: RouteNames.aiVastuConsultant,
+              routePath: RouteNames.aiVastuConsultantPath,
+              description: 'Floor plan + North -> 16-Zone Chakra & remedies',
+            ),
+            NavigationSubMenuItem(
+              id: 'ai_budget_calculator',
+              title: 'AI Budget & Material Calculator',
+              icon: Icons.calculate_rounded,
+              routeName: RouteNames.aiBudgetCalculator,
+              routePath: RouteNames.aiBudgetCalculatorPath,
+              description: 'Plywood, finish, hardware & top 3 brands',
+            ),
+            NavigationSubMenuItem(
+              id: 'ai_doubt_solver',
+              title: 'AI Expert Doubt Solver (Rs. 50)',
+              icon: Icons.psychology_alt_rounded,
+              routeName: RouteNames.aiDoubtSolver,
+              routePath: RouteNames.aiDoubtSolverPath,
+              description: 'First 3 Free, then Rs. 50 / technical question',
+            ),
+            NavigationSubMenuItem(
+              id: 'ai_designer_video_call',
+              title: '30-Min Video Call (Rs. 300)',
+              icon: Icons.video_camera_front_rounded,
+              routeName: RouteNames.aiDesignerVideoCall,
+              routePath: RouteNames.aiDesignerVideoCallPath,
+              description: 'Instant 1-on-1 designer video consultation',
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // -------------------------------------------------------------------------
+    // CLUSTER 6: OPERATIONS, FINANCE & HRMS
+    // -------------------------------------------------------------------------
+    NavigationCluster(
+      category: ClusterCategory.operationsFinanceHr,
+      title: 'OPERATIONS, FINANCE & HRMS',
+      items: [
+        NavigationMenuItem(
+          id: 'operations',
+          title: 'Operations & Procurement',
+          icon: Icons.local_shipping_rounded,
+          tooltip: 'Multi-vendor RFQ bidding and Saturday auto fee dispatches',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'ops_material_rfq',
+              title: 'Material Requisition & RFQs',
+              icon: Icons.request_quote_rounded,
+              routeName: RouteNames.opsMaterialRfq,
+              routePath: RouteNames.opsMaterialRfqPath,
+              description: 'Multi-vendor quotation comparison & approvals',
+            ),
+            NavigationSubMenuItem(
+              id: 'ops_design_payment',
+              title: 'Design Milestone Payment Links',
+              icon: Icons.link_rounded,
+              routeName: RouteNames.opsDesignPayment,
+              routePath: RouteNames.opsDesignPaymentPath,
+              description: 'Instant WhatsApp payment link dispatches',
+            ),
+            NavigationSubMenuItem(
+              id: 'ops_saturday_fees',
+              title: 'Saturday Fee Auto-Dispatch',
+              icon: Icons.alarm_on_rounded,
+              routeName: RouteNames.opsSaturdayFees,
+              routePath: RouteNames.opsSaturdayFeesPath,
+              description: 'Weekly fees sent automatically every Sat 10 AM',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'accounting',
+          title: 'Accounting & Ledgers',
+          icon: Icons.receipt_long_rounded,
+          tooltip: 'Client summaries, vendor commissions, and overdue payment alerts',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'acc_customer_summary',
+              title: 'Customer Financial Summary',
+              icon: Icons.summarize_rounded,
+              routeName: RouteNames.accCustomerSummary,
+              routePath: RouteNames.accCustomerSummaryPath,
+              description: 'Material, Labour, Fees & collection status',
+            ),
+            NavigationSubMenuItem(
+              id: 'acc_expense_ledgers',
+              title: 'Client Expense Ledgers',
+              icon: Icons.menu_book_rounded,
+              routeName: RouteNames.accExpenseLedgers,
+              routePath: RouteNames.accExpenseLedgersPath,
+              description: 'Bills, paid/unpaid & vendor commissions',
+            ),
+            NavigationSubMenuItem(
+              id: 'acc_overdue_alerts',
+              title: 'Overdue Payment Alerts',
+              icon: Icons.notification_important_rounded,
+              routeName: RouteNames.accOverdueAlerts,
+              routePath: RouteNames.accOverdueAlertsPath,
+              badgeCount: 2,
+              badgeColor: Color(0xFFEF4444),
+              description: 'Auto alerts to Client, Supervisor & Admin',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'hrms',
+          title: 'HRMS & Field Operations',
+          icon: Icons.badge_rounded,
+          tooltip: 'Geofenced attendance, GPS mileage, and strict double salary penalties',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'hr_employee_directory',
+              title: 'Employee Directory & KYC',
+              icon: Icons.groups_rounded,
+              routeName: RouteNames.hrEmployeeDirectory,
+              routePath: RouteNames.hrEmployeeDirectoryPath,
+              description: 'Personnel dossiers, Aadhaar & bank records',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_departments',
+              title: 'Departments & Teams',
+              icon: Icons.account_tree_rounded,
+              routeName: RouteNames.hrDepartments,
+              routePath: RouteNames.hrDepartmentsPath,
+              description: 'Sales, Design, Execution, Support & Ops teams',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_geofence_attendance',
+              title: 'Geofenced Attendance',
+              icon: Icons.location_on_rounded,
+              routeName: RouteNames.hrGeofenceAttendance,
+              routePath: RouteNames.hrGeofenceAttendancePath,
+              description: 'Real-time GPS boundary + live selfie clock-in',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_travel_mileage',
+              title: 'GPS Travel & Mileage (Selfie)',
+              icon: Icons.add_road_rounded,
+              routeName: RouteNames.hrTravelMileage,
+              routePath: RouteNames.hrTravelMileagePath,
+              description: 'Departure/Arrival selfies -> Distance * Rate/KM',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_leave_penalty',
+              title: 'Leave & Double Penalty Rules',
+              icon: Icons.event_busy_rounded,
+              routeName: RouteNames.hrLeavePenalty,
+              routePath: RouteNames.hrLeavePenaltyPath,
+              description: 'Denied leave triggers double salary deduction',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_payroll_slips',
+              title: 'Monthly Payroll & PDF Slips',
+              icon: Icons.receipt_rounded,
+              routeName: RouteNames.hrPayrollSlips,
+              routePath: RouteNames.hrPayrollSlipsPath,
+              description: 'Base + Travel + Incentives - Deductions',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_notice_period',
+              title: 'Resignations & Notice Periods',
+              icon: Icons.exit_to_app_rounded,
+              routeName: RouteNames.hrNoticePeriod,
+              routePath: RouteNames.hrNoticePeriodPath,
+              description: 'Clearance handoffs & notice tracking',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'after_sales',
+          title: 'After-Sales Service',
+          icon: Icons.support_agent_rounded,
+          tooltip: 'Post-handover snag tickets, warranty maintenance, and review calls',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'svc_snags_warranty',
+              title: 'Snags & Warranty Tickets',
+              icon: Icons.build_circle_rounded,
+              routeName: RouteNames.svcSnagsWarranty,
+              routePath: RouteNames.svcSnagsWarrantyPath,
+              description: 'Warranty claim tracking & maintenance dispatch',
+            ),
+            NavigationSubMenuItem(
+              id: 'svc_retention_calls',
+              title: 'Client Retention & Reviews',
+              icon: Icons.ring_volume_rounded,
+              routeName: RouteNames.svcRetentionCalls,
+              routePath: RouteNames.svcRetentionCallsPath,
+              description: 'CSAT follow-ups, reviews & referral bookings',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'organization',
+          title: 'Organization & Roles',
+          icon: Icons.corporate_fare_rounded,
+          tooltip: '5 Department structures, job levels, and scoped access controls',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'org_departments',
+              title: 'Department Structures',
+              icon: Icons.account_tree_rounded,
+              routeName: RouteNames.orgDepartments,
+              routePath: RouteNames.orgDepartmentsPath,
+              description: 'Marketing, Sales, Design, Execution, Service',
+            ),
+            NavigationSubMenuItem(
+              id: 'org_role_levels',
+              title: 'Role & Level Management',
+              icon: Icons.work_history_rounded,
+              routeName: RouteNames.orgRoleLevels,
+              routePath: RouteNames.orgRoleLevelsPath,
+              description: 'Telecallers, 3D Artists, PMs, Supervisors',
+            ),
+            NavigationSubMenuItem(
+              id: 'org_access_scope',
+              title: 'Scoped Access Controls',
+              icon: Icons.lock_person_rounded,
+              routeName: RouteNames.orgAccessScope,
+              routePath: RouteNames.orgAccessScopePath,
+              description: 'My Leads/Tasks vs Organization-Wide Scope',
+            ),
+          ],
+        ),
+        NavigationMenuItem(
+          id: 'admin',
+          title: 'System Administration',
+          icon: Icons.admin_panel_settings_rounded,
+          tooltip: 'RBAC matrix, rate cards, AI tuning, and automated weekly email backups',
+          subItems: [
+            NavigationSubMenuItem(
+              id: 'adm_rbac_matrix',
+              title: 'Granular RBAC Matrix',
+              icon: Icons.security_rounded,
+              routeName: RouteNames.admRbacMatrix,
+              routePath: RouteNames.admRbacMatrixPath,
+              description: 'Module and field-level permissions',
+            ),
+            NavigationSubMenuItem(
+              id: 'adm_rate_masters',
+              title: 'Master Rate Cards & Margins',
+              icon: Icons.fact_check_rounded,
+              routeName: RouteNames.admRateMasters,
+              routePath: RouteNames.admRateMastersPath,
+              description: 'Centralized quotation backend master',
+            ),
+            NavigationSubMenuItem(
+              id: 'adm_ai_training',
+              title: 'WhatsApp AI Prompt Training',
+              icon: Icons.model_training_rounded,
+              routeName: RouteNames.admAiTraining,
+              routePath: RouteNames.admAiTrainingPath,
+              description: 'System prompts, FAQs & objection handling',
+            ),
+            NavigationSubMenuItem(
+              id: 'adm_disaster_backup',
+              title: 'Weekly Email Backups (Excel/DB)',
+              icon: Icons.backup_rounded,
+              routeName: RouteNames.admDisasterBackup,
+              routePath: RouteNames.admDisasterBackupPath,
+              description: 'Automated weekly snapshot & email dispatch',
+            ),
+          ],
+        ),
+      ],
+    ),
+  ];
+
+  /// Resolves any route path to its display metadata automatically.
+  static RouteDisplayInfo findInfoByPath(String path) {
+    for (final cluster in clusters) {
+      for (final item in cluster.items) {
+        for (final sub in item.subItems) {
+          if (sub.routePath == path || sub.routeName == path) {
+            return RouteDisplayInfo(
+              title: sub.title,
+              clusterTitle: cluster.title,
+              description: sub.description ?? 'Feature view for ${sub.title}',
+              icon: sub.icon,
+            );
+          }
+        }
+      }
+    }
+
+    // Default fallback
+    final cleanName = path.replaceAll('/', ' ').trim();
+    return RouteDisplayInfo(
+      title: cleanName.isEmpty ? 'Dashboard' : cleanName.toUpperCase(),
+      clusterTitle: 'HOMIO CRM',
+      description: 'Workspace module view',
+      icon: Icons.layers_rounded,
+    );
+  }
+}
