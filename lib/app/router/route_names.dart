@@ -322,15 +322,32 @@ abstract class RouteNames {
   static const String opsSaturdayFeesPath = '/operations/saturday-fees';
 
   // 12. Accounting & Finance Submenu Routes
-  static const String financeOverview = '/finance/overview';
-  static const String financeCustomerLedgers = '/finance/customer-ledgers';
-  static const String financeInvoices = '/finance/invoices';
-  static const String financePayments = '/finance/payments';
-  static const String financeExpenses = '/finance/expenses';
-  static const String financeVendorPayments = '/finance/vendor-payments';
-  static const String financeLabourPayments = '/finance/labour-payments';
-  static const String financeCommissions = '/finance/commissions';
-  static const String financeCollections = '/finance/collections';
+  static const String financeOverview = 'financeOverview';
+  static const String financeOverviewPath = '/finance/overview';
+
+  static const String financeCustomerLedgers = 'financeCustomerLedgers';
+  static const String financeCustomerLedgersPath = '/finance/customer-ledgers';
+
+  static const String financeInvoices = 'financeInvoices';
+  static const String financeInvoicesPath = '/finance/invoices';
+
+  static const String financePayments = 'financePayments';
+  static const String financePaymentsPath = '/finance/payments';
+
+  static const String financeExpenses = 'financeExpenses';
+  static const String financeExpensesPath = '/finance/expenses';
+
+  static const String financeVendorPayments = 'financeVendorPayments';
+  static const String financeVendorPaymentsPath = '/finance/vendor-payments';
+
+  static const String financeLabourPayments = 'financeLabourPayments';
+  static const String financeLabourPaymentsPath = '/finance/labour-payments';
+
+  static const String financeCommissions = 'financeCommissions';
+  static const String financeCommissionsPath = '/finance/commissions';
+
+  static const String financeCollections = 'financeCollections';
+  static const String financeCollectionsPath = '/finance/collections';
 
   static const String accCustomerSummary = 'accCustomerSummary';
   static const String accCustomerSummaryPath = '/accounting/customer-summary';

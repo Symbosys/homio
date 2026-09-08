@@ -370,15 +370,36 @@ abstract class AppRouter {
                     return const WeeklySaturdayFeesPage();
                   }
 
-                  // Accounting & Client Ledgers Submenus
-                  if (sub.routeName == RouteNames.accCustomerSummary) {
-                    return const CustomerFinancialSummaryPage();
+                  // Accounting & Finance Submenus
+                  if (sub.routeName == RouteNames.financeOverview) {
+                    return const AccountingOverviewPage();
                   }
-                  if (sub.routeName == RouteNames.accExpenseLedgers) {
-                    return const ClientExpenseLedgersPage();
+                  if (sub.routeName == RouteNames.financeCustomerLedgers ||
+                      sub.routeName == RouteNames.accCustomerSummary) {
+                    return const CustomerLedgersPage();
                   }
-                  if (sub.routeName == RouteNames.accOverdueAlerts) {
-                    return const OverduePaymentAlertsPage();
+                  if (sub.routeName == RouteNames.financeInvoices) {
+                    return const InvoicesPage();
+                  }
+                  if (sub.routeName == RouteNames.financePayments) {
+                    return const PaymentsPage();
+                  }
+                  if (sub.routeName == RouteNames.financeExpenses ||
+                      sub.routeName == RouteNames.accExpenseLedgers) {
+                    return const ExpensesPage();
+                  }
+                  if (sub.routeName == RouteNames.financeVendorPayments) {
+                    return const VendorPaymentsPage();
+                  }
+                  if (sub.routeName == RouteNames.financeLabourPayments) {
+                    return const LabourPaymentsPage();
+                  }
+                  if (sub.routeName == RouteNames.financeCommissions) {
+                    return const CommissionsPage();
+                  }
+                  if (sub.routeName == RouteNames.financeCollections ||
+                      sub.routeName == RouteNames.accOverdueAlerts) {
+                    return const OverdueCollectionsPage();
                   }
 
                   // HRMS & Field Operations Submenus
@@ -731,12 +752,68 @@ abstract class AppRouter {
         return const WeeklySaturdayFeesPage();
 
       // 8. Accounting & Finance
+      case 'fin_overview':
       case 'finance_overview':
-        return const CustomerFinancialSummaryPage();
+      case 'financeOverview':
+      case '/finance/overview':
+        return const AccountingOverviewPage();
+
+      case 'fin_customer_ledgers':
+      case 'finance_customer_ledgers':
+      case 'financeCustomerLedgers':
+      case '/finance/customer-ledgers':
+      case 'acc_customer_summary':
+      case 'accCustomerSummary':
+      case '/accounting/customer-summary':
+        return const CustomerLedgersPage();
+
+      case 'fin_invoices':
+      case 'finance_invoices':
+      case 'financeInvoices':
+      case '/finance/invoices':
+        return const InvoicesPage();
+
+      case 'fin_payments':
+      case 'finance_payments':
+      case 'financePayments':
+      case '/finance/payments':
+        return const PaymentsPage();
+
+      case 'fin_expenses':
       case 'finance_expenses':
-        return const ClientExpenseLedgersPage();
+      case 'financeExpenses':
+      case '/finance/expenses':
+      case 'acc_expense_ledgers':
+      case 'accExpenseLedgers':
+      case '/accounting/expense-ledgers':
+        return const ExpensesPage();
+
+      case 'fin_vendor_payments':
+      case 'finance_vendor_payments':
+      case 'financeVendorPayments':
+      case '/finance/vendor-payments':
+        return const VendorPaymentsPage();
+
+      case 'fin_labour_payments':
+      case 'finance_labour_payments':
+      case 'financeLabourPayments':
+      case '/finance/labour-payments':
+        return const LabourPaymentsPage();
+
+      case 'fin_commissions':
+      case 'finance_commissions':
+      case 'financeCommissions':
+      case '/finance/commissions':
+        return const CommissionsPage();
+
+      case 'fin_collections':
       case 'finance_collections':
-        return const OverduePaymentAlertsPage();
+      case 'financeCollections':
+      case '/finance/collections':
+      case 'acc_overdue_alerts':
+      case 'accOverdueAlerts':
+      case '/accounting/overdue-alerts':
+        return const OverdueCollectionsPage();
 
       // 9. Communication
       case 'communication_chats':
