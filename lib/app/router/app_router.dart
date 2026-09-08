@@ -26,6 +26,7 @@ import '../../features/reports/index.dart';
 import '../../features/sales/index.dart';
 import '../../features/quotation/index.dart';
 import '../../features/execution/index.dart';
+import '../../features/projects/index.dart';
 import '../../features/designs/index.dart';
 import '../../features/service_booking/index.dart';
 import '../../features/shopping/index.dart';
@@ -158,19 +159,45 @@ abstract class AppRouter {
                   }
 
                   // Quotation & Estimation Submenus
-                  if (sub.routeName == RouteNames.quoteBuilder) {
+                  if (sub.routeName == 'quotationsAll' ||
+                      sub.routeName == 'quotations_all' ||
+                      sub.routePath == RouteNames.quotationsAll ||
+                      sub.routePath == '/quotations/all') {
+                    return const QuotationAllPage();
+                  }
+                  if (sub.routeName == RouteNames.quoteBuilder ||
+                      sub.routeName == 'quotations_create' ||
+                      sub.routePath == RouteNames.quotationsCreate ||
+                      sub.routePath == RouteNames.quoteBuilderPath ||
+                      sub.routePath == '/quotations/create') {
                     return const QuotationBuilderPage();
                   }
-                  if (sub.routeName == RouteNames.quoteItemMaster) {
+                  if (sub.routeName == RouteNames.quoteItemMaster ||
+                      sub.routeName == 'quotations_rate_master' ||
+                      sub.routePath == RouteNames.quotationsRateMaster ||
+                      sub.routePath == RouteNames.quoteItemMasterPath ||
+                      sub.routePath == '/quotations/rate-master') {
                     return const QuotationItemMasterPage();
                   }
-                  if (sub.routeName == RouteNames.quoteDocuments) {
+                  if (sub.routeName == RouteNames.quoteDocuments ||
+                      sub.routeName == 'quotations_documents' ||
+                      sub.routePath == RouteNames.quotationsDocuments ||
+                      sub.routePath == RouteNames.quoteDocumentsPath ||
+                      sub.routePath == '/quotations/documents') {
                     return const QuotationDocumentsPage();
                   }
-                  if (sub.routeName == RouteNames.quoteUrgency) {
+                  if (sub.routeName == RouteNames.quoteUrgency ||
+                      sub.routeName == 'quotations_expiry_reminders' ||
+                      sub.routePath == RouteNames.quotationsExpiryReminders ||
+                      sub.routePath == RouteNames.quoteUrgencyPath ||
+                      sub.routePath == '/quotations/expiry-reminders') {
                     return const QuotationUrgencyPage();
                   }
-                  if (sub.routeName == RouteNames.quoteSelfService) {
+                  if (sub.routeName == RouteNames.quoteSelfService ||
+                      sub.routeName == 'quotations_self' ||
+                      sub.routePath == RouteNames.quotationsSelf ||
+                      sub.routePath == RouteNames.quoteSelfServicePath ||
+                      sub.routePath == '/quotations/self-quotation') {
                     return const QuotationSelfServicePage();
                   }
 
@@ -201,13 +228,43 @@ abstract class AppRouter {
                   }
 
                   // Designs & DAM Submenus
-                  if (sub.routeName == RouteNames.damWorkspace) {
+                  if (sub.routeName == RouteNames.damWorkspace ||
+                      sub.routeName == RouteNames.designsWorkspace ||
+                      sub.routePath == RouteNames.damWorkspacePath ||
+                      sub.routePath == '/designs/workspace') {
                     return const DesignWorkspacePage();
                   }
-                  if (sub.routeName == RouteNames.damApprovalLoop) {
+                  if (sub.routeName == RouteNames.damFiles ||
+                      sub.routeName == RouteNames.designsFiles ||
+                      sub.routePath == RouteNames.damFilesPath ||
+                      sub.routePath == '/designs/files') {
+                    return const DesignFilesPage();
+                  }
+                  if (sub.routeName == RouteNames.damRevisions ||
+                      sub.routeName == RouteNames.designsRevisions ||
+                      sub.routePath == RouteNames.damRevisionsPath ||
+                      sub.routePath == '/designs/revisions') {
+                    return const DesignRevisionsPage();
+                  }
+                  if (sub.routeName == RouteNames.damApprovalLoop ||
+                      sub.routeName == RouteNames.designsApprovals ||
+                      sub.routePath == RouteNames.damApprovalLoopPath ||
+                      sub.routePath == '/designs/approvals' ||
+                      sub.routePath == '/designs/approval-loop') {
                     return const DesignApprovalLoopPage();
                   }
-                  if (sub.routeName == RouteNames.damCloudDrive) {
+                  if (sub.routeName == RouteNames.damHandover ||
+                      sub.routeName == RouteNames.designsHandover ||
+                      sub.routePath == RouteNames.damHandoverPath ||
+                      sub.routePath == '/designs/handover' ||
+                      sub.routePath == '/designs/execution-handover') {
+                    return const DesignHandoverPage();
+                  }
+                  if (sub.routeName == RouteNames.damCloudDrive ||
+                      sub.routeName == RouteNames.designsDrive ||
+                      sub.routePath == RouteNames.damCloudDrivePath ||
+                      sub.routePath == '/designs/drive' ||
+                      sub.routePath == '/designs/cloud-drive') {
                     return const DesignCloudDrivePage();
                   }
 
@@ -288,14 +345,29 @@ abstract class AppRouter {
                   }
 
                   // Operations & Procurement Submenus
-                  if (sub.routeName == RouteNames.opsMaterialRfq) {
-                    return const MaterialRfqPage();
+                  if (sub.routeName == RouteNames.procurementMaterialRequests ||
+                      sub.routeName == RouteNames.opsMaterialRfq) {
+                    return const MaterialRequestsPage();
                   }
-                  if (sub.routeName == RouteNames.opsDesignPayment) {
-                    return const DesignPaymentPage();
+                  if (sub.routeName == RouteNames.procurementVendorRfqs) {
+                    return const VendorRfqsPage();
                   }
-                  if (sub.routeName == RouteNames.opsSaturdayFees) {
-                    return const SaturdayFeesPage();
+                  if (sub.routeName == RouteNames.procurementVendorQuotations) {
+                    return const VendorQuotationsPage();
+                  }
+                  if (sub.routeName == RouteNames.procurementPurchaseOrders) {
+                    return const PurchaseOrdersPage();
+                  }
+                  if (sub.routeName == RouteNames.procurementDispatch) {
+                    return const MaterialDispatchPage();
+                  }
+                  if (sub.routeName == RouteNames.procurementDesignPayments ||
+                      sub.routeName == RouteNames.opsDesignPayment) {
+                    return const DesignPaymentRequestsPage();
+                  }
+                  if (sub.routeName == RouteNames.procurementWeeklyFees ||
+                      sub.routeName == RouteNames.opsSaturdayFees) {
+                    return const WeeklySaturdayFeesPage();
                   }
 
                   // Accounting & Client Ledgers Submenus
@@ -428,6 +500,46 @@ abstract class AppRouter {
 
   /// Maps an admin navigation item ID or route to its corresponding page widget.
   static Widget _resolveAdminPage(String id, String path) {
+    // Designs & DAM fast path/id resolution
+    if (id == 'designs_workspace' || id == 'damWorkspace' || id == 'dam_workspace' || path == '/designs/workspace') {
+      return const DesignWorkspacePage();
+    }
+    if (id == 'designs_files' || id == 'damFiles' || id == 'dam_files' || path == '/designs/files' || path == '/documents') {
+      return const DesignFilesPage();
+    }
+    if (id == 'designs_revisions' || id == 'damRevisions' || id == 'dam_revisions' || path == '/designs/revisions' || path == '/design-revisions') {
+      return const DesignRevisionsPage();
+    }
+    if (id == 'designs_client_approvals' || id == 'designs_approvals' || id == 'damApprovalLoop' || id == 'dam_approval_loop' || path == '/designs/approvals' || path == '/designs/approval-loop') {
+      return const DesignApprovalLoopPage();
+    }
+    if (id == 'designs_execution_handover' || id == 'designs_handover' || id == 'damHandover' || id == 'dam_handover' || path == '/designs/handover' || path == '/designs/execution-handover') {
+      return const DesignHandoverPage();
+    }
+    if (id == 'designs_cloud_drive' || id == 'designs_drive' || id == 'damCloudDrive' || id == 'dam_cloud_drive' || path == '/designs/drive' || path == '/designs/cloud-drive') {
+      return const DesignCloudDrivePage();
+    }
+
+    // Quotations fast path / ID resolution
+    if (id == 'quotations_all' || id == 'quotationsAll' || path == '/quotations/all') {
+      return const QuotationAllPage();
+    }
+    if (id == 'quotations_create' || id == 'quoteBuilder' || path == '/quotations/create' || path == '/quotation/builder') {
+      return const QuotationBuilderPage();
+    }
+    if (id == 'quotations_rate_master' || id == 'quoteItemMaster' || path == '/quotations/rate-master' || path == '/quotation/item-master') {
+      return const QuotationItemMasterPage();
+    }
+    if (id == 'quotations_documents' || id == 'quoteDocuments' || path == '/quotations/documents' || path == '/quotation/documents') {
+      return const QuotationDocumentsPage();
+    }
+    if (id == 'quotations_expiry_reminders' || id == 'quoteUrgency' || path == '/quotations/expiry-reminders' || path == '/quotation/urgency') {
+      return const QuotationUrgencyPage();
+    }
+    if (id == 'quotations_self' || id == 'quoteSelfService' || path == '/quotations/self-quotation' || path == '/quotation/self-service') {
+      return const QuotationSelfServicePage();
+    }
+
     switch (id) {
       // 1. Dashboard
       case 'dashboard_overview':
@@ -482,47 +594,141 @@ abstract class AppRouter {
 
       // 4. Projects
       case 'projects_all':
+      case '/projects/all':
+        return const AllProjectsPage();
       case 'projects_overview':
-        return const ExecutionProjectsPage();
+      case '/projects/overview':
+        return const ProjectOverviewPage();
       case 'projects_gantt':
-        return const ExecutionGanttPage();
+      case '/projects/gantt':
+        return const ProjectGanttPage();
+      case 'projects_milestones':
+      case '/projects/milestones':
+        return const ProjectMilestonesPage();
+      case 'projects_tasks':
+      case '/projects/tasks':
+        return const ProjectTasksPage();
       case 'projects_site_progress':
-        return const ExecutionSiteProgressPage();
-      case 'projects_snags':
-        return const ExecutionComplaintsPage();
+      case '/projects/site-progress':
+        return const ProjectSiteProgressPage();
+      case 'projects_site_visits':
+      case '/projects/site-visits':
+        return const ProjectSiteVisitsPage();
       case 'projects_approvals':
-        return const ExecutionWorkApprovalsPage();
+      case '/projects/approvals':
+        return const ProjectApprovalsPage();
+      case 'projects_snags':
+      case '/projects/snags':
+        return const ProjectComplaintsPage();
       case 'projects_commercials':
-        return const ExecutionCommercialsPage();
+      case '/projects/commercials':
+        return const ProjectCommercialsPage();
 
       // 5. Designs & DAM
       case 'designs_workspace':
+      case 'damWorkspace':
+      case 'dam_workspace':
+      case '/designs/workspace':
         return const DesignWorkspacePage();
+      case 'designs_files':
+      case 'damFiles':
+      case 'dam_files':
+      case '/designs/files':
+      case '/documents':
+        return const DesignFilesPage();
+      case 'designs_revisions':
+      case 'damRevisions':
+      case 'dam_revisions':
+      case '/designs/revisions':
+      case '/design-revisions':
+        return const DesignRevisionsPage();
+      case 'designs_client_approvals':
       case 'designs_approvals':
+      case 'damApprovalLoop':
+      case 'dam_approval_loop':
+      case '/designs/approvals':
+      case '/designs/approval-loop':
         return const DesignApprovalLoopPage();
+      case 'designs_execution_handover':
+      case 'designs_handover':
+      case 'damHandover':
+      case 'dam_handover':
+      case '/designs/handover':
+      case '/designs/execution-handover':
+        return const DesignHandoverPage();
+      case 'designs_cloud_drive':
       case 'designs_drive':
+      case 'damCloudDrive':
+      case 'dam_cloud_drive':
+      case '/designs/drive':
+      case '/designs/cloud-drive':
         return const DesignCloudDrivePage();
 
       // 6. Quotations
       case 'quotations_all':
+      case '/quotations/all':
+        return const QuotationAllPage();
       case 'quotations_create':
+      case '/quotations/create':
+      case 'quoteBuilder':
+      case '/quotation/builder':
         return const QuotationBuilderPage();
       case 'quotations_rate_master':
+      case '/quotations/rate-master':
+      case 'quoteItemMaster':
+      case '/quotation/item-master':
         return const QuotationItemMasterPage();
       case 'quotations_documents':
+      case '/quotations/documents':
+      case 'quoteDocuments':
+      case '/quotation/documents':
         return const QuotationDocumentsPage();
       case 'quotations_expiry_reminders':
+      case '/quotations/expiry-reminders':
+      case 'quoteUrgency':
+      case '/quotation/urgency':
         return const QuotationUrgencyPage();
       case 'quotations_self':
+      case '/quotations/self-quotation':
+      case 'quoteSelfService':
+      case '/quotation/self-service':
         return const QuotationSelfServicePage();
 
       // 7. Procurement & Operations
       case 'procurement_material_requests':
-        return const MaterialRfqPage();
+      case 'procurementMaterialRequests':
+      case '/procurement/material-requests':
+      case 'opsMaterialRfq':
+      case '/operations/material-rfq':
+        return const MaterialRequestsPage();
+      case 'procurement_vendor_rfqs':
+      case 'procurementVendorRfqs':
+      case '/procurement/vendor-rfqs':
+        return const VendorRfqsPage();
+      case 'procurement_vendor_quotations':
+      case 'procurementVendorQuotations':
+      case '/procurement/vendor-quotations':
+        return const VendorQuotationsPage();
+      case 'procurement_purchase_orders':
+      case 'procurementPurchaseOrders':
+      case '/procurement/purchase-orders':
+        return const PurchaseOrdersPage();
+      case 'procurement_dispatch':
+      case 'procurementDispatch':
+      case '/procurement/dispatch':
+        return const MaterialDispatchPage();
       case 'procurement_design_payments':
-        return const DesignPaymentPage();
+      case 'procurementDesignPayments':
+      case '/procurement/design-payments':
+      case 'opsDesignPayment':
+      case '/operations/design-payment':
+        return const DesignPaymentRequestsPage();
       case 'procurement_weekly_fees':
-        return const SaturdayFeesPage();
+      case 'procurementWeeklyFees':
+      case '/procurement/weekly-fees':
+      case 'opsSaturdayFees':
+      case '/operations/saturday-fees':
+        return const WeeklySaturdayFeesPage();
 
       // 8. Accounting & Finance
       case 'finance_overview':

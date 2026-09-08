@@ -40,127 +40,132 @@ class _PdfDocumentPreviewState extends State<PdfDocumentPreview> {
 
     if (pages.isEmpty) {
       return Center(
-        child: Text(
-          'No pages selected for preview',
-          style: GoogleFonts.inter(color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Text(
+            'No pages selected for preview',
+            style: GoogleFonts.inter(color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+          ),
         ),
       );
     }
 
-    if (_activePageIndex >= pages.length) {
-      _activePageIndex = 0;
-    }
+    final safeIndex = _activePageIndex.clamp(0, pages.length - 1);
 
-    return Column(
-      children: [
-        // Page Navigation Bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-            borderRadius: AppRadius.sm,
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.picture_as_pdf_rounded, size: 18, color: AppColors.error),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Page ${_activePageIndex + 1} of ${pages.length}',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _getPageTitle(_activePageIndex),
-                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isHeightBounded = constraints.maxHeight.isFinite;
+
+        final sheet = SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: 780,
+              constraints: const BoxConstraints(minHeight: 1000),
+              padding: const EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left_rounded, size: 20),
-                    onPressed: _activePageIndex > 0 ? () => setState(() => _activePageIndex--) : null,
-                    tooltip: 'Previous Page',
-                    splashRadius: 16,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right_rounded, size: 20),
-                    onPressed: _activePageIndex < pages.length - 1
-                        ? () => setState(() => _activePageIndex++)
-                        : null,
-                    tooltip: 'Next Page',
-                    splashRadius: 16,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Simulated A4 Document Page Sheet
-        Expanded(
-          child: SingleChildScrollView(
-            child: Center(
-              child: Container(
-                width: 780,
-                constraints: const BoxConstraints(minHeight: 1000),
-                padding: const EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: DefaultTextStyle(
-                  style: GoogleFonts.inter(color: const Color(0xFF0F172A)),
-                  child: pages[_activePageIndex],
-                ),
+              child: DefaultTextStyle(
+                style: GoogleFonts.inter(color: const Color(0xFF0F172A)),
+                child: pages[safeIndex],
               ),
             ),
           ),
-        ),
-      ],
+        );
+
+        return Column(
+          children: [
+            // Page Navigation Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
+                borderRadius: AppRadius.sm,
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.picture_as_pdf_rounded, size: 18, color: AppColors.error),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Page ${safeIndex + 1} of ${pages.length}',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _getPageTitle(safeIndex),
+                          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left_rounded, size: 20),
+                        onPressed: safeIndex > 0 ? () => setState(() => _activePageIndex = safeIndex - 1) : null,
+                        tooltip: 'Previous Page',
+                        splashRadius: 16,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right_rounded, size: 20),
+                        onPressed: safeIndex < pages.length - 1
+                            ? () => setState(() => _activePageIndex = safeIndex + 1)
+                            : null,
+                        tooltip: 'Next Page',
+                        splashRadius: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Simulated A4 Document Page Sheet
+            if (isHeightBounded)
+              Expanded(child: sheet)
+            else
+              SizedBox(
+                height: 750,
+                child: sheet,
+              ),
+          ],
+        );
+      },
     );
   }
 
   String _getPageTitle(int index) {
-    var current = 0;
-    if (widget.showCoverPage) {
-      if (index == current) return 'Cover Page';
-      current++;
-    }
-    if (widget.showSummaryPage) {
-      if (index == current) return 'Executive Summary & Room Breakdown';
-      current++;
-    }
-    if (widget.showBoqPages) {
-      if (index == current) return 'Detailed Bill of Quantities (BOQ)';
-      current++;
-    }
-    if (widget.showEndPages) {
-      if (index == current) return 'Payment Milestones & Warranties';
-      current++;
+    final titles = <String>[];
+    if (widget.showCoverPage) titles.add('Cover Page');
+    if (widget.showSummaryPage) titles.add('Executive Summary & Room Breakdown');
+    if (widget.showBoqPages) titles.add('Detailed Bill of Quantities (BOQ)');
+    if (widget.showEndPages) titles.add('Payment Milestones & Warranties');
+
+    if (index >= 0 && index < titles.length) {
+      return titles[index];
     }
     return 'Document Page';
   }
@@ -253,30 +258,36 @@ class _PdfDocumentPreviewState extends State<PdfDocumentPreview> {
           widget.quotation.projectLocation,
           style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
         ),
-        const Spacer(),
+        const SizedBox(height: 32),
 
         const Divider(color: Color(0xFFE2E8F0)),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('PREPARED FOR:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
-                const SizedBox(height: 2),
-                Text(widget.quotation.clientName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                Text('${widget.quotation.clientPhone} • ${widget.quotation.clientEmail}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('PREPARED FOR:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 2),
+                  Text(widget.quotation.clientName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                  Text('${widget.quotation.clientPhone} • ${widget.quotation.clientEmail}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)), overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const Text('PRINCIPAL DESIGNER:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
-                const SizedBox(height: 2),
-                Text(widget.quotation.designerName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4F46E5))),
-                Text('Revision: R-${widget.quotation.revisionNumber} • Valid for 14 Days', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text('PRINCIPAL DESIGNER:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 2),
+                  Text(widget.quotation.designerName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF4F46E5)), overflow: TextOverflow.ellipsis),
+                  Text('Revision: R-${widget.quotation.revisionNumber} • Valid for 14 Days', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)), overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
           ],
         ),
@@ -350,7 +361,7 @@ class _PdfDocumentPreviewState extends State<PdfDocumentPreview> {
           );
         }),
 
-        const Spacer(),
+        const SizedBox(height: 32),
         // Total summary table
         Container(
           padding: const EdgeInsets.all(16),
@@ -424,85 +435,89 @@ class _PdfDocumentPreviewState extends State<PdfDocumentPreview> {
         _buildDocHeader('02. DETAILED BILL OF QUANTITIES (BOQ)'),
         const SizedBox(height: 16),
 
-        Expanded(
-          child: ListView.separated(
-            itemCount: widget.quotation.rooms.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 20),
-            itemBuilder: (context, rIdx) {
-              final room = widget.quotation.rooms[rIdx];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${rIdx + 1}. ${room.roomName.toUpperCase()}',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF4F46E5)),
-                        ),
-                        if (widget.quotation.showAmount)
-                          Text(
-                            '₹${room.roomSubtotal.toStringAsFixed(0)}',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Table(
-                    border: TableBorder.all(color: const Color(0xFFE2E8F0), width: 0.8),
-                    columnWidths: {
-                      0: const FlexColumnWidth(4),
-                      if (!widget.quotation.hideSqft) 1: const FlexColumnWidth(1.2),
-                      2: const FlexColumnWidth(1.2),
-                      if (!widget.quotation.hideRate) 3: const FlexColumnWidth(1.6),
-                      if (widget.quotation.showAmount) 4: const FlexColumnWidth(2),
-                    },
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (int rIdx = 0; rIdx < widget.quotation.rooms.length; rIdx++) ...[
+              if (rIdx > 0) const SizedBox(height: 20),
+              Builder(
+                builder: (context) {
+                  final room = widget.quotation.rooms[rIdx];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TableRow(
-                        decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEF2FF),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${rIdx + 1}. ${room.roomName.toUpperCase()}',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF4F46E5)),
+                            ),
+                            if (widget.quotation.showAmount)
+                              Text(
+                                '₹${room.roomSubtotal.toStringAsFixed(0)}',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      Table(
+                        border: TableBorder.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                        columnWidths: {
+                          0: const FlexColumnWidth(4),
+                          if (!widget.quotation.hideSqft) 1: const FlexColumnWidth(1.2),
+                          2: const FlexColumnWidth(1.2),
+                          if (!widget.quotation.hideRate) 3: const FlexColumnWidth(1.6),
+                          if (widget.quotation.showAmount) 4: const FlexColumnWidth(2),
+                        },
                         children: [
-                          _tableCell('Item & Specification', isHeader: true),
-                          if (!widget.quotation.hideSqft) _tableCell('UOM', isHeader: true),
-                          _tableCell('Qty', isHeader: true),
-                          if (!widget.quotation.hideRate) _tableCell('Rate (₹)', isHeader: true),
-                          if (widget.quotation.showAmount) _tableCell('Amount (₹)', isHeader: true),
+                          TableRow(
+                            decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                            children: [
+                              _tableCell('Item & Specification', isHeader: true),
+                              if (!widget.quotation.hideSqft) _tableCell('UOM', isHeader: true),
+                              _tableCell('Qty', isHeader: true),
+                              if (!widget.quotation.hideRate) _tableCell('Rate (₹)', isHeader: true),
+                              if (widget.quotation.showAmount) _tableCell('Amount (₹)', isHeader: true),
+                            ],
+                          ),
+                          ...room.items.map((item) {
+                            return TableRow(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+                                      Text(item.materialSpecs, style: const TextStyle(fontSize: 8, color: Color(0xFF64748B))),
+                                    ],
+                                  ),
+                                ),
+                                if (!widget.quotation.hideSqft) _tableCell(item.uom.symbol),
+                                _tableCell(item.quantity.toStringAsFixed(1)),
+                                if (!widget.quotation.hideRate) _tableCell('₹${item.rate.toStringAsFixed(0)}'),
+                                if (widget.quotation.showAmount)
+                                  _tableCell('₹${item.amount.toStringAsFixed(0)}', isBold: true),
+                              ],
+                            );
+                          }),
                         ],
                       ),
-                      ...room.items.map((item) {
-                        return TableRow(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item.name, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
-                                  Text(item.materialSpecs, style: const TextStyle(fontSize: 8, color: Color(0xFF64748B))),
-                                ],
-                              ),
-                            ),
-                            if (!widget.quotation.hideSqft) _tableCell(item.uom.symbol),
-                            _tableCell(item.quantity.toStringAsFixed(1)),
-                            if (!widget.quotation.hideRate) _tableCell('₹${item.rate.toStringAsFixed(0)}'),
-                            if (widget.quotation.showAmount)
-                              _tableCell('₹${item.amount.toStringAsFixed(0)}', isBold: true),
-                          ],
-                        );
-                      }),
                     ],
-                  ),
-                ],
-              );
-            },
-          ),
+                  );
+                },
+              ),
+            ],
+          ],
         ),
       ],
     );
@@ -549,7 +564,7 @@ class _PdfDocumentPreviewState extends State<PdfDocumentPreview> {
           '• Finishes: High-grade scratch-resistant 1.0mm Merino / High-Gloss UV Acrylic.',
           style: TextStyle(fontSize: 10, color: Color(0xFF475569), height: 1.5),
         ),
-        const Spacer(),
+        const SizedBox(height: 32),
 
         // Signature Blocks
         const Divider(color: Color(0xFFE2E8F0)),

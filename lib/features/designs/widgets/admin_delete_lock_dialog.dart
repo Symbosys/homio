@@ -6,24 +6,33 @@ import '../../../core/theme/app_radius.dart';
 /// Super Admin 2FA Multi-Factor Authorization dialog for restricted file/folder deletions (PRD Section 15.2).
 class AdminDeleteLockDialog extends StatefulWidget {
   final String itemName;
-  final VoidCallback onAuthorizedDelete;
+  final String resourceType;
+  final VoidCallback? onAuthorizedDelete;
+  final void Function(String superAdmin, String otp, String reason)? onConfirmSuperAdmin2FA;
 
   const AdminDeleteLockDialog({
     super.key,
     required this.itemName,
-    required this.onAuthorizedDelete,
+    this.resourceType = 'Resource',
+    this.onAuthorizedDelete,
+    this.onConfirmSuperAdmin2FA,
   });
 
   static void show({
     required BuildContext context,
-    required String itemName,
-    required VoidCallback onAuthorizedDelete,
+    String? itemName,
+    String? resourceName,
+    String resourceType = 'Resource',
+    VoidCallback? onAuthorizedDelete,
+    void Function(String superAdmin, String otp, String reason)? onConfirmSuperAdmin2FA,
   }) {
     showDialog(
       context: context,
       builder: (ctx) => AdminDeleteLockDialog(
-        itemName: itemName,
+        itemName: resourceName ?? itemName ?? 'Selected Item',
+        resourceType: resourceType,
         onAuthorizedDelete: onAuthorizedDelete,
+        onConfirmSuperAdmin2FA: onConfirmSuperAdmin2FA,
       ),
     );
   }
@@ -82,7 +91,11 @@ class _AdminDeleteLockDialogState extends State<AdminDeleteLockDialog> {
     }
 
     Navigator.of(context).pop();
-    widget.onAuthorizedDelete();
+    if (widget.onConfirmSuperAdmin2FA != null) {
+      widget.onConfirmSuperAdmin2FA!('Super Admin (Managing Director)', otp, reason);
+    } else {
+      widget.onAuthorizedDelete?.call();
+    }
   }
 
   @override

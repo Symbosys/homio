@@ -6,23 +6,27 @@ import '../../../core/theme/app_colors.dart';
 class CloudShareLinkModal extends StatefulWidget {
   final String itemName;
   final bool isFolder;
+  final String? itemType;
 
   const CloudShareLinkModal({
     super.key,
     required this.itemName,
     this.isFolder = false,
+    this.itemType,
   });
 
   static void show({
     required BuildContext context,
     required String itemName,
     bool isFolder = false,
+    String? itemType,
   }) {
     showDialog(
       context: context,
       builder: (ctx) => CloudShareLinkModal(
         itemName: itemName,
-        isFolder: isFolder,
+        isFolder: isFolder || (itemType == 'Folder'),
+        itemType: itemType,
       ),
     );
   }

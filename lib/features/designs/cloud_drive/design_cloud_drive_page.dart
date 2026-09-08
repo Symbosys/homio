@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/design_models.dart';
-import '../models/design_mock_data.dart';
-import '../widgets/design_header.dart';
+import '../data/designs_repository.dart';
+import '../domain/design_enums.dart';
+import '../domain/design_models.dart';
 import '../widgets/admin_delete_lock_dialog.dart';
 import '../widgets/cloud_share_link_modal.dart';
+import '../widgets/design_header.dart';
+import '../widgets/design_metric_card.dart';
+import '../widgets/design_shared_widgets.dart';
 
-/// Secure Digital Asset Management (DAM) Cloud Drive (PRD Section 15.2, Sidebar 6.3).
-/// Features auto-generated project folder trees and Super Admin 2FA deletion locks.
+/// Screen 6: Cloud Drive & Central DAM (`/designs/drive` / `/designs/cloud-drive`).
+/// Centralized enterprise asset repository with 13-stage folder structure,
+/// encrypted storage governance, and mandatory Super Admin 2FA deletion authorization.
 class DesignCloudDrivePage extends StatefulWidget {
   const DesignCloudDrivePage({super.key});
 
@@ -17,176 +21,174 @@ class DesignCloudDrivePage extends StatefulWidget {
 }
 
 class _DesignCloudDrivePageState extends State<DesignCloudDrivePage> {
-  late List<CloudDriveFolder> _folders;
-  late List<CloudDriveFile> _files;
-  String _selectedProject = 'PRJ-104';
+  final DesignsRepository _repo = DesignsRepository();
+
+  String _selectedProjectCode = 'PRJ-104';
   CloudDriveFolder? _activeFolder;
   String _searchQuery = '';
   bool _isGridView = true;
+  bool _showAuditLogs = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _folders = List.from(DesignMockData.cloudFolders);
-    _files = List.from(DesignMockData.cloudFiles);
-  }
+  List<CloudDriveFolder> get _folders => _repo.getFoldersForProject(_selectedProjectCode);
 
-  List<CloudDriveFolder> get _filteredFolders {
-    return _folders.where((f) => f.projectCode == _selectedProject).toList();
-  }
-
-  List<CloudDriveFile> get _filteredFiles {
-    return _files.where((file) {
-      if (file.projectCode != _selectedProject) return false;
-      if (_activeFolder != null && file.folderId != _activeFolder!.id) return false;
+  List<CloudDriveFile> get _files {
+    if (_activeFolder == null) return [];
+    return _repo.getFilesForFolder(_selectedProjectCode, _activeFolder!.id).where((file) {
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
-        if (!file.fileName.toLowerCase().contains(q)) return false;
+        final match = file.fileName.toLowerCase().contains(q) ||
+            file.uploadedByName.toLowerCase().contains(q) ||
+            file.fileType.extension.toLowerCase().contains(q);
+        if (!match) return false;
       }
       return true;
     }).toList();
   }
 
-  void _handleDeleteAttempt(String itemName, VoidCallback onAuthorizedDelete) {
+  void _handleDeleteFile(CloudDriveFile file) {
     AdminDeleteLockDialog.show(
       context: context,
-      itemName: itemName,
-      onAuthorizedDelete: onAuthorizedDelete,
+      resourceType: 'File',
+      resourceName: file.fileName,
+      onConfirmSuperAdmin2FA: (superAdmin, otp, reason) {
+        final success = _repo.deleteFileWithSuperAdmin2FA(file.id, superAdmin, otp, reason);
+        if (success) {
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('File "${file.fileName}" DELETED under 2FA Audit Trail by $superAdmin.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid Super Admin OTP code! Action blocked.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
     );
   }
 
-  void _handleShare(String itemName, {bool isFolder = false}) {
-    CloudShareLinkModal.show(
+  void _handleDeleteFolder(CloudDriveFolder folder) {
+    AdminDeleteLockDialog.show(
       context: context,
-      itemName: itemName,
-      isFolder: isFolder,
+      resourceType: 'Folder',
+      resourceName: folder.folderName,
+      onConfirmSuperAdmin2FA: (superAdmin, otp, reason) {
+        final success = _repo.deleteFolderWithSuperAdmin2FA(folder.id, superAdmin, otp, reason);
+        if (success) {
+          setState(() {
+            if (_activeFolder?.id == folder.id) {
+              _activeFolder = null;
+            }
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Folder "${folder.folderName}" DELETED under 2FA Audit Trail by $superAdmin.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid Super Admin OTP code! Action blocked.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
     );
   }
 
   void _handleCreateFolder() {
-    final nameController = TextEditingController();
+    final folderNameCtrl = TextEditingController();
+    CloudFolderType selectedType = CloudFolderType.cadDrawings;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Create New Cloud Folder'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Folder Name',
-            hintText: 'e.g. 07_Site_Inspection_Dossiers',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                setState(() {
-                  _folders.add(
-                    CloudDriveFolder(
-                      id: 'FLD-${DateTime.now().millisecondsSinceEpoch}',
-                      projectCode: _selectedProject,
-                      name: nameController.text.trim(),
-                      folderType: CloudFolderType.cadDrawings,
-                      itemCount: 0,
-                      totalSizeBytes: 0,
-                      lastModified: DateTime.now(),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDlgState) {
+            return AlertDialog(
+              title: Text('Create Structured Cloud Folder', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Folder Name *', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: folderNameCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. 14_Façade_Engineering',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                  );
-                });
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Folder "${nameController.text.trim()}" created in $_selectedProject.'),
-                    backgroundColor: AppColors.success,
+                    style: const TextStyle(fontSize: 13),
                   ),
-                );
-              }
-            },
-            child: const Text('Create Folder'),
-          ),
-        ],
-      ),
+                  const SizedBox(height: 14),
+                  Text('Folder Type Classification', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<CloudFolderType>(
+                    initialValue: selectedType,
+                    decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                    items: CloudFolderType.values.map((t) {
+                      return DropdownMenuItem(value: t, child: Text(t.label, style: const TextStyle(fontSize: 12)));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setDlgState(() => selectedType = val);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () {
+                    final name = folderNameCtrl.text.trim();
+                    if (name.isNotEmpty) {
+                      final newF = CloudDriveFolder(
+                        id: 'fld-${DateTime.now().millisecondsSinceEpoch}',
+                        projectCode: _selectedProjectCode,
+                        folderName: name,
+                        folderType: selectedType,
+                        fileCount: 0,
+                        totalSizeBytes: 0,
+                        lastModified: DateTime.now(),
+                      );
+                      setState(() {
+                        _repo.createFolder(newF);
+                      });
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Folder "$name" created in $_selectedProjectCode'), backgroundColor: AppColors.success),
+                      );
+                    }
+                  },
+                  child: const Text('Create Folder'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  void _handleUploadFile() {
-    final fileNameController = TextEditingController(text: 'Revision_Blueprint_${DateTime.now().millisecond}.dwg');
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Upload File to Cloud Drive'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: fileNameController,
-              decoration: const InputDecoration(labelText: 'File Name'),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.file_present_rounded, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Expanded(child: Text('Simulated file size: 18.4 MB (AutoCAD 2026 format)')),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              if (fileNameController.text.trim().isNotEmpty) {
-                final targetFolderId = _activeFolder?.id ?? (_filteredFolders.isNotEmpty ? _filteredFolders.first.id : 'FLD-ROOT');
-                setState(() {
-                  _files.insert(
-                    0,
-                    CloudDriveFile(
-                      id: 'FIL-${DateTime.now().millisecondsSinceEpoch}',
-                      projectCode: _selectedProject,
-                      folderId: targetFolderId,
-                      fileName: fileNameController.text.trim(),
-                      fileType: DesignFileType.dwg,
-                      fileSizeBytes: 18400000,
-                      uploadedAt: DateTime.now(),
-                      uploadedBy: 'Ananya Roy (Lead Architect)',
-                      downloadUrl: 'https://storage.homio.internal/designs/$_selectedProject/${fileNameController.text.trim()}',
-                      thumbnailUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&q=80',
-                      versionTag: 'v1.0',
-                      tags: ['DWG', 'Uploaded'],
-                    ),
-                  );
-                });
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('File "${fileNameController.text.trim()}" securely uploaded and encrypted.'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
-            },
-            icon: const Icon(Icons.cloud_upload_rounded, size: 16),
-            label: const Text('Upload File'),
-          ),
-        ],
+  void _handleUploadSimulation() {
+    if (_activeFolder == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please open a folder first to upload files.'), backgroundColor: AppColors.warning),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Simulated file uploaded to ${_activeFolder!.folderName}. Checksum logged.'),
+        backgroundColor: AppColors.success,
       ),
     );
   }
@@ -195,11 +197,20 @@ class _DesignCloudDrivePageState extends State<DesignCloudDrivePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final projects = _repo.projects;
+    final folders = _folders;
+    final files = _files;
+    final auditLogs = _repo.deletionAuditLogs;
 
-    final folders = _filteredFolders;
-    final files = _filteredFiles;
+    // Computed drive metrics
+    int totalBytes = 0;
+    for (final f in _repo.driveFiles) {
+      totalBytes += f.fileSizeBytes;
+    }
+    final totalMB = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -207,516 +218,556 @@ class _DesignCloudDrivePageState extends State<DesignCloudDrivePage> {
           children: [
             // Page Header
             DesignHeader(
-              title: 'Secure Cloud Drive (DAM)',
-              subtitle: 'Centralized project vault, immutable drawing repository & Super Admin 2FA deletion locks',
-              primaryActionLabel: 'Upload File',
-              primaryActionIcon: Icons.cloud_upload_outlined,
-              onPrimaryAction: _handleUploadFile,
-              searchHint: 'Search files in cloud drive...',
+              title: 'Central Cloud Drive & Digital Asset Management',
+              subtitle: 'Enterprise CAD/BIM repository, folder access governance & 2FA Super Admin deletion audit trail',
+              primaryActionLabel: _activeFolder != null ? 'Upload File' : 'New Folder',
+              primaryActionIcon: _activeFolder != null ? Icons.cloud_upload_outlined : Icons.create_new_folder_outlined,
+              onPrimaryAction: _activeFolder != null ? _handleUploadSimulation : _handleCreateFolder,
+              searchHint: _activeFolder != null ? 'Search files in ${_activeFolder!.folderName}...' : 'Search cloud drive folders...',
               onSearchChanged: (val) => setState(() => _searchQuery = val),
               actions: [
                 OutlinedButton.icon(
-                  onPressed: _handleCreateFolder,
-                  icon: const Icon(Icons.create_new_folder_outlined, size: 18),
-                  label: const Text('New Folder'),
+                  onPressed: () => setState(() => _showAuditLogs = !_showAuditLogs),
+                  icon: Icon(_showAuditLogs ? Icons.folder_rounded : Icons.security_rounded, size: 16),
+                  label: Text(_showAuditLogs ? 'Back to Drive' : '2FA Deletion Audit Log (${auditLogs.length})'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () => _handleShare('$_selectedProject Master Vault', isFolder: true),
-                  icon: const Icon(Icons.share_outlined, size: 18),
-                  label: const Text('Share Vault'),
+                // Project Switcher
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.apartment, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedProjectCode,
+                          items: projects.map((p) {
+                            return DropdownMenuItem(
+                              value: p.code,
+                              child: Text('${p.code} (${p.name.split(' ').first})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _selectedProjectCode = val;
+                                _activeFolder = null;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            // Top Storage Quota & Metric Banner
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.cloud_done_rounded, color: AppColors.primary, size: 22),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Cloud Drive Vault Storage Quota',
-                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '12.4 GB of 100 GB Used (12.4%)',
-                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: const LinearProgressIndicator(
-                      value: 0.124,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 20,
-                    runSpacing: 8,
-                    children: [
-                      _buildQuotaCategory('2D CAD Blueprints', '2.8 GB', AppColors.primary),
-                      _buildQuotaCategory('3D Renders & 4K', '5.6 GB', const Color(0xFF8B5CF6)),
-                      _buildQuotaCategory('Site Surveillance 4K', '3.2 GB', AppColors.success),
-                      _buildQuotaCategory('BOQs & Documents', '0.8 GB', AppColors.warning),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Controls Bar with Project Selector & Breadcrumbs
+            // Governance Security Banner
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  // Select Project
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.apartment, size: 18, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      DropdownButton<String>(
-                        value: _selectedProject,
-                        underline: const SizedBox(),
-                        items: const [
-                          DropdownMenuItem(value: 'PRJ-104', child: Text('PRJ-104 (DLF Camellias)')),
-                          DropdownMenuItem(value: 'PRJ-105', child: Text('PRJ-105 (Godrej Woods)')),
-                          DropdownMenuItem(value: 'PRJ-106', child: Text('PRJ-106 (Prestige Golfshire)')),
-                          DropdownMenuItem(value: 'PRJ-107', child: Text('PRJ-107 (Oberoi Sky City)')),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() {
-                              _selectedProject = v;
-                              _activeFolder = null;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Breadcrumb Path
+                  const Icon(Icons.verified_user_rounded, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          InkWell(
-                            onTap: () => setState(() => _activeFolder = null),
-                            child: Text(
-                              'Vault Root',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _activeFolder == null ? AppColors.primary : Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          if (_activeFolder != null) ...[
-                            const Text('  /  ', style: TextStyle(color: Colors.grey)),
-                            Text(
-                              _activeFolder!.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
-                            ),
-                          ],
-                        ],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Strict DAM Deletion Policy Active: Dual-Custody 2FA Authorization Required',
+                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        ),
+                        Text(
+                          'Project folders and CAD assets cannot be deleted by general staff. Deletions require Super Admin identity verification and cryptographic OTP entry.',
+                          style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkMutedText : AppColors.lightMutedText),
+                        ),
+                      ],
                     ),
-                  ),
-
-                  // View Toggle
-                  IconButton(
-                    icon: Icon(Icons.grid_view_rounded, color: _isGridView ? AppColors.primary : Colors.grey, size: 20),
-                    tooltip: 'Grid View',
-                    onPressed: () => setState(() => _isGridView = true),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.view_list_rounded, color: !_isGridView ? AppColors.primary : Colors.grey, size: 20),
-                    tooltip: 'List View',
-                    onPressed: () => setState(() => _isGridView = false),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
 
-            // Folders Section (Only when in Vault Root)
-            if (_activeFolder == null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'PROJECT FOLDERS',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: isDark ? AppColors.darkMutedText : AppColors.lightMutedText,
-                    ),
+            // Top KPI Row
+            Row(
+              children: [
+                Expanded(
+                  child: DesignMetricCard(
+                    title: 'Total Cloud Files',
+                    value: '${_repo.driveFiles.length}',
+                    subtitle: 'Indexed in repository',
+                    icon: Icons.folder_shared_rounded,
+                    color: AppColors.primary,
                   ),
-                  Text(
-                    '${folders.length} auto-generated folders',
-                    style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 320,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 2.4,
                 ),
-                itemCount: folders.length,
-                itemBuilder: (context, idx) {
-                  final f = folders[idx];
-                  return InkWell(
-                    onTap: () => setState(() => _activeFolder = f),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: DesignMetricCard(
+                    title: 'Storage Consumed',
+                    value: '$totalMB MB',
+                    subtitle: 'AWS S3 encrypted vault',
+                    icon: Icons.cloud_done_rounded,
+                    color: AppColors.success,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: DesignMetricCard(
+                    title: 'Project Folders',
+                    value: '${folders.length}',
+                    subtitle: 'In $_selectedProjectCode tree',
+                    icon: Icons.create_new_folder_rounded,
+                    color: const Color(0xFF6366F1),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: DesignMetricCard(
+                    title: '2FA Audit Logs',
+                    value: '${auditLogs.length}',
+                    subtitle: 'Immutable security events',
+                    icon: Icons.lock_outline_rounded,
+                    color: AppColors.warning,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Show Audit Logs OR Drive Explorer
+            if (_showAuditLogs)
+              _buildAuditLogsView(auditLogs, isDark)
+            else ...[
+              // Breadcrumb Navigation
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () => setState(() => _activeFolder = null),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
+                          const Icon(Icons.cloud_queue_rounded, size: 18, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$_selectedProjectCode Root',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: _activeFolder == null ? FontWeight.w700 : FontWeight.w500,
+                              color: _activeFolder == null ? AppColors.primary : Colors.grey,
                             ),
-                            child: Icon(f.folderType.icon, color: AppColors.primary, size: 22),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  f.name,
-                                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${f.itemCount} items • ${f.totalSizeFormatted}',
-                                  style: GoogleFonts.inter(fontSize: 10, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert, size: 18),
-                            itemBuilder: (ctx) => [
-                              const PopupMenuItem(value: 'open', child: Text('Open Folder')),
-                              const PopupMenuItem(value: 'share', child: Text('Share Folder Link')),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Delete (Admin 2FA Lock)', style: TextStyle(color: AppColors.error)),
-                              ),
-                            ],
-                            onSelected: (val) {
-                              if (val == 'open') {
-                                setState(() => _activeFolder = f);
-                              } else if (val == 'share') {
-                                _handleShare(f.name, isFolder: true);
-                              } else if (val == 'delete') {
-                                _handleDeleteAttempt(f.name, () {
-                                  setState(() => _folders.removeWhere((item) => item.id == f.id));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Folder "${f.name}" purged under Super Admin 2FA authorization.')),
-                                  );
-                                });
-                              }
-                            },
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
-            ],
-
-            // Files Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _activeFolder == null ? 'ALL PROJECT DRAWINGS & ASSETS' : 'FILES IN: ${_activeFolder!.name}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: isDark ? AppColors.darkMutedText : AppColors.lightMutedText,
-                  ),
-                ),
-                Text(
-                  '${files.length} design files',
-                  style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            if (files.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(40),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.folder_open_rounded, size: 40, color: Colors.grey),
-                    const SizedBox(height: 10),
-                    Text(
-                      'No files in this folder yet',
-                      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold),
+                    if (_activeFolder != null) ...[
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey),
+                      ),
+                      Icon(_activeFolder!.folderType.icon, size: 16, color: _activeFolder!.folderType.color),
+                      const SizedBox(width: 6),
+                      Text(
+                        _activeFolder!.folderName,
+                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      ),
+                    ],
+                    const Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.black26 : Colors.black12,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.grid_view_rounded, size: 16, color: _isGridView ? AppColors.primary : Colors.grey),
+                            onPressed: () => setState(() => _isGridView = true),
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            padding: EdgeInsets.zero,
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.table_rows_rounded, size: 16, color: !_isGridView ? AppColors.primary : Colors.grey),
+                            onPressed: () => setState(() => _isGridView = false),
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text('Click "Upload File" to add 2D CAD or 3D render deliverables.', style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
-              )
-            else if (_isGridView)
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 240,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.88,
-                ),
-                itemCount: files.length,
-                itemBuilder: (context, idx) {
-                  final file = files[idx];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(file.thumbnailUrl, fit: BoxFit.cover),
-                              Positioned(
-                                top: 6,
-                                left: 6,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: file.fileType.color,
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: Text(
-                                    file.fileType.extension.toUpperCase(),
-                                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Icon(Icons.lock_rounded, size: 12, color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                file.fileName,
-                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${file.fileSizeFormatted} • ${file.versionTag}',
-                                style: GoogleFonts.inter(fontSize: 10, color: Colors.grey),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.share_outlined, size: 14),
-                                    tooltip: 'Share Link',
-                                    onPressed: () => _handleShare(file.fileName),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.download_rounded, size: 14),
-                                    tooltip: 'Download File',
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Downloading "${file.fileName}"...')),
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline, size: 14, color: AppColors.error),
-                                    tooltip: 'Delete File (Admin 2FA Locked)',
-                                    onPressed: () {
-                                      _handleDeleteAttempt(file.fileName, () {
-                                        setState(() => _files.removeWhere((item) => item.id == file.id));
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('File "${file.fileName}" purged under Super Admin 2FA authorization.')),
-                                        );
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: files.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
-                itemBuilder: (context, idx) {
-                  final file = files[idx];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: file.fileType.color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Icon(file.fileType.icon, color: file.fileType.color, size: 18),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(file.fileName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              Text(
-                                '${file.fileSizeFormatted} • ${file.versionTag} • Uploaded by ${file.uploadedBy}',
-                                style: const TextStyle(fontSize: 10, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.share_outlined, size: 16),
-                          tooltip: 'Share',
-                          onPressed: () => _handleShare(file.fileName),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.download_rounded, size: 16),
-                          tooltip: 'Download',
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Downloading "${file.fileName}"...')),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.error),
-                          tooltip: 'Delete (Locked)',
-                          onPressed: () {
-                            _handleDeleteAttempt(file.fileName, () {
-                              setState(() => _files.removeWhere((item) => item.id == file.id));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('File "${file.fileName}" purged under Super Admin 2FA authorization.')),
-                              );
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
               ),
+              const SizedBox(height: 20),
+
+              // Folders List or Files in active folder
+              if (_activeFolder == null)
+                _buildFolderHierarchy(folders, isDark)
+              else
+                _buildFilesView(files, isDark),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuotaCategory(String label, String used, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  Widget _buildFolderHierarchy(List<CloudDriveFolder> folders, bool isDark) {
+    if (folders.isEmpty) {
+      return const DesignEmptyState(
+        icon: Icons.folder_open_rounded,
+        title: 'No Folders in this Project',
+        message: 'Create a new folder to begin organizing project blueprints and assets.',
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = (constraints.maxWidth / 280).floor().clamp(1, 4);
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            mainAxisExtent: 140,
+          ),
+          itemCount: folders.length,
+          itemBuilder: (context, index) {
+            final f = folders[index];
+
+            return InkWell(
+              onTap: () => setState(() => _activeFolder = f),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: f.folderType.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(f.folderType.icon, size: 20, color: f.folderType.color),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            f.folderName,
+                            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${f.fileCount} files • ${f.totalSizeBytesFormatted}',
+                            style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkMutedText : AppColors.lightMutedText),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.share_outlined, size: 16),
+                              tooltip: 'Share Folder Link',
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(),
+                              onPressed: () {
+                                CloudShareLinkModal.show(
+                                  context: context,
+                                  itemName: f.folderName,
+                                  itemType: 'Folder',
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                              tooltip: 'Super Admin 2FA Delete',
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _handleDeleteFolder(f),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilesView(List<CloudDriveFile> files, bool isDark) {
+    if (files.isEmpty) {
+      return const DesignEmptyState(
+        icon: Icons.insert_drive_file_outlined,
+        title: 'Empty Folder',
+        message: 'No files uploaded to this folder yet. Click "Upload File" above.',
+      );
+    }
+
+    if (_isGridView) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final crossAxisCount = (constraints.maxWidth / 300).floor().clamp(1, 4);
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              mainAxisExtent: 220,
+            ),
+            itemCount: files.length,
+            itemBuilder: (context, index) {
+              final file = files[index];
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: file.fileType.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(file.fileType.icon, size: 20, color: file.fileType.color),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                file.fileName,
+                                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '${file.currentVersionTag} • ${file.fileSizeBytesFormatted}',
+                                style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkMutedText : AppColors.lightMutedText),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Wrap(
+                      spacing: 6,
+                      children: file.tags.take(3).map((t) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(t, style: GoogleFonts.inter(fontSize: 10)),
+                        );
+                      }).toList(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('By ${file.uploadedByName.split(' ').first}', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.share_outlined, size: 16),
+                              tooltip: 'Share File',
+                              onPressed: () {
+                                CloudShareLinkModal.show(
+                                  context: context,
+                                  itemName: file.fileName,
+                                  itemType: 'File',
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                              tooltip: 'Super Admin 2FA Delete',
+                              onPressed: () => _handleDeleteFile(file),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('File Name')),
+            DataColumn(label: Text('Version')),
+            DataColumn(label: Text('Format')),
+            DataColumn(label: Text('Size')),
+            DataColumn(label: Text('Uploaded By')),
+            DataColumn(label: Text('Date')),
+            DataColumn(label: Text('Actions')),
+          ],
+          rows: files.map((f) {
+            return DataRow(
+              cells: [
+                DataCell(Text(f.fileName, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600))),
+                DataCell(Text(f.currentVersionTag, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text('.${f.fileType.extension}', style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text(f.fileSizeBytesFormatted, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text(f.uploadedByName, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text('${f.uploadedAt.day}/${f.uploadedAt.month}/${f.uploadedAt.year}', style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.share_outlined, size: 16),
+                        onPressed: () => CloudShareLinkModal.show(context: context, itemName: f.fileName, itemType: 'File'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                        onPressed: () => _handleDeleteFile(f),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
         ),
-        const SizedBox(width: 6),
-        Text('$label: ', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey)),
-        Text(used, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildAuditLogsView(List<DeletionAuditLog> logs, bool isDark) {
+    if (logs.isEmpty) {
+      return const DesignEmptyState(
+        icon: Icons.security_rounded,
+        title: 'Zero Deletion Events Logged',
+        message: 'No digital assets have been authorized for deletion under the Super Admin 2FA policy.',
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Resource Name')),
+            DataColumn(label: Text('Type')),
+            DataColumn(label: Text('Super Admin Approver')),
+            DataColumn(label: Text('2FA OTP')),
+            DataColumn(label: Text('Reason for Deletion')),
+            DataColumn(label: Text('Timestamp')),
+            DataColumn(label: Text('Status')),
+          ],
+          rows: logs.map((log) {
+            return DataRow(
+              cells: [
+                DataCell(Text(log.itemName, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600))),
+                DataCell(Text(log.itemType, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text(log.superAdminApprover, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text('VERIFIED', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.success)),
+                  ),
+                ),
+                DataCell(Text(log.reason, style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(Text('${log.timestamp.day}/${log.timestamp.month}/${log.timestamp.year} ${log.timestamp.hour}:${log.timestamp.minute.toString().padLeft(2, '0')}', style: GoogleFonts.inter(fontSize: 12))),
+                DataCell(
+                  const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 16),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

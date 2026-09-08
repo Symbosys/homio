@@ -4,12 +4,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../models/quotation_models.dart';
 import '../models/quotation_mock_data.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/expiry_countdown.dart';
 import '../widgets/quotation_header.dart';
 import '../widgets/quotation_metric_card.dart';
-import '../widgets/urgency_countdown_badge.dart';
 import '../widgets/whatsapp_urgency_dialog.dart';
 
-/// Screen 4: Dynamic Pricing & 24h Expiry Urgency Command Hub (PRD Section 9.4 & TC-QUOT-001).
+/// Screen 5: Quotation Expiry, Reminders & Dynamic Pricing Urgency Hub (PRD Section 32).
 class QuotationUrgencyPage extends StatefulWidget {
   const QuotationUrgencyPage({super.key});
 
@@ -17,464 +18,99 @@ class QuotationUrgencyPage extends StatefulWidget {
   State<QuotationUrgencyPage> createState() => _QuotationUrgencyPageState();
 }
 
+enum UrgencyFilter {
+  all('All Active'),
+  today('Expiring Today (<24h)'),
+  tomorrow('Expiring Tomorrow'),
+  thisWeek('Next 7 Days'),
+  expired('Expired'),
+  dispatched('Reminder Sent');
+
+  final String label;
+  const UrgencyFilter(this.label);
+}
+
 class _QuotationUrgencyPageState extends State<QuotationUrgencyPage> {
   late List<Quotation> _quotations;
   late List<UrgencyAlertLog> _urgencyLogs;
+  UrgencyFilter _selectedFilter = UrgencyFilter.all;
+  bool _autoRemindersEnabled = true;
+  int _alertHoursBefore = 24;
 
   @override
   void initState() {
     super.initState();
-    _quotations = List.from(QuotationMockData.quotations);
-    _urgencyLogs = List.from(QuotationMockData.urgencyLogs);
+    _loadData();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isMobile = MediaQuery.of(context).size.width < 768;
-
-    // Metrics calculations
-    final activeCount = _quotations.length;
-    final expiringSoonCount = _quotations.where((q) => !q.isDiscountExpired && q.timeRemaining.inHours <= 24).length;
-    final totalDiscountAtStake = _quotations.fold(0.0, (sum, q) => sum + q.discountAmount);
-
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            QuotationHeader(
-              title: 'Dynamic Pricing & 24h Expiry Urgency Hub',
-              subtitle: 'Automated WhatsApp urgency reminders, discount expiry tracking & closing bots (TC-QUOT-001)',
-              icon: Icons.timer_rounded,
-              primaryAction: ElevatedButton.icon(
-                onPressed: _triggerBulkAudit,
-                icon: const Icon(Icons.bolt_rounded, size: 16),
-                label: const Text('Run 24h Expiry Cron Check'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                  textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
-              onRefresh: () {
-                setState(() {
-                  _quotations = List.from(QuotationMockData.quotations);
-                  _urgencyLogs = List.from(QuotationMockData.urgencyLogs);
-                });
-              },
-            ),
-
-            // KPI Metrics Row
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isNarrow = constraints.maxWidth < 640;
-                final isMedium = constraints.maxWidth < 1024;
-                final crossAxisCount = isNarrow ? 2 : (isMedium ? 2 : 4);
-
-                return GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: isNarrow ? 1.6 : 2.2,
-                  children: [
-                    QuotationMetricCard(
-                      title: 'ACTIVE DISCOUNT PROPOSALS',
-                      value: '$activeCount Quotes',
-                      subtitle: 'Under negotiation',
-                      icon: Icons.local_offer_rounded,
-                      accentColor: AppColors.primary,
-                    ),
-                    QuotationMetricCard(
-                      title: 'EXPIRING IN < 24 HOURS',
-                      value: '$expiringSoonCount Proposals',
-                      subtitle: 'Urgency WhatsApp triggered',
-                      icon: Icons.warning_amber_rounded,
-                      accentColor: const Color(0xFFEA580C),
-                      changePercent: 'CRITICAL',
-                      isPositive: false,
-                    ),
-                    QuotationMetricCard(
-                      title: 'DISCOUNT VALUE AT STAKE',
-                      value: '₹${(totalDiscountAtStake / 1000).toStringAsFixed(0)}K',
-                      subtitle: 'Early-bird savings incentive',
-                      icon: Icons.currency_rupee_rounded,
-                      accentColor: AppColors.success,
-                    ),
-                    QuotationMetricCard(
-                      title: 'CLOSING CONVERSION RATE',
-                      value: '68.4%',
-                      subtitle: 'Within 24h urgency window',
-                      icon: Icons.speed_rounded,
-                      accentColor: AppColors.secondary,
-                      changePercent: '+8.6%',
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Active Discount Quotations Table
-            Text(
-              'Active Discount Proposals & Expiry Timers',
-              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Proposals with submission dates, early bird discounts and countdown timers',
-              style: GoogleFonts.inter(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-            ),
-            const SizedBox(height: 12),
-
-            if (isMobile)
-              _buildMobileQuotationsList(isDark)
-            else
-              _buildDesktopQuotationsTable(isDark),
-
-            const SizedBox(height: 24),
-
-            // Automated 24h WhatsApp Urgency Logs Section (PRD Scenario 1 / TC-QUOT-001)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF25D366).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Icon(Icons.chat_bubble_rounded, size: 14, color: Color(0xFF25D366)),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '24-Hour WhatsApp Urgency Automation Log (TC-QUOT-001)',
-                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Pre-approved WhatsApp Cloud API templates dispatched exactly 24h prior to expiry',
-                      style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'Bot Status: ACTIVE',
-                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF25D366)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            _buildUrgencyLogsCard(isDark),
-          ],
-        ),
-      ),
-    );
+  void _loadData() {
+    setState(() {
+      _quotations = List.from(QuotationMockData.quotations);
+      _urgencyLogs = List.from(QuotationMockData.urgencyAlerts);
+    });
   }
 
-  Widget _buildDesktopQuotationsTable(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: AppRadius.md,
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-      ),
-      child: ClipRRect(
-        borderRadius: AppRadius.md,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 24,
-            horizontalMargin: 16,
-            headingRowHeight: 44,
-            dataRowMinHeight: 60,
-            dataRowMaxHeight: 68,
-            headingRowColor: WidgetStateProperty.all(isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle),
-            headingTextStyle: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-            ),
-            columns: const [
-              DataColumn(label: Text('PROPOSAL & CLIENT')),
-              DataColumn(label: Text('DEAL VALUE')),
-              DataColumn(label: Text('DISCOUNT (INR / %)')),
-              DataColumn(label: Text('SUBMISSION DATE')),
-              DataColumn(label: Text('COUNTDOWN & EXPIRY')),
-              DataColumn(label: Text('ACTIONS')),
-            ],
-            rows: _quotations.map((q) {
-              final isExpiringSoon = !q.isDiscountExpired && q.timeRemaining.inHours <= 24;
-              return DataRow(
-                color: isExpiringSoon
-                    ? WidgetStateProperty.all(const Color(0xFFEA580C).withValues(alpha: isDark ? 0.1 : 0.05))
-                    : null,
-                cells: [
-                  DataCell(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          q.quoteNumber,
-                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
-                        ),
-                        Text(
-                          '${q.clientName} • ${q.clientPhone}',
-                          style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  DataCell(
-                    Text('₹${q.grandTotal.toStringAsFixed(0)}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700)),
-                  ),
-                  DataCell(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '-₹${q.discountAmount.toStringAsFixed(0)}',
-                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.error),
-                        ),
-                        Text(
-                          '${q.discountPercent.toStringAsFixed(0)}% Early Bird',
-                          style: GoogleFonts.inter(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      _formatDate(q.submissionDate),
-                      style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                    ),
-                  ),
-                  DataCell(
-                    UrgencyCountdownBadge(expiryDate: q.discountExpiryDate),
-                  ),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _openWhatsAppNudge(q),
-                          icon: const Icon(Icons.chat_bubble_rounded, size: 13),
-                          label: const Text('Send Alert'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF25D366),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            visualDensity: VisualDensity.compact,
-                            textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed: () => _extendExpiryDialog(q),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            visualDensity: VisualDensity.compact,
-                            textStyle: GoogleFonts.inter(fontSize: 11),
-                          ),
-                          child: const Text('Extend 24h'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
+  List<Quotation> get _filteredQuotations {
+    return _quotations.where((q) {
+      final now = DateTime.now();
+      final diff = q.discountExpiryDate.difference(now);
+
+      switch (_selectedFilter) {
+        case UrgencyFilter.all:
+          return true;
+        case UrgencyFilter.today:
+          return !diff.isNegative && diff.inHours <= 24;
+        case UrgencyFilter.tomorrow:
+          return diff.inHours > 24 && diff.inHours <= 48;
+        case UrgencyFilter.thisWeek:
+          return !diff.isNegative && diff.inDays <= 7;
+        case UrgencyFilter.expired:
+          return diff.isNegative || q.status == QuotationStatus.expired;
+        case UrgencyFilter.dispatched:
+          return _urgencyLogs.any((l) => l.quotationId == q.id && l.isTriggered);
+      }
+    }).toList();
   }
 
-  Widget _buildMobileQuotationsList(bool isDark) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _quotations.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, idx) {
-        final q = _quotations[idx];
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: AppRadius.md,
-            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(q.quoteNumber, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                  UrgencyCountdownBadge(expiryDate: q.discountExpiryDate, isCompact: true),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(q.clientName, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-              Text(q.projectTitle, style: GoogleFonts.inter(fontSize: 11, color: Colors.grey)),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total: ₹${q.grandTotal.toStringAsFixed(0)}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
-                  Text(
-                    'Discount: -₹${q.discountAmount.toStringAsFixed(0)} (${q.discountPercent.toStringAsFixed(0)}%)',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.error),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => _extendExpiryDialog(q),
-                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
-                    child: const Text('Extend 24h'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _openWhatsAppNudge(q),
-                    icon: const Icon(Icons.chat_bubble_rounded, size: 14),
-                    label: const Text('WhatsApp Nudge'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildUrgencyLogsCard(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: AppRadius.md,
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _urgencyLogs.length,
-        separatorBuilder: (_, _) => Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-        itemBuilder: (context, idx) {
-          final log = _urgencyLogs[idx];
-          return Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: log.isTriggered
-                        ? const Color(0xFF25D366).withValues(alpha: 0.15)
-                        : AppColors.warning.withValues(alpha: 0.15),
-                    borderRadius: AppRadius.sm,
-                  ),
-                  child: Icon(
-                    log.isTriggered ? Icons.mark_chat_read_rounded : Icons.schedule_rounded,
-                    size: 16,
-                    color: log.isTriggered ? const Color(0xFF25D366) : AppColors.warning,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${log.quoteNumber} • ${log.clientName} (${log.clientPhone})',
-                            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: log.deliveryStatus == 'READ'
-                                  ? AppColors.success.withValues(alpha: 0.15)
-                                  : log.deliveryStatus == 'EXPIRED'
-                                      ? AppColors.error.withValues(alpha: 0.15)
-                                      : AppColors.warning.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              log.deliveryStatus,
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: log.deliveryStatus == 'READ'
-                                    ? AppColors.success
-                                    : log.deliveryStatus == 'EXPIRED'
-                                        ? AppColors.error
-                                        : AppColors.warning,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        log.whatsappMessagePreview,
-                        style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Discount at risk: ₹${log.discountAmount.toStringAsFixed(0)} • Expiry: ${_formatDate(log.expiryDate)}',
-                        style: GoogleFonts.inter(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+  void _runExpiryCheck() {
+    int triggeredCount = 0;
+    for (var q in _quotations) {
+      if (!q.isDiscountExpired && q.timeRemaining.inHours <= 24) {
+        final existing = _urgencyLogs.any((l) => l.quotationId == q.id);
+        if (!existing) {
+          _urgencyLogs.insert(
+            0,
+            UrgencyAlertLog(
+              id: 'URG-${DateTime.now().millisecondsSinceEpoch}',
+              quotationId: q.id,
+              quoteNumber: q.quoteNumber,
+              clientName: q.clientName,
+              clientPhone: q.clientPhone,
+              quotationAmount: q.grandTotal,
+              discountAmount: q.discountAmount,
+              expiryDate: q.discountExpiryDate,
+              scheduledAlertTime: DateTime.now(),
+              isTriggered: true,
+              triggeredAt: DateTime.now(),
+              deliveryStatus: ReminderStatus.delivered,
+              salesOwner: q.salesOwner,
+              whatsappMessagePreview: 'Urgency alert triggered for ${q.clientName}',
             ),
           );
-        },
+          triggeredCount++;
+        }
+      }
+    }
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Cron audit completed: $triggeredCount automated urgency reminders queued.'),
+        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  void _openWhatsAppNudge(Quotation q) {
+  void _openWhatsAppDialog(Quotation q) {
     showDialog(
       context: context,
       builder: (ctx) => WhatsAppUrgencyDialog(
@@ -484,7 +120,7 @@ class _QuotationUrgencyPageState extends State<QuotationUrgencyPage> {
             _urgencyLogs.insert(
               0,
               UrgencyAlertLog(
-                id: 'URG-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+                id: 'URG-${DateTime.now().millisecondsSinceEpoch}',
                 quotationId: q.id,
                 quoteNumber: q.quoteNumber,
                 clientName: q.clientName,
@@ -495,8 +131,9 @@ class _QuotationUrgencyPageState extends State<QuotationUrgencyPage> {
                 scheduledAlertTime: DateTime.now(),
                 isTriggered: true,
                 triggeredAt: DateTime.now(),
-                deliveryStatus: 'DISPATCHED',
-                whatsappMessagePreview: 'Urgent notice dispatched to ${q.clientName}: 24h discount expiry reminder.',
+                deliveryStatus: ReminderStatus.dispatched,
+                salesOwner: q.salesOwner,
+                whatsappMessagePreview: 'Manual reminder sent via WhatsApp',
               ),
             );
           });
@@ -505,33 +142,323 @@ class _QuotationUrgencyPageState extends State<QuotationUrgencyPage> {
     );
   }
 
-  void _extendExpiryDialog(Quotation q) {
-    final idx = _quotations.indexOf(q);
-    if (idx >= 0) {
-      setState(() {
-        _quotations[idx] = q.copyWith(
-          discountExpiryDate: DateTime.now().add(const Duration(days: 1)),
-        );
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Discount validity for ${q.quoteNumber} extended by 24 hours.'),
-          backgroundColor: AppColors.primary,
+  void _openConfigDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          title: Text('Automated Reminder Bot Configuration', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SwitchListTile(
+                value: _autoRemindersEnabled,
+                title: const Text('Enable Automated WhatsApp Bot', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                subtitle: const Text('Automatically dispatches Meta-approved template before discount expires.', style: TextStyle(fontSize: 11)),
+                contentPadding: EdgeInsets.zero,
+                activeThumbColor: AppColors.primary,
+                onChanged: (val) {
+                  setDlgState(() => _autoRemindersEnabled = val);
+                  setState(() => _autoRemindersEnabled = val);
+                },
+              ),
+              const SizedBox(height: 12),
+              Text('Trigger Schedule', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<int>(
+                initialValue: _alertHoursBefore,
+                decoration: const InputDecoration(isDense: true, border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 12, child: Text('12 Hours before discount expiry')),
+                  DropdownMenuItem(value: 24, child: Text('24 Hours before discount expiry (Recommended)')),
+                  DropdownMenuItem(value: 48, child: Text('48 Hours before discount expiry')),
+                ],
+                onChanged: (v) {
+                  if (v != null) {
+                    setDlgState(() => _alertHoursBefore = v);
+                    setState(() => _alertHoursBefore = v);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Close')),
+          ],
         ),
-      );
-    }
-  }
-
-  void _triggerBulkAudit() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Automated 24h Expiry Cron ran: 1 urgent notification scheduled for dispatch.'),
-        backgroundColor: AppColors.success,
       ),
     );
   }
 
-  String _formatDate(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 6 Metrics calculations
+    final expiringToday = _quotations.where((q) => !q.isDiscountExpired && q.timeRemaining.inHours <= 24).length;
+    final expiringTomorrow = _quotations.where((q) => q.timeRemaining.inHours > 24 && q.timeRemaining.inHours <= 48).length;
+    final expiringThisWeek = _quotations.where((q) => !q.isDiscountExpired && q.timeRemaining.inDays <= 7).length;
+    final expiredTotal = _quotations.where((q) => q.isDiscountExpired || q.status == QuotationStatus.expired).length;
+    final sentCount = _urgencyLogs.where((l) => l.deliveryStatus == ReminderStatus.delivered || l.deliveryStatus == ReminderStatus.read).length;
+    final failedCount = _urgencyLogs.where((l) => l.deliveryStatus == ReminderStatus.failed).length;
+
+    final filtered = _filteredQuotations;
+
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Standard Header with Breadcrumbs & Action
+            QuotationHeader(
+              title: 'Dynamic Pricing, Expiry & WhatsApp Urgency Hub',
+              subtitle: 'Automated 24h WhatsApp closing bot, price-lock tracking & discount retention (TC-QUOT-001)',
+              icon: Icons.alarm_rounded,
+              breadcrumbs: const ['Homio CRM', 'Commercials', 'Expiry & Reminders'],
+              onRefresh: _loadData,
+              primaryAction: Wrap(
+                spacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _openConfigDialog,
+                    icon: const Icon(Icons.settings_suggest_rounded, size: 14),
+                    label: const Text('Reminder Settings'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: _runExpiryCheck,
+                    icon: const Icon(Icons.bolt_rounded, size: 16),
+                    label: const Text('Run 24h Expiry Audit'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 6 KPI Cards (PRD Section 32)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'EXPIRING TODAY (<24H)',
+                      value: '$expiringToday Quotes',
+                      subtitle: 'Urgent closing attention',
+                      icon: Icons.warning_amber_rounded,
+                      accentColor: const Color(0xFFEA580C),
+                      isSelected: _selectedFilter == UrgencyFilter.today,
+                      onTap: () => setState(() => _selectedFilter = UrgencyFilter.today),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'EXPIRING TOMORROW',
+                      value: '$expiringTomorrow Quotes',
+                      subtitle: '24 to 48 hours remaining',
+                      icon: Icons.hourglass_bottom_rounded,
+                      accentColor: const Color(0xFFF59E0B),
+                      isSelected: _selectedFilter == UrgencyFilter.tomorrow,
+                      onTap: () => setState(() => _selectedFilter = UrgencyFilter.tomorrow),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'EXPIRING THIS WEEK',
+                      value: '$expiringThisWeek Quotes',
+                      subtitle: 'Next 7 days validity',
+                      icon: Icons.date_range_rounded,
+                      accentColor: AppColors.primary,
+                      isSelected: _selectedFilter == UrgencyFilter.thisWeek,
+                      onTap: () => setState(() => _selectedFilter = UrgencyFilter.thisWeek),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'DISCOUNTS EXPIRED',
+                      value: '$expiredTotal Quotes',
+                      subtitle: 'Requires re-engagement',
+                      icon: Icons.timer_off_rounded,
+                      accentColor: AppColors.error,
+                      isSelected: _selectedFilter == UrgencyFilter.expired,
+                      onTap: () => setState(() => _selectedFilter = UrgencyFilter.expired),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'REMINDERS DELIVERED',
+                      value: '$sentCount WhatsApps',
+                      subtitle: 'Delivered & read by client',
+                      icon: Icons.mark_chat_read_rounded,
+                      accentColor: const Color(0xFF25D366),
+                      isSelected: _selectedFilter == UrgencyFilter.dispatched,
+                      onTap: () => setState(() => _selectedFilter = UrgencyFilter.dispatched),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 175,
+                    child: QuotationMetricCard(
+                      title: 'REMINDER FAILED',
+                      value: '$failedCount Issues',
+                      subtitle: 'Phone invalid / blocked',
+                      icon: Icons.error_outline_rounded,
+                      accentColor: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Filter Tabs Bar
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: AppRadius.md,
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+              ),
+              child: Row(
+                children: [
+                  Text('Filter by Urgency:', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: UrgencyFilter.values.map((f) {
+                          final isSel = _selectedFilter == f;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(f.label, style: GoogleFonts.inter(fontSize: 11, fontWeight: isSel ? FontWeight.w700 : FontWeight.w500)),
+                              selected: isSel,
+                              onSelected: (_) => setState(() => _selectedFilter = f),
+                              selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Expiry Table
+            if (filtered.isEmpty)
+              QuotationEmptyState(
+                icon: Icons.check_circle_outline_rounded,
+                title: 'No quotations in this urgency window',
+                description: 'All discounts are either comfortably valid or already resolved.',
+              )
+            else
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  borderRadius: AppRadius.md,
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowColor: WidgetStateProperty.all(isDark ? AppColors.darkSurfaceElevated : Colors.grey.shade50),
+                    dataRowMinHeight: 56,
+                    dataRowMaxHeight: 68,
+                    columns: const [
+                      DataColumn(label: Text('Quotation #')),
+                      DataColumn(label: Text('Client Name & Mobile')),
+                      DataColumn(label: Text('Project Society')),
+                      DataColumn(label: Text('Grand Total (₹)'), numeric: true),
+                      DataColumn(label: Text('Discount at Stake (₹)'), numeric: true),
+                      DataColumn(label: Text('Expiry Countdown')),
+                      DataColumn(label: Text('WhatsApp Bot Status')),
+                      DataColumn(label: Text('Commercial Lead')),
+                      DataColumn(label: Text('Actions')),
+                    ],
+                    rows: filtered.map((q) {
+                      final hasDispatched = _urgencyLogs.any((l) => l.quotationId == q.id && l.isTriggered);
+
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(q.quoteNumber, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary))),
+                          DataCell(
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(q.clientName, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                                Text(q.clientPhone, style: GoogleFonts.inter(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                              ],
+                            ),
+                          ),
+                          DataCell(Text(q.projectTitle, style: GoogleFonts.inter(fontSize: 11))),
+                          DataCell(Text('₹${q.grandTotal.toStringAsFixed(0)}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700))),
+                          DataCell(
+                            Text(
+                              '-₹${q.discountAmount.toStringAsFixed(0)} (${q.discountPercent.toStringAsFixed(1)}%)',
+                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.error),
+                            ),
+                          ),
+                          DataCell(ExpiryCountdown(expiryDate: q.discountExpiryDate, isCompact: true)),
+                          DataCell(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: hasDispatched ? const Color(0xFF25D366).withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15),
+                                borderRadius: AppRadius.sm,
+                              ),
+                              child: Text(
+                                hasDispatched ? 'DELIVERED' : 'PENDING SCHEDULE',
+                                style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: hasDispatched ? const Color(0xFF25D366) : Colors.orange),
+                              ),
+                            ),
+                          ),
+                          DataCell(Text(q.salesOwner, style: GoogleFonts.inter(fontSize: 11))),
+                          DataCell(
+                            FilledButton.icon(
+                              onPressed: () => _openWhatsAppDialog(q),
+                              icon: const Icon(Icons.flash_on_rounded, size: 14),
+                              label: const Text('Trigger WhatsApp Bot'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -4,11 +4,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../models/quotation_models.dart';
 import '../models/quotation_mock_data.dart';
-import '../widgets/quotation_header.dart';
 import '../widgets/pdf_document_preview.dart';
-import '../widgets/whatsapp_urgency_dialog.dart';
+import '../widgets/quotation_header.dart';
+import '../widgets/quotation_share_dialog.dart';
+import '../widgets/visibility_controls.dart';
 
-/// Screen 3: Quotation Documents & Dynamic PDF Presentation Studio (PRD Section 9.3).
+/// Screen 4: Quotation Documents & Dynamic PDF Presentation Studio (PRD Section 31).
+/// 3 Tabs: Generated Documents, Reusable Document Templates, and Split Live PDF Studio.
 class QuotationDocumentsPage extends StatefulWidget {
   const QuotationDocumentsPage({super.key});
 
@@ -16,8 +18,13 @@ class QuotationDocumentsPage extends StatefulWidget {
   State<QuotationDocumentsPage> createState() => _QuotationDocumentsPageState();
 }
 
-class _QuotationDocumentsPageState extends State<QuotationDocumentsPage> {
+class _QuotationDocumentsPageState extends State<QuotationDocumentsPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late List<Quotation> _quotations;
+  late List<QuotationTemplate> _templates;
   late Quotation _selectedQuotation;
+
+  // Studio toggles
   bool _includeCoverPage = true;
   bool _includeSummaryPage = true;
   bool _includeBoqPages = true;
@@ -26,309 +33,485 @@ class _QuotationDocumentsPageState extends State<QuotationDocumentsPage> {
   @override
   void initState() {
     super.initState();
-    _selectedQuotation = QuotationMockData.quotations.first;
+    _tabController = TabController(length: 3, vsync: this);
+    _quotations = List.from(QuotationMockData.quotations);
+    _templates = List.from(QuotationMockData.documentTemplates);
+    _selectedQuotation = _quotations.first;
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  void _openShareDialog(Quotation q) {
+    showDialog(
+      context: context,
+      builder: (ctx) => QuotationShareDialog(quotation: q),
+    );
+  }
+
+  void _openNewTemplateModal() {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Create Proposal Template', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
-            QuotationHeader(
-              title: 'Quotation Documents & Client Presentation Studio',
-              subtitle: 'Multi-page branded architectural PDF compiler, executive summaries & digital signoff',
-              icon: Icons.picture_as_pdf_rounded,
-              additionalFilters: [
-                _buildQuotationPicker(isDark),
-              ],
-              primaryAction: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _openWhatsAppShare,
-                    icon: const Icon(Icons.chat_bubble_rounded, size: 16, color: Color(0xFF25D366)),
-                    label: const Text('Share on WhatsApp'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF25D366),
-                      side: const BorderSide(color: Color(0xFF25D366), width: 0.8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: _downloadPdf,
-                    icon: const Icon(Icons.download_rounded, size: 16),
-                    label: const Text('Download PDF Dossier'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
+            TextFormField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Template Name *', border: OutlineInputBorder()),
             ),
-
-            // Studio Layout: Left Sidebar Controls & Right Live Preview
-            if (isDesktop)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left Control Sidebar (28%)
-                  SizedBox(
-                    width: 320,
-                    child: _buildControlsSidebar(isDark),
-                  ),
-                  const SizedBox(width: 16),
-                  // Right PDF Preview (72%)
-                  Expanded(
-                    child: SizedBox(
-                      height: 960,
-                      child: PdfDocumentPreview(
-                        quotation: _selectedQuotation,
-                        showCoverPage: _includeCoverPage,
-                        showSummaryPage: _includeSummaryPage,
-                        showBoqPages: _includeBoqPages,
-                        showEndPages: _includeEndPages,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  _buildControlsSidebar(isDark),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 800,
-                    child: PdfDocumentPreview(
-                      quotation: _selectedQuotation,
-                      showCoverPage: _includeCoverPage,
-                      showSummaryPage: _includeSummaryPage,
-                      showBoqPages: _includeBoqPages,
-                      showEndPages: _includeEndPages,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: descCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Description / Aesthetic Theme', border: OutlineInputBorder()),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuotationPicker(bool isDark) {
-    return Container(
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: AppRadius.sm,
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedQuotation.id,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-          dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          items: QuotationMockData.quotations.map((q) {
-            return DropdownMenuItem(value: q.id, child: Text('${q.quoteNumber} - ${q.clientName}'));
-          }).toList(),
-          onChanged: (newId) {
-            if (newId != null) {
-              setState(() {
-                _selectedQuotation = QuotationMockData.quotations.firstWhere((q) => q.id == newId);
-              });
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildControlsSidebar(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: AppRadius.md,
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.tune_rounded, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Document Section Controls',
-                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Toggle sections to compile customized presentation tiers',
-            style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-          ),
-          const Divider(height: 24),
-
-          // Section Toggles
-          _buildCheckboxTile(
-            isDark,
-            title: '01. Branded Cover Page',
-            subtitle: 'Hero 3D render preview, client info & designer bio',
-            value: _includeCoverPage,
-            onChanged: (val) => setState(() => _includeCoverPage = val ?? true),
-          ),
-          _buildCheckboxTile(
-            isDark,
-            title: '02. Executive Cost Summary',
-            subtitle: 'Room-wise allocation charts & net financial table',
-            value: _includeSummaryPage,
-            onChanged: (val) => setState(() => _includeSummaryPage = val ?? true),
-          ),
-          _buildCheckboxTile(
-            isDark,
-            title: '03. Detailed BOQ Pages',
-            subtitle: 'Room item specifications, measurements & rates',
-            value: _includeBoqPages,
-            onChanged: (val) => setState(() => _includeBoqPages = val ?? true),
-          ),
-          _buildCheckboxTile(
-            isDark,
-            title: '04. Terms, Warranty & Signoff',
-            subtitle: 'Payment schedule milestones & digital signature blocks',
-            value: _includeEndPages,
-            onChanged: (val) => setState(() => _includeEndPages = val ?? true),
-          ),
-          const Divider(height: 24),
-
-          // Display Visibility Toggles
-          Text(
-            'Confidentiality & IP Toggles',
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 10),
-          SwitchListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text('Hide Unit Rates', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-            subtitle: Text('Only show room subtotals', style: GoogleFonts.inter(fontSize: 10, color: Colors.grey)),
-            value: _selectedQuotation.hideRate,
-            activeThumbColor: AppColors.warning,
-            onChanged: (val) {
-              setState(() => _selectedQuotation = _selectedQuotation.copyWith(hideRate: val));
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              if (nameCtrl.text.isNotEmpty) {
+                setState(() {
+                  _templates.add(
+                    QuotationTemplate(
+                      id: 'tmpl_${DateTime.now().millisecondsSinceEpoch}',
+                      name: nameCtrl.text,
+                      description: descCtrl.text,
+                      type: QuotationType.residentialInterior,
+                      footerNote: 'Custom Template Document',
+                      termsAndConditions: 'Standard Terms & Conditions',
+                      includedSections: const [
+                        DocumentSectionType.coverPage,
+                        DocumentSectionType.executiveSummary,
+                        DocumentSectionType.boqItemized,
+                      ],
+                    ),
+                  );
+                });
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Template ${nameCtrl.text} created!'), backgroundColor: AppColors.success),
+                );
+              }
             },
-          ),
-          SwitchListTile(
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text('Hide Sq.Ft / Dimensions', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-            subtitle: Text('Prevent external contractor poaching', style: GoogleFonts.inter(fontSize: 10, color: Colors.grey)),
-            value: _selectedQuotation.hideSqft,
-            activeThumbColor: AppColors.secondary,
-            onChanged: (val) {
-              setState(() => _selectedQuotation = _selectedQuotation.copyWith(hideSqft: val));
-            },
-          ),
-          const Divider(height: 24),
-
-          // Client Sharing Actions
-          Text('Digital Sign-off & Delivery', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _copyApprovalLink,
-              icon: const Icon(Icons.link_rounded, size: 16),
-              label: const Text('Copy Client Sign-off Link'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _emailProposal,
-              icon: const Icon(Icons.email_outlined, size: 16),
-              label: const Text('Email PDF to Client'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-              ),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Create Template'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCheckboxTile(bool isDark, {required String title, required String subtitle, required bool value, required ValueChanged<bool?> onChanged}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: CheckboxListTile(
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-        title: Text(title, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
-        value: value,
-        activeColor: AppColors.primary,
-        onChanged: onChanged,
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Standard Header with Breadcrumbs & Action
+            QuotationHeader(
+              title: 'Quotation Documents & Proposal Studio',
+              subtitle: 'Multi-page branded architectural PDF compiler, executive summaries, terms & digital signoff',
+              icon: Icons.picture_as_pdf_rounded,
+              breadcrumbs: const ['Homio CRM', 'Commercials', 'Documents & PDFs'],
+              primaryAction: FilledButton.icon(
+                onPressed: _openNewTemplateModal,
+                icon: const Icon(Icons.note_add_rounded, size: 16),
+                label: const Text('Create Template'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Tabs Selector
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: AppRadius.md,
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: AppColors.primary,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+                tabs: const [
+                  Tab(text: 'All Generated Documents'),
+                  Tab(text: 'Document Templates (4)'),
+                  Tab(text: 'Live PDF Presentation Studio'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Tab Views
+            SizedBox(
+              height: 920,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildAllDocumentsTab(isDark),
+                  _buildTemplatesTab(isDark),
+                  _buildStudioTab(isDark),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _openWhatsAppShare() {
-    showDialog(
-      context: context,
-      builder: (ctx) => WhatsAppUrgencyDialog(
-        quotation: _selectedQuotation,
-        onDispatched: () {},
+  // Tab 1: All Generated Documents Table
+  Widget _buildAllDocumentsTab(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SingleChildScrollView(
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.all(isDark ? AppColors.darkSurfaceElevated : Colors.grey.shade50),
+            dataRowMinHeight: 56,
+            dataRowMaxHeight: 68,
+            columns: const [
+              DataColumn(label: Text('Document Title')),
+              DataColumn(label: Text('Quotation #')),
+              DataColumn(label: Text('Client Name')),
+              DataColumn(label: Text('Type')),
+              DataColumn(label: Text('File Size')),
+              DataColumn(label: Text('Generated By')),
+              DataColumn(label: Text('Date Generated')),
+              DataColumn(label: Text('Client Signed')),
+              DataColumn(label: Text('Actions')),
+            ],
+            rows: _quotations.map((q) {
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_rounded, size: 20, color: AppColors.error),
+                        const SizedBox(width: 8),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${q.quoteNumber}_Proposal_Rev${q.revisionNumber}.pdf', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                            Text(q.projectTitle, style: GoogleFonts.inter(fontSize: 10, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  DataCell(Text(q.quoteNumber, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary))),
+                  DataCell(Text(q.clientName, style: GoogleFonts.inter(fontSize: 12))),
+                  DataCell(Text(q.quotationType.label, style: GoogleFonts.inter(fontSize: 11))),
+                  DataCell(const Text('2.4 MB', style: TextStyle(fontSize: 11))),
+                  DataCell(Text(q.createdBy, style: GoogleFonts.inter(fontSize: 11))),
+                  DataCell(Text('${q.submissionDate.day}/${q.submissionDate.month}/${q.submissionDate.year}', style: const TextStyle(fontSize: 11))),
+                  DataCell(
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: q.status == QuotationStatus.accepted ? AppColors.success.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.15),
+                        borderRadius: AppRadius.sm,
+                      ),
+                      child: Text(
+                        q.status == QuotationStatus.accepted ? 'SIGNED' : 'PENDING',
+                        style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: q.status == QuotationStatus.accepted ? AppColors.success : Colors.grey),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.visibility_rounded, size: 16),
+                          tooltip: 'Open Studio Preview',
+                          onPressed: () {
+                            setState(() {
+                              _selectedQuotation = q;
+                              _tabController.animateTo(2); // Jump to studio tab
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.share_rounded, size: 16),
+                          tooltip: 'Share Document',
+                          onPressed: () => _openShareDialog(q),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.download_rounded, size: 16),
+                          tooltip: 'Download PDF',
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Downloading ${q.quoteNumber}_Proposal.pdf...'), backgroundColor: AppColors.primary),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
 
-  void _downloadPdf() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Compiling ${_selectedQuotation.quoteNumber} PDF presentation... Download ready!'),
-        backgroundColor: AppColors.success,
+  // Tab 2: Document Templates Grid
+  Widget _buildTemplatesTab(bool isDark) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(4),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 420,
+        mainAxisExtent: 260,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
       ),
+      itemCount: _templates.length,
+      itemBuilder: (context, index) {
+        final tmpl = _templates[index];
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: tmpl.isDefault ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              width: tmpl.isDefault ? 1.5 : 0.8,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      tmpl.name,
+                      style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (tmpl.isDefault)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: AppRadius.sm),
+                      child: Text('DEFAULT', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    ),
+                ],
+              ),
+              Text(
+                tmpl.description,
+                style: GoogleFonts.inter(fontSize: 12, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: tmpl.includedSections.take(4).map((s) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: isDark ? AppColors.darkSurfaceElevated : Colors.grey.shade100, borderRadius: AppRadius.sm),
+                    child: Text(s.label, style: const TextStyle(fontSize: 10)),
+                  );
+                }).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Theme: ${tmpl.coverTheme}', style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                  FilledButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Applied template: ${tmpl.name}'), backgroundColor: AppColors.success),
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                    ),
+                    child: const Text('Use Template', style: TextStyle(fontSize: 11)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _copyApprovalLink() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Client signoff link copied: https://homio.design/approve/${_selectedQuotation.quoteNumber}'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
-  }
+  // Tab 3: Split Studio Live Preview
+  Widget _buildStudioTab(bool isDark) {
+    final isDesktop = MediaQuery.of(context).size.width >= 1080;
 
-  void _emailProposal() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Proposal email dispatched to ${_selectedQuotation.clientEmail} with attached PDF.'),
-        backgroundColor: AppColors.success,
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left Studio Control Panel (30%)
+        SizedBox(
+          width: isDesktop ? 340 : 280,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Quotation Switcher
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: AppRadius.md,
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Active Quotation Dossier', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedQuotation.id,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(borderRadius: AppRadius.sm),
+                        ),
+                        items: _quotations.map((q) {
+                          return DropdownMenuItem<String>(
+                            value: q.id,
+                            child: Text('${q.quoteNumber} (${q.clientName})', style: const TextStyle(fontSize: 11), overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                        onChanged: (id) {
+                          if (id != null) {
+                            setState(() => _selectedQuotation = _quotations.firstWhere((q) => q.id == id));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Pages inclusion toggles
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: AppRadius.md,
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Compiler Page Inclusions', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      CheckboxListTile(
+                        value: _includeCoverPage,
+                        title: const Text('Cover Page', style: TextStyle(fontSize: 12)),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (v) => setState(() => _includeCoverPage = v ?? true),
+                      ),
+                      CheckboxListTile(
+                        value: _includeSummaryPage,
+                        title: const Text('Executive Scope Summary', style: TextStyle(fontSize: 12)),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (v) => setState(() => _includeSummaryPage = v ?? true),
+                      ),
+                      CheckboxListTile(
+                        value: _includeBoqPages,
+                        title: const Text('Itemized BOQ Schedule', style: TextStyle(fontSize: 12)),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (v) => setState(() => _includeBoqPages = v ?? true),
+                      ),
+                      CheckboxListTile(
+                        value: _includeEndPages,
+                        title: const Text('Warranty & Signature Page', style: TextStyle(fontSize: 12)),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (v) => setState(() => _includeEndPages = v ?? true),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Visibility IP Protection Controls
+                VisibilityControls(
+                  settings: _selectedQuotation.visibilitySettings,
+                  onChanged: (vs) {
+                    setState(() {
+                      _selectedQuotation = _selectedQuotation.copyWith(
+                        visibilitySettings: vs,
+                        hideRate: vs.hideRate,
+                        hideSqft: vs.hideSqft,
+                        showAmount: vs.showAmount,
+                      );
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+
+        // Right Live PDF Preview (70%)
+        Expanded(
+          child: Container(
+            height: 900,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              borderRadius: AppRadius.md,
+              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+            ),
+            child: PdfDocumentPreview(
+              quotation: _selectedQuotation,
+              showCoverPage: _includeCoverPage,
+              showSummaryPage: _includeSummaryPage,
+              showBoqPages: _includeBoqPages,
+              showEndPages: _includeEndPages,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

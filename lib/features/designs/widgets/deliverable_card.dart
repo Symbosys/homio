@@ -42,20 +42,31 @@ class DeliverableCard extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Image.network(
-                  deliverable.thumbnailUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-                    child: Center(
-                      child: Icon(
-                        deliverable.category.icon,
-                        size: 40,
-                        color: Colors.grey,
+                child: deliverable.thumbnailUrl.isNotEmpty && deliverable.thumbnailUrl.startsWith('http')
+                    ? Image.network(
+                        deliverable.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
+                          child: Center(
+                            child: Icon(
+                              deliverable.category.icon,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
+                        child: Center(
+                          child: Icon(
+                            deliverable.category.icon,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ),
 
               // Gradient Overlay for readability
@@ -214,34 +225,37 @@ class DeliverableCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Status Badge
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: deliverable.status.color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: deliverable.status.color.withValues(alpha: 0.4),
-                        ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: deliverable.status.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: deliverable.status.color.withValues(alpha: 0.4),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(deliverable.status.icon, size: 12, color: deliverable.status.color),
-                          const SizedBox(width: 4),
-                          Text(
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(deliverable.status.icon, size: 12, color: deliverable.status.color),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
                             deliverable.status.label,
                             style: GoogleFonts.inter(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: deliverable.status.color,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 const Divider(height: 1),
@@ -252,7 +266,15 @@ class DeliverableCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 12,
-                      backgroundImage: NetworkImage(deliverable.designerAvatar),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                      child: Text(
+                        deliverable.designerName.isNotEmpty ? deliverable.designerName[0].toUpperCase() : 'D',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -282,14 +304,18 @@ class DeliverableCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.history_rounded, size: 16),
                       tooltip: 'Version History',
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.all(4),
+                      constraints: const BoxConstraints(),
                       onPressed: onHistory,
                     ),
+                    const SizedBox(width: 4),
 
                     // Review Action Button
                     ElevatedButton(
                       onPressed: onReview,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         backgroundColor: deliverable.isApproved

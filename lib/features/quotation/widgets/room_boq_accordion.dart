@@ -74,12 +74,15 @@ class _RoomBoqAccordionState extends State<RoomBoqAccordion> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              widget.room.roomName,
-                              style: GoogleFonts.inter(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                            Flexible(
+                              child: Text(
+                                widget.room.roomName,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),

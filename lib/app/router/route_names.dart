@@ -167,8 +167,17 @@ abstract class RouteNames {
   static const String damWorkspace = 'damWorkspace';
   static const String damWorkspacePath = '/designs/workspace';
 
+  static const String damFiles = 'damFiles';
+  static const String damFilesPath = '/designs/files';
+
+  static const String damRevisions = 'damRevisions';
+  static const String damRevisionsPath = '/designs/revisions';
+
   static const String damApprovalLoop = 'damApprovalLoop';
   static const String damApprovalLoopPath = '/designs/approval-loop';
+
+  static const String damHandover = 'damHandover';
+  static const String damHandoverPath = '/designs/handover';
 
   static const String damCloudDrive = 'damCloudDrive';
   static const String damCloudDrivePath = '/designs/cloud-drive';
@@ -282,13 +291,26 @@ abstract class RouteNames {
   static const String aiDesignerVideoCallPath = '/ai-suite/designer-video-call';
 
   // 11. Operations & Procurement Submenu Routes
-  static const String procurementMaterialRequests = '/procurement/material-requests';
-  static const String procurementVendorRfqs = '/procurement/vendor-rfqs';
-  static const String procurementVendorQuotations = '/procurement/vendor-quotations';
-  static const String procurementPurchaseOrders = '/procurement/purchase-orders';
-  static const String procurementDispatch = '/procurement/dispatch';
-  static const String procurementDesignPayments = '/procurement/design-payments';
-  static const String procurementWeeklyFees = '/procurement/weekly-fees';
+  static const String procurementMaterialRequests = 'procurementMaterialRequests';
+  static const String procurementMaterialRequestsPath = '/procurement/material-requests';
+
+  static const String procurementVendorRfqs = 'procurementVendorRfqs';
+  static const String procurementVendorRfqsPath = '/procurement/vendor-rfqs';
+
+  static const String procurementVendorQuotations = 'procurementVendorQuotations';
+  static const String procurementVendorQuotationsPath = '/procurement/vendor-quotations';
+
+  static const String procurementPurchaseOrders = 'procurementPurchaseOrders';
+  static const String procurementPurchaseOrdersPath = '/procurement/purchase-orders';
+
+  static const String procurementDispatch = 'procurementDispatch';
+  static const String procurementDispatchPath = '/procurement/dispatch';
+
+  static const String procurementDesignPayments = 'procurementDesignPayments';
+  static const String procurementDesignPaymentsPath = '/procurement/design-payments';
+
+  static const String procurementWeeklyFees = 'procurementWeeklyFees';
+  static const String procurementWeeklyFeesPath = '/procurement/weekly-fees';
 
   static const String opsMaterialRfq = 'opsMaterialRfq';
   static const String opsMaterialRfqPath = '/operations/material-rfq';
