@@ -5,6 +5,7 @@ import '../../core/layout/client_portal_shell.dart';
 import '../../core/layout/dashboard_shell.dart';
 import '../../core/navigation/client_navigation_registry.dart';
 import '../../core/navigation/navigation_menu_registry.dart';
+import '../../core/widgets/not_found_page.dart';
 import '../../core/widgets/panel_page_template.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/client/ai_studio/index.dart';
@@ -20,11 +21,23 @@ import '../../features/client/snags_complaints/index.dart';
 import '../../features/client/stage_work_approvals/index.dart';
 import '../../features/dashboard/index.dart';
 import '../../features/landing/presentation/pages/landing_page.dart';
+import '../../features/marketing/index.dart';
 import '../../features/reports/index.dart';
 import '../../features/sales/index.dart';
 import '../../features/quotation/index.dart';
 import '../../features/execution/index.dart';
 import '../../features/designs/index.dart';
+import '../../features/service_booking/index.dart';
+import '../../features/shopping/index.dart';
+import '../../features/communication/index.dart';
+import '../../features/ai_suite/index.dart';
+import '../../features/operations/index.dart';
+import '../../features/accounting/index.dart';
+import '../../features/hrms/index.dart';
+import '../../features/after_sales/index.dart';
+import '../../features/organization/index.dart';
+import '../../features/system_admin/index.dart';
+import '../navigation/admin_navigation_config.dart';
 import 'route_names.dart';
 
 export 'route_names.dart';
@@ -65,20 +78,20 @@ abstract class AppRouter {
         routes: _buildAllClientRoutes(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.uri.path}')),
-    ),
+    errorBuilder: (context, state) => NotFoundPage(path: state.uri.path),
   );
 
   /// Automatically generates named GoRoutes for all submenus in NavigationMenuRegistry.
   static List<RouteBase> _buildAllSubmenuRoutes() {
     final List<RouteBase> routes = [];
     final Set<String> registeredNames = {};
+    final Set<String> registeredPaths = {};
 
     for (final cluster in NavigationMenuRegistry.clusters) {
       for (final item in cluster.items) {
         for (final sub in item.subItems) {
           if (registeredNames.add(sub.routeName)) {
+            registeredPaths.add(sub.routePath);
             routes.add(
               GoRoute(
                 name: sub.routeName,
@@ -129,13 +142,13 @@ abstract class AppRouter {
                     return const SalesFunnelsPage();
                   }
                   if (sub.routeName == RouteNames.salesDirectory) {
-                    return const SalesDirectoryPage();
+                    return const SalesLeadsPage();
                   }
                   if (sub.routeName == RouteNames.salesWhatsappApi) {
-                    return const SalesWhatsAppPage();
+                    return const SalesAutomationPage();
                   }
                   if (sub.routeName == RouteNames.salesAiCalling) {
-                    return const SalesAiCallingPage();
+                    return const SalesCallsPage();
                   }
                   if (sub.routeName == RouteNames.salesCalendar) {
                     return const SalesCalendarPage();
@@ -198,6 +211,160 @@ abstract class AppRouter {
                     return const DesignCloudDrivePage();
                   }
 
+                  // Service Booking & Labour Submenus
+                  if (sub.routeName == RouteNames.srvHireLabour) {
+                    return const HireLabourPage();
+                  }
+                  if (sub.routeName == RouteNames.srvLabourKyc) {
+                    return const LabourKycPage();
+                  }
+                  if (sub.routeName == RouteNames.srvOnboardLabour) {
+                    return const OnboardLabourPage();
+                  }
+                  if (sub.routeName == RouteNames.srvActiveBookings) {
+                    return const ActiveBookingsPage();
+                  }
+                  if (sub.routeName == RouteNames.srvLegalHub) {
+                    return const LegalHubPage();
+                  }
+
+                  // Shopping & Marketplace Submenus
+                  if (sub.routeName == RouteNames.shopDigitalStore) {
+                    return const DigitalStorePage();
+                  }
+                  if (sub.routeName == RouteNames.shopDecorAffiliates) {
+                    return const DecorAffiliatesPage();
+                  }
+                  if (sub.routeName == RouteNames.shopProperties) {
+                    return const PropertiesPage();
+                  }
+                  if (sub.routeName == RouteNames.shopMaterials) {
+                    return const MaterialsPage();
+                  }
+
+                  // Communication Hub Submenus
+                  if (sub.routeName == RouteNames.commChats) {
+                    return const LiveCustomerChatsPage();
+                  }
+                  if (sub.routeName == RouteNames.commBroadcasts ||
+                      sub.routeName == RouteNames.commBulkMessages ||
+                      sub.routeName == RouteNames.commScheduled) {
+                    return const BroadcastsScheduledPage();
+                  }
+                  if (sub.routeName == RouteNames.commTemplates) {
+                    return const MessageTemplatesPage();
+                  }
+                  if (sub.routeName == RouteNames.commDripCampaigns) {
+                    return const DripCampaignsPage();
+                  }
+                  if (sub.routeName == RouteNames.commHistory) {
+                    return const CallMessageHistoryPage();
+                  }
+                  if (sub.routeName == RouteNames.commSiteProgress) {
+                    return const LiveSiteProgressFeedPage();
+                  }
+                  if (sub.routeName == RouteNames.commBlueprints) {
+                    return const BlueprintsDamFilesPage();
+                  }
+                  if (sub.routeName == RouteNames.commMeetings) {
+                    return const MeetingSchedulingPage();
+                  }
+
+                  // AI Architectural Suite Submenus
+                  if (sub.routeName == RouteNames.aiRoomGenerator) {
+                    return const AiRoomGeneratorPage();
+                  }
+                  if (sub.routeName == RouteNames.aiVastuConsultant) {
+                    return const AiVastuConsultantPage();
+                  }
+                  if (sub.routeName == RouteNames.aiBudgetCalculator) {
+                    return const AiBudgetCalculatorPage();
+                  }
+                  if (sub.routeName == RouteNames.aiDoubtSolver) {
+                    return const AiDoubtSolverPage();
+                  }
+                  if (sub.routeName == RouteNames.aiDesignerVideoCall) {
+                    return const AiDesignerVideoCallPage();
+                  }
+
+                  // Operations & Procurement Submenus
+                  if (sub.routeName == RouteNames.opsMaterialRfq) {
+                    return const MaterialRfqPage();
+                  }
+                  if (sub.routeName == RouteNames.opsDesignPayment) {
+                    return const DesignPaymentPage();
+                  }
+                  if (sub.routeName == RouteNames.opsSaturdayFees) {
+                    return const SaturdayFeesPage();
+                  }
+
+                  // Accounting & Client Ledgers Submenus
+                  if (sub.routeName == RouteNames.accCustomerSummary) {
+                    return const CustomerFinancialSummaryPage();
+                  }
+                  if (sub.routeName == RouteNames.accExpenseLedgers) {
+                    return const ClientExpenseLedgersPage();
+                  }
+                  if (sub.routeName == RouteNames.accOverdueAlerts) {
+                    return const OverduePaymentAlertsPage();
+                  }
+
+                  // HRMS & Field Operations Submenus
+                  if (sub.routeName == RouteNames.hrEmployeeDirectory) {
+                    return const EmployeeDirectoryPage();
+                  }
+                  if (sub.routeName == RouteNames.hrDepartments) {
+                    return const DepartmentsTeamsPage();
+                  }
+                  if (sub.routeName == RouteNames.hrGeofenceAttendance) {
+                    return const GeofenceAttendancePage();
+                  }
+                  if (sub.routeName == RouteNames.hrTravelMileage) {
+                    return const TravelMileagePage();
+                  }
+                  if (sub.routeName == RouteNames.hrLeavePenalty) {
+                    return const LeavePenaltyPage();
+                  }
+                  if (sub.routeName == RouteNames.hrPayrollSlips) {
+                    return const PayrollSlipsPage();
+                  }
+                  if (sub.routeName == RouteNames.hrNoticePeriod) {
+                    return const NoticePeriodPage();
+                  }
+
+                  // After-Sales Service Submenus
+                  if (sub.routeName == RouteNames.svcSnagsWarranty) {
+                    return const SnagsWarrantyPage();
+                  }
+                  if (sub.routeName == RouteNames.svcRetentionCalls) {
+                    return const RetentionCallsPage();
+                  }
+
+                  // Organization & Roles Submenus
+                  if (sub.routeName == RouteNames.orgDepartments) {
+                    return const OrgDepartmentsPage();
+                  }
+                  if (sub.routeName == RouteNames.orgRoleLevels) {
+                    return const OrgRoleLevelsPage();
+                  }
+                  if (sub.routeName == RouteNames.orgAccessScope) {
+                    return const OrgAccessScopePage();
+                  }
+
+                  // System Administration Submenus
+                  if (sub.routeName == RouteNames.admRbacMatrix) {
+                    return const RbacMatrixPage();
+                  }
+                  if (sub.routeName == RouteNames.admRateMasters) {
+                    return const MasterRateCardsPage();
+                  }
+                  if (sub.routeName == RouteNames.admAiTraining) {
+                    return const AiPromptTrainingPage();
+                  }
+                  if (sub.routeName == RouteNames.admDisasterBackup) {
+                    return const DisasterBackupPage();
+                  }
+
                   return PanelPageTemplate.fromPath(sub.routePath);
                 },
               ),
@@ -207,7 +374,270 @@ abstract class AppRouter {
       }
     }
 
+    // Explicit registration fallback for sub-routes
+    if (registeredNames.add(RouteNames.srvOnboardLabour)) {
+      routes.add(
+        GoRoute(
+          name: RouteNames.srvOnboardLabour,
+          path: RouteNames.srvOnboardLabourPath,
+          builder: (context, state) => const OnboardLabourPage(),
+        ),
+      );
+    }
+
+    // Register all 17 Admin Navigation modules & submenus from AdminNavigationConfig
+    for (final group in AdminNavigationConfig.masterGroups) {
+      for (final child in group.children) {
+        if (registeredPaths.add(child.route)) {
+          routes.add(
+            GoRoute(
+              name: child.id,
+              path: child.route,
+              builder: (context, state) => _resolveAdminPage(child.id, child.route),
+            ),
+          );
+        }
+        for (final alias in child.legacyAliases) {
+          if (registeredPaths.add(alias)) {
+            routes.add(
+              GoRoute(
+                name: 'alias_${child.id}_${alias.replaceAll('/', '_')}',
+                path: alias,
+                builder: (context, state) => _resolveAdminPage(child.id, child.route),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    // Register all Legacy Route Aliases from RouteNames
+    RouteNames.legacyRouteAliases.forEach((alias, canonical) {
+      if (registeredPaths.add(alias)) {
+        routes.add(
+          GoRoute(
+            path: alias,
+            builder: (context, state) => _resolveAdminPage(alias, canonical),
+          ),
+        );
+      }
+    });
+
     return routes;
+  }
+
+  /// Maps an admin navigation item ID or route to its corresponding page widget.
+  static Widget _resolveAdminPage(String id, String path) {
+    switch (id) {
+      // 1. Dashboard
+      case 'dashboard_overview':
+        return const DashboardOverviewPage();
+      case 'dashboard_my_tasks':
+        return const DashboardTasksPage();
+      case 'dashboard_attendance':
+        return const DashboardAttendancePage();
+      case 'dashboard_travel':
+        return const DashboardTravelPage();
+      case 'dashboard_wallet':
+        return const DashboardWalletPage();
+
+      // 2. CRM & Sales
+      case 'crm_overview':
+        return const SalesOverviewPage();
+      case 'crm_leads':
+        return const SalesLeadsPage();
+      case 'crm_customers':
+        return const SalesCustomersPage();
+      case 'crm_funnels':
+        return const SalesFunnelsPage();
+      case 'crm_followups':
+        return const SalesFollowupsPage();
+      case 'crm_calls':
+        return const SalesCallsPage();
+      case 'crm_meetings':
+        return const SalesCalendarPage();
+      case 'crm_tasks':
+        return const SalesTasksPage();
+      case 'crm_automation':
+        return const SalesAutomationPage();
+
+      // 3. Marketing
+      case 'marketing_overview':
+      case '/marketing/overview':
+        return const MarketingOverviewPage();
+      case 'marketing_sources':
+      case '/marketing/sources':
+      case '/marketing/lead-sources':
+        return const MarketingSourcesPage();
+      case 'marketing_campaigns':
+      case '/marketing/campaigns':
+        return const MarketingCampaignsPage();
+      case 'marketing_social':
+      case '/marketing/social':
+      case '/marketing/social-analytics':
+        return const MarketingSocialPage();
+      case 'marketing_reports':
+      case '/marketing/reports':
+        return const MarketingReportsPage();
+
+      // 4. Projects
+      case 'projects_all':
+      case 'projects_overview':
+        return const ExecutionProjectsPage();
+      case 'projects_gantt':
+        return const ExecutionGanttPage();
+      case 'projects_site_progress':
+        return const ExecutionSiteProgressPage();
+      case 'projects_snags':
+        return const ExecutionComplaintsPage();
+      case 'projects_approvals':
+        return const ExecutionWorkApprovalsPage();
+      case 'projects_commercials':
+        return const ExecutionCommercialsPage();
+
+      // 5. Designs & DAM
+      case 'designs_workspace':
+        return const DesignWorkspacePage();
+      case 'designs_approvals':
+        return const DesignApprovalLoopPage();
+      case 'designs_drive':
+        return const DesignCloudDrivePage();
+
+      // 6. Quotations
+      case 'quotations_all':
+      case 'quotations_create':
+        return const QuotationBuilderPage();
+      case 'quotations_rate_master':
+        return const QuotationItemMasterPage();
+      case 'quotations_documents':
+        return const QuotationDocumentsPage();
+      case 'quotations_expiry_reminders':
+        return const QuotationUrgencyPage();
+      case 'quotations_self':
+        return const QuotationSelfServicePage();
+
+      // 7. Procurement & Operations
+      case 'procurement_material_requests':
+        return const MaterialRfqPage();
+      case 'procurement_design_payments':
+        return const DesignPaymentPage();
+      case 'procurement_weekly_fees':
+        return const SaturdayFeesPage();
+
+      // 8. Accounting & Finance
+      case 'finance_overview':
+        return const CustomerFinancialSummaryPage();
+      case 'finance_expenses':
+        return const ClientExpenseLedgersPage();
+      case 'finance_collections':
+        return const OverduePaymentAlertsPage();
+
+      // 9. Communication
+      case 'communication_chats':
+        return const LiveCustomerChatsPage();
+      case 'communication_broadcasts':
+      case 'communication_bulk':
+      case 'communication_scheduled':
+        return const BroadcastsScheduledPage();
+      case 'communication_templates':
+        return const MessageTemplatesPage();
+      case 'communication_drip':
+        return const DripCampaignsPage();
+      case 'communication_history':
+        return const CallMessageHistoryPage();
+
+      // 10. Service & Labour
+      case 'service_labour_directory':
+        return const HireLabourPage();
+      case 'service_labour_kyc':
+        return const LabourKycPage();
+      case 'service_labour_onboard':
+        return const OnboardLabourPage();
+      case 'service_labour_bookings':
+        return const ActiveBookingsPage();
+      case 'service_labour_disputes':
+        return const LegalHubPage();
+
+      // 11. After-Sales
+      case 'after_sales_requests':
+      case 'after_sales_warranty':
+        return const SnagsWarrantyPage();
+      case 'after_sales_retention':
+        return const RetentionCallsPage();
+
+      // 12. HRMS
+      case 'hrms_employees':
+        return const EmployeeDirectoryPage();
+      case 'hrms_departments':
+        return const DepartmentsTeamsPage();
+      case 'hrms_attendance':
+        return const GeofenceAttendancePage();
+      case 'hrms_travel':
+        return const TravelMileagePage();
+      case 'hrms_leave':
+        return const LeavePenaltyPage();
+      case 'hrms_payroll':
+        return const PayrollSlipsPage();
+      case 'hrms_notice_period':
+        return const NoticePeriodPage();
+
+      // 13. Marketplace
+      case 'marketplace_digital':
+        return const DigitalStorePage();
+      case 'marketplace_decor':
+        return const DecorAffiliatesPage();
+      case 'marketplace_properties':
+        return const PropertiesPage();
+      case 'marketplace_materials':
+        return const MaterialsPage();
+
+      // 14. AI Studio
+      case 'ai_room_designer':
+        return const AiRoomGeneratorPage();
+      case 'ai_vastu':
+        return const AiVastuConsultantPage();
+      case 'ai_budget':
+        return const AiBudgetCalculatorPage();
+      case 'ai_doubt_solver':
+        return const AiDoubtSolverPage();
+      case 'ai_designer_calls':
+        return const AiDesignerVideoCallPage();
+
+      // 15. Reports & Analytics
+      case 'reports_executive':
+        return const ReportsMarketingPage();
+      case 'reports_sales':
+        return const ReportsSalesPage();
+      case 'reports_design':
+        return const ReportsDesignPage();
+      case 'reports_execution':
+        return const ReportsExecutionPage();
+      case 'reports_service':
+        return const ReportsVendorRatingsPage();
+      case 'reports_finance':
+        return const ReportsFinancesPage();
+
+      // 16. Organization
+      case 'org_departments':
+        return const OrgDepartmentsPage();
+      case 'org_roles':
+        return const OrgRoleLevelsPage();
+      case 'org_access_scope':
+        return const OrgAccessScopePage();
+
+      // 17. Administration
+      case 'admin_users_rbac':
+        return const RbacMatrixPage();
+      case 'admin_rate_masters':
+        return const MasterRateCardsPage();
+      case 'admin_ai_training':
+        return const AiPromptTrainingPage();
+      case 'admin_backup_recovery':
+        return const DisasterBackupPage();
+
+      default:
+        return PanelPageTemplate.fromPath(path);
+    }
   }
 
   /// Automatically generates named GoRoutes for all direct and alias routes in ClientNavigationRegistry.
@@ -332,6 +762,9 @@ abstract class AppRouter {
               }
               if (r.$1 == RouteNames.clientHireLabour) {
                 return const ClientHireLabourPage();
+              }
+              if (r.$1 == RouteNames.clientDesignerCall) {
+                return const ClientDesignerConsultationPage();
               }
               return PanelPageTemplate.fromPath(r.$2);
             },

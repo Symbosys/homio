@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
-import '../models/dashboard_models.dart';
+import '../domain/dashboard_models.dart';
 
 /// Compact Radial Productivity Gauge Ring & Metric Breakdown
 class ProductivityScoreRing extends StatelessWidget {

@@ -1,231 +1,304 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/sales_models.dart';
-import '../models/sales_mock_data.dart';
-import '../widgets/sales_header.dart';
-import '../widgets/sales_metric_card.dart';
+import '../../../core/theme/app_radius.dart';
+import '../../dashboard/widgets/state_feedback_widgets.dart';
+import '../domain/sales_domain_models.dart';
+import '../data/sales_repository.dart';
+import '../widgets/crm_header.dart';
+import '../widgets/crm_charts.dart';
+import '../widgets/create_lead_dialog.dart';
 
+/// CRM & Sales Overview — Executive Sales Command Center
 class SalesOverviewPage extends StatefulWidget {
-  const SalesOverviewPage({super.key});
+  final String userName;
+  final String userRole;
+
+  const SalesOverviewPage({
+    super.key,
+    this.userName = 'Rajesh Patel',
+    this.userRole = 'Senior Deal Closer & Design Lead',
+  });
 
   @override
   State<SalesOverviewPage> createState() => _SalesOverviewPageState();
 }
 
 class _SalesOverviewPageState extends State<SalesOverviewPage> {
-  SalesDateFilter _selectedDateFilter = SalesDateFilter.thisMonth;
-  String _selectedAgentId = 'USR-001';
+  final SalesRepository _repository = SalesRepository.instance;
+  final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _agents = [
-    {
-      'id': 'USR-001',
-      'name': 'Rahul Sharma',
-      'role': 'Senior Closer',
-      'avatar': 'RS',
-      'base': 45000,
-      'closedRev': 3850000,
-      'closedDeals': 6,
-      'commRate': 0.025,
-      'callsDone': 420,
-      'callRate': 15,
-      'meetings': 14,
-      'meetingRate': 1200,
-      'penalties': 2500,
-      'leads': 48,
-      'cycle': 14.2,
-      'target': 4500000,
-    },
-    {
-      'id': 'USR-002',
-      'name': 'Sneha Kapoor',
-      'role': 'Luxury Specialist',
-      'avatar': 'SK',
-      'base': 50000,
-      'closedRev': 4620000,
-      'closedDeals': 5,
-      'commRate': 0.03,
-      'callsDone': 380,
-      'callRate': 15,
-      'meetings': 18,
-      'meetingRate': 1200,
-      'penalties': 1000,
-      'leads': 39,
-      'cycle': 18.5,
-      'target': 5000000,
-    },
-    {
-      'id': 'USR-003',
-      'name': 'Amit Verma',
-      'role': 'Turnkey Fit-out Lead',
-      'avatar': 'AV',
-      'base': 40000,
-      'closedRev': 2950000,
-      'closedDeals': 4,
-      'commRate': 0.02,
-      'callsDone': 510,
-      'callRate': 15,
-      'meetings': 11,
-      'meetingRate': 1200,
-      'penalties': 3500,
-      'leads': 55,
-      'cycle': 12.8,
-      'target': 3500000,
-    },
-  ];
+  CrmDateRangeFilter _dateFilter = CrmDateRangeFilter.thisMonth;
+  CrmScopeFilter _scopeFilter = CrmScopeFilter.myWork;
+  String _selectedLeadList = 'Interior Client Funnel';
+
+  bool _isLoading = true;
+  SalesOverviewSummary? _summary;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOverviewData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadOverviewData() async {
+    final savedOffset = _scrollController.hasClients ? _scrollController.offset : null;
+    setState(() => _isLoading = true);
+
+    final data = await _repository.getOverviewSummary(
+      dateFilter: _dateFilter.label,
+      scopeFilter: _scopeFilter.label,
+      funnelId: _selectedLeadList,
+    );
+
+    if (mounted) {
+      setState(() {
+        _summary = data;
+        _isLoading = false;
+      });
+
+      if (savedOffset != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients) {
+            final target = savedOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
+            _scrollController.jumpTo(target);
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final currentAgent = _agents.firstWhere(
-      (a) => a['id'] == _selectedAgentId,
-      orElse: () => _agents.first,
-    );
-
-    final double bookingCommission = (currentAgent['closedRev'] as num) * (currentAgent['commRate'] as double);
-    final double callBonus = (currentAgent['callsDone'] as num) * (currentAgent['callRate'] as num).toDouble();
-    final double meetingBonus = (currentAgent['meetings'] as num) * (currentAgent['meetingRate'] as num).toDouble();
-    final double baseSalary = (currentAgent['base'] as num).toDouble();
-    final double penalties = (currentAgent['penalties'] as num).toDouble();
-    final double netIncentivePayout = baseSalary + bookingCommission + callBonus + meetingBonus - penalties;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
+    final isTablet = width >= 768 && width < 1100;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SalesHeader(
-              title: 'Sales Dashboard & Goal Tracking',
-              subtitle: 'Multi-funnel conversion velocity, quota attainment gauge & dynamic incentive engine',
-              icon: Icons.analytics_outlined,
-              activeFilter: _selectedDateFilter,
-              onFilterChanged: (filter) => setState(() => _selectedDateFilter = filter),
-              primaryAction: ElevatedButton.icon(
-                icon: const Icon(Icons.file_download_outlined, size: 14),
-                label: const Text('Export P&L', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Executive sales performance report generated.')),
-                  );
+      body: SafeArea(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          key: const PageStorageKey('sales_overview_scroll'),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 20,
+            vertical: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. Common Enterprise CRM Header
+              CrmHeader(
+                title: 'CRM & Sales',
+                subtitle: 'Monitor pipeline performance, team activity and conversion',
+                icon: Icons.insights_rounded,
+                activeDateFilter: _dateFilter,
+                activeScopeFilter: _scopeFilter,
+                activeLeadList: _selectedLeadList,
+                leadListOptions: const [
+                  'Interior Client Funnel',
+                  'Job Applicant Funnel',
+                  'Vendor Partnership Funnel',
+                ],
+                onDateFilterChanged: (d) {
+                  setState(() => _dateFilter = d);
+                  _loadOverviewData();
                 },
-              ),
-              additionalFilters: [
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.tune_outlined, size: 14),
-                  label: const Text('Set Targets', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  ),
-                  onPressed: () => _showQuotaModal(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // Metrics Strip
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 900;
-                final isMedium = constraints.maxWidth > 600;
-                final double width = isWide
-                    ? (constraints.maxWidth - 48) / 4
-                    : isMedium
-                        ? (constraints.maxWidth - 16) / 2
-                        : constraints.maxWidth;
-
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: SalesMockData.overviewKpis.map((metric) {
-                    return SizedBox(
-                      width: width,
-                      child: SalesMetricCard(metric: metric),
+                onScopeFilterChanged: (s) {
+                  setState(() => _scopeFilter = s);
+                  _loadOverviewData();
+                },
+                onLeadListChanged: (l) {
+                  setState(() => _selectedLeadList = l);
+                  _loadOverviewData();
+                },
+                onRefresh: _loadOverviewData,
+                primaryAction: ElevatedButton.icon(
+                  onPressed: () {
+                    CreateLeadDialog.show(
+                      context,
+                      onLeadCreated: (lead) {
+                        _loadOverviewData();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Lead #${lead.id} created successfully!'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
                     );
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
+                  },
+                  icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
+                  label: Text('+ Create Lead', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                    shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                  ),
+                ),
+              ),
 
-            // Middle Row: Funnel Velocity + Target Quota Gauge
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 960;
-                if (isWide) {
-                  return Row(
+              // Non-disruptive inline loading indicator
+              DashboardInlineLoadingIndicator(isLoading: _isLoading && _summary != null),
+
+              if (_isLoading && _summary == null) ...[
+                const DashboardSkeletonLoader(height: 100),
+                const SizedBox(height: 16),
+                const DashboardSkeletonLoader(height: 140),
+                const SizedBox(height: 16),
+                const DashboardSkeletonLoader(height: 280),
+              ] else if (_summary != null) ...[
+                // 2. Sales KPI Cards Strip
+                _buildKpiStrip(_summary!, isDark, isMobile, isTablet),
+                const SizedBox(height: 18),
+
+                // 3. Monthly Sales Target Widget
+                _buildMonthlyTargetWidget(_summary!, isDark, isMobile),
+                const SizedBox(height: 18),
+
+                // 4. Funnel Chart & Pipeline Distribution Row
+                if (isMobile) ...[
+                  CrmFunnelChart(funnelCounts: _summary!.funnelCounts),
+                  const SizedBox(height: 16),
+                  CrmPipelineDistributionChart(distributionCounts: _summary!.distributionCounts),
+                ] else ...[
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(flex: 7, child: _buildFunnelVelocityCard(context, isDark)),
+                      Expanded(
+                        flex: 6,
+                        child: CrmFunnelChart(funnelCounts: _summary!.funnelCounts),
+                      ),
                       const SizedBox(width: 14),
-                      Expanded(flex: 5, child: _buildQuotaGaugeCard(context, isDark)),
+                      Expanded(
+                        flex: 6,
+                        child: CrmPipelineDistributionChart(distributionCounts: _summary!.distributionCounts),
+                      ),
                     ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      _buildFunnelVelocityCard(context, isDark),
-                      const SizedBox(height: 14),
-                      _buildQuotaGaugeCard(context, isDark),
-                    ],
-                  );
-                }
-              },
-            ),
-            const SizedBox(height: 18),
+                  ),
+                ],
+                const SizedBox(height: 18),
 
-            // Dynamic Commission & Incentive Engine Hero Section
-            _buildCommissionEngineSection(
-              context,
-              isDark,
-              currentAgent,
-              baseSalary,
-              bookingCommission,
-              callBonus,
-              meetingBonus,
-              penalties,
-              netIncentivePayout,
-            ),
-            const SizedBox(height: 18),
+                // 5. Trend Line Chart (Leads vs Bookings)
+                const CrmLeadsVsBookingsLineChart(),
+                const SizedBox(height: 18),
 
-            // Closer Leaderboard Table
-            _buildLeaderboardCard(context, isDark),
-            const SizedBox(height: 18),
+                // 6. Sales Team Performance Ranking Table
+                _buildTeamPerformanceSection(_summary!, isDark, isMobile),
+                const SizedBox(height: 18),
 
-            // Channel Telemetry Card
-            _buildChannelTelemetryCard(context, isDark),
-          ],
+                // 7. Recent Sales Activity Stream
+                _buildRecentActivitySection(_summary!, isDark, isMobile),
+                const SizedBox(height: 24),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFunnelVelocityCard(BuildContext context, bool isDark) {
-    final stages = [
-      {'name': 'Lead In & Capture', 'count': 340, 'val': '₹18.2 Cr', 'conv': '100%', 'color': const Color(0xFF3B82F6)},
-      {'name': 'Initial Discovery & Budgeting', 'count': 218, 'val': '₹12.4 Cr', 'conv': '64.1%', 'color': const Color(0xFF0EA5E9)},
-      {'name': 'Site Survey & Laser Scan', 'count': 136, 'val': '₹8.9 Cr', 'conv': '62.3%', 'color': const Color(0xFF6366F1)},
-      {'name': '3D Concept & Quotation', 'count': 84, 'val': '₹5.6 Cr', 'conv': '61.7%', 'color': const Color(0xFF8B5CF6)},
-      {'name': 'Final Negotiation & Contract', 'count': 46, 'val': '₹3.1 Cr', 'conv': '54.7%', 'color': const Color(0xFFEC4899)},
-      {'name': 'Token Advance Paid (Won)', 'count': 28, 'val': '₹1.84 Cr', 'conv': '60.8%', 'color': const Color(0xFF10B981)},
+  Widget _buildKpiStrip(SalesOverviewSummary s, bool isDark, bool isMobile, bool isTablet) {
+    final cards = [
+      _kpiCard(
+        title: 'New Leads',
+        value: '${s.newLeads}',
+        badgeText: '+${s.newLeadsGrowthPercent}%',
+        badgeColor: const Color(0xFF10B981),
+        subtext: 'vs previous period',
+        icon: Icons.person_add_outlined,
+        iconColor: const Color(0xFF3B82F6),
+        isDark: isDark,
+      ),
+      _kpiCard(
+        title: "Today's Follow-ups",
+        value: '${s.todayFollowups}',
+        badgeText: '${s.pendingFollowups} Pending',
+        badgeColor: const Color(0xFFF59E0B),
+        subtext: 'High priority SLA queue',
+        icon: Icons.phone_callback_outlined,
+        iconColor: const Color(0xFFF59E0B),
+        isDark: isDark,
+      ),
+      _kpiCard(
+        title: 'Meetings Scheduled',
+        value: '${s.meetingsScheduled}',
+        badgeText: '${s.meetingsCompleted} Done',
+        badgeColor: const Color(0xFF0EA5E9),
+        subtext: 'Site visits & design centers',
+        icon: Icons.calendar_month_outlined,
+        iconColor: const Color(0xFF0EA5E9),
+        isDark: isDark,
+      ),
+      _kpiCard(
+        title: 'Closed Bookings',
+        value: '${s.bookingsClosed}',
+        badgeText: '₹${s.bookingValueLakhs}L',
+        badgeColor: const Color(0xFF10B981),
+        subtext: 'Avg ticket: ₹8.1L',
+        icon: Icons.check_circle_outline_rounded,
+        iconColor: const Color(0xFF10B981),
+        isDark: isDark,
+      ),
+      _kpiCard(
+        title: 'Conversion Rate',
+        value: '${s.conversionRate}%',
+        badgeText: '+2.1% MoM',
+        badgeColor: const Color(0xFF10B981),
+        subtext: 'Enquiry to booking closure',
+        icon: Icons.trending_up_rounded,
+        iconColor: const Color(0xFF8B5CF6),
+        isDark: isDark,
+      ),
     ];
 
+    if (isMobile) {
+      return Column(
+        children: cards.map((c) => Padding(padding: const EdgeInsets.only(bottom: 10), child: c)).toList(),
+      );
+    }
+
+    if (isTablet) {
+      return Column(
+        children: [
+          Row(children: [Expanded(child: cards[0]), const SizedBox(width: 10), Expanded(child: cards[1])]),
+          const SizedBox(height: 10),
+          Row(children: [Expanded(child: cards[2]), const SizedBox(width: 10), Expanded(child: cards[3])]),
+          const SizedBox(height: 10),
+          cards[4],
+        ],
+      );
+    }
+
+    return Row(
+      children: cards.map((c) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: c))).toList(),
+    );
+  }
+
+  Widget _kpiCard({
+    required String title,
+    required String value,
+    required String badgeText,
+    required Color badgeColor,
+    required String subtext,
+    required IconData icon,
+    required Color iconColor,
+    required bool isDark,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,251 +306,56 @@ class _SalesOverviewPageState extends State<SalesOverviewPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Interior Turnkey Funnel Velocity & Drop-off Rates',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Step-by-step conversion efficiency from enquiry to booking',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                  color: badgeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'Avg Cycle: 15.6 Days',
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF059669)),
+                child: Text(
+                  badgeText,
+                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: badgeColor),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          ...stages.map((stage) {
-            final double percent = (stage['count'] as int) / 340.0;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 9),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        stage['name'] as String,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextSecondary,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            '${stage['count']} leads (${stage['val']})',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: (stage['color'] as Color).withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: Text(
-                              stage['conv'] as String,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: stage['color'] as Color,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: percent,
-                      minHeight: 5,
-                      backgroundColor: isDark ? AppColors.darkBorder : AppColors.lightSurfaceSubtle,
-                      valueColor: AlwaysStoppedAnimation<Color>(stage['color'] as Color),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuotaGaugeCard(BuildContext context, bool isDark) {
-    const double targetRev = 25000000;
-    const double achievedRev = 18420000;
-    const double progress = achievedRev / targetRev;
-    const double pendingRev = targetRev - achievedRev;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 8),
               Text(
-                'Team Quota Attainment',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  '11 Days Left',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
-                ),
+                value,
+                style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 105,
-                  height: 105,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 9,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${(progress * 100).toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Achieved',
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Monthly Target:', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
-                    const Text('₹2,50,00,000', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Closed Actuals:', style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
-                    const Text('₹1,84,20,000', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF10B981))),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Gap to Target:', style: TextStyle(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-                    Text('₹${(pendingRev / 100000).toStringAsFixed(2)} Lakhs', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFF59E0B))),
-                  ],
-                ),
-                const Divider(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Required Run Rate:', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
-                    const Text('₹5.98L / day', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF2563EB))),
-                  ],
-                ),
-              ],
-            ),
+          const SizedBox(height: 4),
+          Text(
+            subtext,
+            style: GoogleFonts.inter(fontSize: 10.5, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCommissionEngineSection(
-    BuildContext context,
-    bool isDark,
-    Map<String, dynamic> currentAgent,
-    double baseSalary,
-    double bookingCommission,
-    double callBonus,
-    double meetingBonus,
-    double penalties,
-    double netPayout,
-  ) {
+  Widget _buildMonthlyTargetWidget(SalesOverviewSummary s, bool isDark, bool isMobile) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3)),
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,438 +365,11 @@ class _SalesOverviewPageState extends State<SalesOverviewPage> {
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.calculate_outlined, color: Color(0xFF2563EB), size: 16),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dynamic Incentive & Commission Calculation Engine',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                        ),
-                      ),
-                      Text(
-                        'Base + Booking % + Connects + Surveys - Penalties',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                height: 30,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorderStrong),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedAgentId,
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-                    items: _agents.map((a) {
-                      return DropdownMenuItem<String>(
-                        value: a['id'] as String,
-                        child: Text('${a['name']} (${a['role']})'),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedAgentId = val);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Math Cards Strip
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 850;
-              final double cardWidth = isWide ? (constraints.maxWidth - 48) / 5 : (constraints.maxWidth - 16) / 2;
-
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildMathCard(
-                    title: '1. Base Retainer',
-                    value: '₹${baseSalary.toStringAsFixed(0)}',
-                    subtext: 'Monthly fixed',
-                    color: const Color(0xFF64748B),
-                    width: cardWidth,
-                    isDark: isDark,
-                  ),
-                  _buildMathCard(
-                    title: '2. Booking Spiff (${((currentAgent['commRate'] as double) * 100).toStringAsFixed(1)}%)',
-                    value: '+ ₹${bookingCommission.toStringAsFixed(0)}',
-                    subtext: '${currentAgent['closedDeals']} deals (₹${((currentAgent['closedRev'] as num) / 100000).toStringAsFixed(1)}L)',
-                    color: const Color(0xFF10B981),
-                    width: cardWidth,
-                    isDark: isDark,
-                  ),
-                  _buildMathCard(
-                    title: '3. Call Connects',
-                    value: '+ ₹${callBonus.toStringAsFixed(0)}',
-                    subtext: '${currentAgent['callsDone']} calls @ ₹${currentAgent['callRate']}',
-                    color: const Color(0xFF3B82F6),
-                    width: cardWidth,
-                    isDark: isDark,
-                  ),
-                  _buildMathCard(
-                    title: '4. Physical Visits',
-                    value: '+ ₹${meetingBonus.toStringAsFixed(0)}',
-                    subtext: '${currentAgent['meetings']} visits @ ₹${currentAgent['meetingRate']}',
-                    color: const Color(0xFF8B5CF6),
-                    width: cardWidth,
-                    isDark: isDark,
-                  ),
-                  _buildMathCard(
-                    title: '5. SLA Deductions',
-                    value: '- ₹${penalties.toStringAsFixed(0)}',
-                    subtext: 'SLA misses',
-                    color: const Color(0xFFEF4444),
-                    width: cardWidth,
-                    isDark: isDark,
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 14),
-
-          // Total Payout Banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [AppColors.infoMutedDark, AppColors.darkSurface]
-                    : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
-              ),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.35)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TOTAL PAYABLE INCENTIVE (${currentAgent['name']})',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'Verified by Sales Telemetry Audit Engine',
-                      style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      '₹${netPayout.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 16.5,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF1E3A8A),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                      ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Voucher generated for ${currentAgent['name']}.')),
-                        );
-                      },
-                      child: const Text('Approve Voucher', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMathCard({
-    required String title,
-    required String value,
-    required String subtext,
-    required Color color,
-    required double width,
-    required bool isDark,
-  }) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
-          const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: color)),
-          const SizedBox(height: 2),
-          Text(subtext, style: TextStyle(fontSize: 9.5, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLeaderboardCard(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  const Icon(Icons.track_changes_rounded, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 8),
                   Text(
-                    'Sales Executive Leaderboard & Performance Scorecard',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Ranked by closed revenue, conversion velocity & SLA compliance',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.filter_list, size: 13),
-                label: const Text('Filter', style: TextStyle(fontSize: 11)),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final tableWidth = math.max(constraints.maxWidth, 860.0);
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(2.2),
-                      1: FlexColumnWidth(1.2),
-                      2: FlexColumnWidth(1.2),
-                      3: FlexColumnWidth(1.6),
-                      4: FlexColumnWidth(1.4),
-                      5: FlexColumnWidth(1.2),
-                      6: FlexColumnWidth(1.2),
-                      7: FlexColumnWidth(1.0),
-                    },
-                    children: [
-                      TableRow(
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        children: const [
-                          _Th('Sales Closer'),
-                          _Th('Active Leads'),
-                          _Th('Deals Won'),
-                          _Th('Closed Revenue'),
-                          _Th('Quota %'),
-                          _Th('Avg Cycle'),
-                          _Th('Incentive'),
-                          _Th('Details'),
-                        ],
-                      ),
-                      ..._agents.asMap().entries.map((entry) {
-                        final i = entry.key;
-                        final a = entry.value;
-                        final double quotaPercent = ((a['closedRev'] as num) / (a['target'] as num)) * 100;
-                        return TableRow(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: isDark ? AppColors.darkBorder : AppColors.lightSurfaceSubtle,
-                              ),
-                            ),
-                          ),
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 11,
-                                    backgroundColor: i == 0
-                                        ? const Color(0xFFF59E0B)
-                                        : i == 1
-                                            ? const Color(0xFF94A3B8)
-                                            : const Color(0xFF3B82F6),
-                                    child: Text(
-                                      '#${i + 1}',
-                                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        a['name'] as String,
-                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-                                      ),
-                                      Text(
-                                        a['role'] as String,
-                                        style: TextStyle(
-                                          fontSize: 9.5,
-                                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            _Td('${a['leads']} Leads'),
-                            _Td('${a['closedDeals']} Won'),
-                            _Td('₹${((a['closedRev'] as num) / 100000).toStringAsFixed(2)} L', isBold: true, color: const Color(0xFF10B981)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${quotaPercent.toStringAsFixed(1)}%', style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 2),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(2),
-                                    child: LinearProgressIndicator(
-                                      value: quotaPercent / 100,
-                                      minHeight: 3.5,
-                                      backgroundColor: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        quotaPercent >= 90 ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            _Td('${a['cycle']} days'),
-                            _Td('₹${(((a['closedRev'] as num) * (a['commRate'] as double)) / 1000).toStringAsFixed(1)}k', color: const Color(0xFF2563EB)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                              child: IconButton(
-                                icon: const Icon(Icons.arrow_forward, size: 14),
-                                onPressed: () {
-                                  setState(() => _selectedAgentId = a['id'] as String);
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChannelTelemetryCard(BuildContext context, bool isDark) {
-    final channels = [
-      {'channel': 'Meta & Instagram Ads', 'leads': 142, 'spend': '₹85,000', 'cpl': '₹598', 'won': 12, 'revenue': '₹78.5 L', 'roas': '9.2x'},
-      {'channel': 'Google Search (High Intent)', 'leads': 94, 'spend': '₹72,000', 'cpl': '₹765', 'won': 9, 'revenue': '₹62.0 L', 'roas': '8.6x'},
-      {'channel': 'WhatsApp Cloud API Drips', 'leads': 68, 'spend': '₹8,400', 'cpl': '₹123', 'won': 5, 'revenue': '₹31.4 L', 'roas': '37.3x'},
-      {'channel': 'Referrals & Word of Mouth', 'leads': 24, 'spend': '₹0', 'cpl': '₹0', 'won': 2, 'revenue': '₹12.3 L', 'roas': 'N/A'},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Lead Acquisition Channel Telemetry & Marketing ROI',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Cost Per Lead vs Win Rate across channels',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
+                    'Monthly Booking Target Performance',
+                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -928,197 +379,172 @@ class _SalesOverviewPageState extends State<SalesOverviewPage> {
                   color: const Color(0xFF10B981).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'Blended CPL: ₹512',
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
+                child: Text(
+                  '${s.targetAchievementPercent}% Achieved',
+                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF10B981)),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 14),
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: (s.targetAchievementPercent / 100.0).clamp(0.0, 1.0),
+              minHeight: 10,
+              backgroundColor: isDark ? AppColors.darkSurfaceSubtle : const Color(0xFFF1F5F9),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+            ),
           ),
           const SizedBox(height: 12),
-
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final tableWidth = math.max(constraints.maxWidth, 780.0);
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(2.5),
-                      1: FlexColumnWidth(1.2),
-                      2: FlexColumnWidth(1.2),
-                      3: FlexColumnWidth(1.2),
-                      4: FlexColumnWidth(1.0),
-                      5: FlexColumnWidth(1.5),
-                      6: FlexColumnWidth(1.0),
-                    },
-                    children: [
-                      TableRow(
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        children: const [
-                          _Th('Lead Source Channel'),
-                          _Th('Total Leads'),
-                          _Th('Ad Spend'),
-                          _Th('CPL'),
-                          _Th('Won Deals'),
-                          _Th('Closed Revenue'),
-                          _Th('ROAS'),
-                        ],
-                      ),
-                      ...channels.map((ch) {
-                        return TableRow(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: isDark ? AppColors.darkBorder : AppColors.lightSurfaceSubtle,
-                              ),
-                            ),
-                          ),
-                          children: [
-                            _Td(ch['channel'] as String, isBold: true),
-                            _Td('${ch['leads']}'),
-                            _Td(ch['spend'] as String),
-                            _Td(ch['cpl'] as String),
-                            _Td('${ch['won']}'),
-                            _Td(ch['revenue'] as String, color: const Color(0xFF10B981), isBold: true),
-                            _Td(ch['roas'] as String, color: const Color(0xFF2563EB), isBold: true),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showQuotaModal(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    InputDecoration modalInputDeco(String label) {
-      return InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(fontSize: 11.5, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-        isDense: true,
-        filled: true,
-        fillColor: isDark ? AppColors.darkSurfaceSubtle : AppColors.lightSurfaceSubtle,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorderStrong, width: 1.0),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorderStrong, width: 1.0),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.4),
-        ),
-      );
-    }
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-        title: const Text('Adjust Team Quotas & Target Tiers', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
-        content: SizedBox(
-          width: 400,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextFormField(
-                initialValue: '25000000',
-                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-                decoration: modalInputDeco('Monthly Revenue Quota (₹)'),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                initialValue: '40',
-                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-                decoration: modalInputDeco('Target Closed Deals'),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                initialValue: '0.025',
-                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-                decoration: modalInputDeco('Baseline Commission % (2.5% = 0.025)'),
-              ),
+              _targetColumn('Monthly Target', '₹${s.monthlyBookingTargetCr.toStringAsFixed(2)} Cr', isDark),
+              _targetColumn('Actual Closed', '₹${s.actualBookingLakhs} L', isDark, color: const Color(0xFF10B981)),
+              _targetColumn('Remaining Target', '₹${s.remainingTargetLakhs} L', isDark, color: const Color(0xFFEF4444)),
+              if (!isMobile)
+                _targetColumn('Target Ratio', '18 / 28 Projects', isDark, color: AppColors.primary),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(fontSize: 11.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _targetColumn(String label, String value, bool isDark, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary)),
+        const SizedBox(height: 2),
+        Text(value, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildTeamPerformanceSection(SalesOverviewSummary s, bool isDark, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Sales Team Performance Leaderboard', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
+              Text('4 Senior Deal Closers', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          const SizedBox(height: 14),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowHeight: 38,
+              dataRowMinHeight: 44,
+              dataRowMaxHeight: 48,
+              columns: const [
+                DataColumn(label: Text('# Rank')),
+                DataColumn(label: Text('Salesperson')),
+                DataColumn(label: Text('Leads Assigned')),
+                DataColumn(label: Text('Calls / Talk Time')),
+                DataColumn(label: Text('Meetings')),
+                DataColumn(label: Text('Bookings')),
+                DataColumn(label: Text('Revenue')),
+                DataColumn(label: Text('Conversion %')),
+              ],
+              rows: s.teamRankings.map((m) {
+                return DataRow(cells: [
+                  DataCell(Text('#${m.rank}', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.primary))),
+                  DataCell(Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(m.employeeName, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12)),
+                      Text(m.role, style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B))),
+                    ],
+                  )),
+                  DataCell(Text('${m.leadsAssigned}')),
+                  DataCell(Text('${m.callsCompleted} (${m.talkTimeMinutes}m)')),
+                  DataCell(Text('${m.meetingsHosted}')),
+                  DataCell(Text('${m.bookingsClosed}')),
+                  DataCell(Text('₹${m.revenueGeneratedLakhs}L', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: const Color(0xFF10B981)))),
+                  DataCell(Text('${m.conversionRate}%')),
+                ]);
+              }).toList(),
             ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Target quota updated.')));
-            },
-            child: const Text('Save Targets', style: TextStyle(fontSize: 11.5)),
           ),
         ],
       ),
     );
   }
-}
 
-class _Th extends StatelessWidget {
-  final String text;
-  const _Th(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-        ),
+  Widget _buildRecentActivitySection(SalesOverviewSummary s, bool isDark, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8),
       ),
-    );
-  }
-}
-
-class _Td extends StatelessWidget {
-  final String text;
-  final bool isBold;
-  final Color? color;
-  const _Td(this.text, {this.isBold = false, this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 6),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-          color: color ?? (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Live CRM Activity Feed', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          for (final act in s.recentActivities) ...[
+            InkWell(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Inspecting activity: ${act.action}'), behavior: SnackBarBehavior.floating),
+                );
+              },
+              borderRadius: AppRadius.sm,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: act.iconColor.withValues(alpha: 0.12), shape: BoxShape.circle),
+                      child: Icon(act.icon, size: 16, color: act.iconColor),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(act.action, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                              Text(
+                                '${act.timestamp.hour}:${act.timestamp.minute.toString().padLeft(2, '0')}',
+                                style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF64748B)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(act.details, style: GoogleFonts.inter(fontSize: 11.5)),
+                          const SizedBox(height: 2),
+                          Text('By: ${act.employeeName} (${act.source})', style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF94A3B8))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 1, color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          ],
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../app/navigation/admin_navigation_config.dart';
 import '../../app/router/route_names.dart';
 import '../navigation/navigation_menu_registry.dart';
 import '../navigation/sidebar_controller.dart';
@@ -13,7 +14,7 @@ import '../theme/app_typography.dart';
 /// Top operational bar for Homio CRM with breadcrumbs, search, alerts, and tenant pill.
 /// Adapts responsively:
 /// - Desktop / Primary 5 Bottom Tabs: Shows breadcrumb hub, workspace badge, search (desktop), alerts bell, and profile.
-/// - Mobile / Tablet Secondary Screens: Shows drawer menu button, current module/page title & category icon, alerts bell, and profile (no back icon).
+/// - Mobile Compact Secondary Screens: Displays back arrow button, current screen title + icon, and notification bell.
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
 
@@ -23,7 +24,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(68.0);
+  Size get preferredSize => const Size.fromHeight(60.0);
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +41,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (context, _) {
         final activeRoute = controller.activeRoute;
         final isBottomTab = controller.isCurrentRouteInBottomTabs;
+        final adminItem = AdminNavigationConfig.findItemByRoute(activeRoute);
         final pageInfo = NavigationMenuRegistry.findInfoByPath(activeRoute);
-        final displayTitle = title ?? pageInfo.title;
+        final displayTitle = title ?? adminItem?.label ?? pageInfo.title;
 
         return Container(
           height: preferredSize.height,

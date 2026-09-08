@@ -412,6 +412,14 @@ abstract class NavigationMenuRegistry {
               description: 'Aadhaar verification, selfie KYC & rates',
             ),
             NavigationSubMenuItem(
+              id: 'srv_onboard_labour',
+              title: 'Onboard New Tradesman',
+              icon: Icons.person_add_alt_1_rounded,
+              routeName: RouteNames.srvOnboardLabour,
+              routePath: RouteNames.srvOnboardLabourPath,
+              description: 'Admin registration, biometrics & rate cards',
+            ),
+            NavigationSubMenuItem(
               id: 'srv_active_bookings',
               title: 'Active Service Bookings',
               icon: Icons.engineering_rounded,
@@ -461,6 +469,14 @@ abstract class NavigationMenuRegistry {
               routePath: RouteNames.shopPropertiesPath,
               description: 'Listings & Rs. 500 owner unlock paywall',
             ),
+            NavigationSubMenuItem(
+              id: 'shop_materials',
+              title: 'Wholesale Materials & Live Index',
+              icon: Icons.inventory_2_rounded,
+              routeName: RouteNames.shopMaterials,
+              routePath: RouteNames.shopMaterialsPath,
+              description: 'Direct mill pricing & contractor bulk index',
+            ),
           ],
         ),
         NavigationMenuItem(
@@ -482,12 +498,12 @@ abstract class NavigationMenuRegistry {
               description: 'Unified 1-on-1 thread: Lead -> Project -> After Sales',
             ),
             NavigationSubMenuItem(
-              id: 'comm_bulk_messages',
-              title: 'Bulk Broadcast Messages',
+              id: 'comm_broadcasts',
+              title: 'Broadcasts & Scheduled Queue',
               icon: Icons.campaign_rounded,
-              routeName: RouteNames.commBulkMessages,
-              routePath: RouteNames.commBulkMessagesPath,
-              description: 'Broadcasts via lists & custom CSV uploads',
+              routeName: RouteNames.commBroadcasts,
+              routePath: RouteNames.commBroadcastsPath,
+              description: 'Bulk WhatsApp blasts, scheduled queue & delivery analytics',
             ),
             NavigationSubMenuItem(
               id: 'comm_templates',
@@ -496,14 +512,6 @@ abstract class NavigationMenuRegistry {
               routeName: RouteNames.commTemplates,
               routePath: RouteNames.commTemplatesPath,
               description: 'Meta WhatsApp templates with dynamic variables & CTAs',
-            ),
-            NavigationSubMenuItem(
-              id: 'comm_scheduled',
-              title: 'Scheduled Messages',
-              icon: Icons.schedule_send_rounded,
-              routeName: RouteNames.commScheduled,
-              routePath: RouteNames.commScheduledPath,
-              description: 'Individual & bulk scheduled message queue',
             ),
             NavigationSubMenuItem(
               id: 'comm_drip_campaigns',

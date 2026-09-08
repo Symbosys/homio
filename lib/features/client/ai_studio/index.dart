@@ -6,3 +6,4 @@ export 'room_generator_page.dart';
 export 'vastu_consultant_page.dart';
 export 'budget_estimator_page.dart';
 export 'doubt_solver_page.dart';
+export 'client_designer_consultation_page.dart';

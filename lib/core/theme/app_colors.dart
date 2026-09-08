@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 abstract class AppColors {
   // Brand Palette - Modern Electric Indigo & Vibrant Violet
   static const Color primary = Color(0xFF4F46E5); // Indigo 600
+  static const Color brandPrimary = primary;
   static const Color primaryHover = Color(0xFF4338CA); // Indigo 700
   static const Color primaryLight = Color(0xFF6366F1); // Indigo 500
   static const Color primaryDark = Color(0xFF3730A3); // Indigo 800
@@ -15,6 +16,11 @@ abstract class AppColors {
   static const Color secondaryLight = Color(0xFF8B5CF6); // Violet 500
   static const Color accent = Color(0xFF06B6D4); // Cyan 500
   static const Color accentTeal = Color(0xFF0D9488); // Teal 600
+  static const Color gold = Color(0xFFD97706); // Amber/Gold tone
+  static const Color deepNavy = Color(0xFF0F172A); // Dark navy/slate
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color darkCardBg = Color(0xFF111827);
+  static const Color darkSubtext = Color(0xFF94A3B8);
 
   // Semantic Status Colors
   static const Color success = Color(0xFF10B981); // Emerald 500
@@ -62,6 +68,33 @@ abstract class AppColors {
   static const Color darkMutedText = darkTextMuted;
   static const Color lightText = lightTextPrimary;
   static const Color darkText = darkTextPrimary;
+
+  static const Color cardBackground = lightSurface;
+  static const Color cardBorder = lightBorder;
+  static const Color background = lightBackground;
+  static const Color textPrimary = lightTextPrimary;
+  static const Color textSecondary = lightTextSecondary;
+  static const Color textTertiary = lightTextMuted;
+
+  // Context-aware dynamic color getters for Dark/Light Mode
+  static Color getBackground(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkBackground : lightBackground;
+  static Color getSurface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSurface : lightSurface;
+  static Color getSurfaceSubtle(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSurfaceSubtle : lightSurfaceSubtle;
+  static Color getCard(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkCard : lightCard;
+  static Color getBorder(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkBorder : lightBorder;
+  static Color getBorderStrong(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkBorderStrong : lightBorderStrong;
+  static Color getTextPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextPrimary : lightTextPrimary;
+  static Color getTextSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextSecondary : lightTextSecondary;
+  static Color getTextMuted(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextMuted : lightTextMuted;
 
   // Gradients for Hero & Highlights
   static const LinearGradient primaryGradient = LinearGradient(

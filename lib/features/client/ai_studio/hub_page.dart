@@ -312,6 +312,14 @@ class _ClientAiStudioHubPageState extends State<ClientAiStudioHubPage> {
         icon: Icons.psychology_rounded,
         routeName: RouteNames.clientAiDoubtSolver,
       ),
+      (
+        title: '30-Min On-Demand Video Consultation',
+        desc: 'Book one-on-one live video consultations with verified interior designers & Vastu experts with instant screen sharing & live sketch whiteboard.',
+        badge: 'LIVE VIDEO • EXPERT ADVICE',
+        color: const Color(0xFFEC4899),
+        icon: Icons.video_call_rounded,
+        routeName: RouteNames.clientDesignerCall,
+      ),
     ];
 
     return LayoutBuilder(

@@ -1,202 +1,116 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
+import '../data/travel_repository.dart';
+import '../domain/dashboard_enums.dart';
+import '../domain/dashboard_models.dart';
 import '../models/dashboard_mock_data.dart';
-import '../models/dashboard_models.dart';
-import '../widgets/compact_data_table.dart';
 import '../widgets/dashboard_charts.dart';
 import '../widgets/dashboard_header.dart';
-import '../widgets/dashboard_metric_card.dart';
+import '../widgets/log_travel_modal.dart';
+import '../widgets/state_feedback_widgets.dart';
 
-/// Field Visits & Mileage tracking dashboard with live GPS route tracker,
-/// 30-day travel mileage line chart, visit purpose pie chart, and claims table.
+/// Screen 4: Travel, Field Visits & Fuel Mileage Reimbursement.
+/// Features Travel Summary KPIs, GPS Route Map visualization, configurable mileage rate calculation,
+/// 30-day mileage charts, and responsive claims history table/cards.
 class DashboardTravelPage extends StatefulWidget {
-  const DashboardTravelPage({super.key});
+  final String userName;
+
+  const DashboardTravelPage({
+    super.key,
+    this.userName = 'Vikram Malhotra',
+  });
 
   @override
   State<DashboardTravelPage> createState() => _DashboardTravelPageState();
 }
 
 class _DashboardTravelPageState extends State<DashboardTravelPage> {
-  DashboardDateFilter _dateFilter = DashboardDateFilter.month;
-  bool _isTripActive = false;
-  final List<FieldVisitItem> _visits = List.from(DashboardMockData.fieldVisits);
+  final TravelRepository _repository = TravelRepository.instance;
+  final ScrollController _scrollController = ScrollController();
 
-  void _toggleTrip() {
+  DashboardDateFilter _dateFilter = DashboardDateFilter.thisMonth;
+  DashboardScopeFilter _scopeFilter = DashboardScopeFilter.myWork;
+
+  bool _isLoading = true;
+  TravelSummary? _summary;
+  List<TravelRecord> _records = [];
+  bool _isTripActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    final savedOffset = _scrollController.hasClients ? _scrollController.offset : null;
+    setState(() => _isLoading = true);
+    final summary = await _repository.getTravelSummary(dateFilter: _dateFilter);
+    final records = await _repository.getTravelHistory();
+
+    if (mounted) {
+      setState(() {
+        _summary = summary;
+        _records = records;
+        _isLoading = false;
+      });
+      if (savedOffset != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scrollController.hasClients) {
+            final target = savedOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
+            _scrollController.jumpTo(target);
+          }
+        });
+      }
+    }
+  }
+
+  void _toggleLiveGpsTrip() {
     setState(() => _isTripActive = !_isTripActive);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           _isTripActive
-              ? 'GPS Tracking Started. Odometer calibrated from HQ.'
-              : 'Trip ended. 14.2 km recorded for fuel reimbursement claim.',
+              ? 'GPS Odometer Started. Real-time background location logging active.'
+              : 'Trip completed. Recorded 18.4 km for company fuel reimbursement claim.',
           style: GoogleFonts.inter(fontSize: 12),
         ),
         backgroundColor: _isTripActive ? const Color(0xFF2563EB) : const Color(0xFF10B981),
-        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  void _openLogVisitDialog() {
-    final clientController = TextEditingController();
-    final locationController = TextEditingController();
-    final kmController = TextEditingController();
-    String purpose = 'Site Measurement';
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
-              title: Row(
-                children: [
-                  const Icon(Icons.add_location_alt_outlined, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Log Field Visit / Mileage Claim',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: 400,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Client Name', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: clientController,
-                      style: GoogleFonts.inter(fontSize: 12),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Mr. Rajesh Mehta',
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        border: OutlineInputBorder(borderRadius: AppRadius.sm),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text('Site Location', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: locationController,
-                      style: GoogleFonts.inter(fontSize: 12),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Prestige Willow Green, Flat 402',
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        border: OutlineInputBorder(borderRadius: AppRadius.sm),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Distance (km)', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 4),
-                              TextField(
-                                controller: kmController,
-                                keyboardType: TextInputType.number,
-                                style: GoogleFonts.inter(fontSize: 12),
-                                decoration: InputDecoration(
-                                  hintText: 'e.g. 18.5',
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                  border: OutlineInputBorder(borderRadius: AppRadius.sm),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Purpose', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 4),
-                              DropdownButtonFormField<String>(
-                                initialValue: purpose,
-                                isDense: true,
-                                style: GoogleFonts.inter(fontSize: 11.5, color: isDark ? Colors.white : Colors.black),
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  border: OutlineInputBorder(borderRadius: AppRadius.sm),
-                                ),
-                                items: const [
-                                  DropdownMenuItem(value: 'Site Measurement', child: Text('Measurement')),
-                                  DropdownMenuItem(value: 'Inspection', child: Text('Inspection')),
-                                  DropdownMenuItem(value: 'Client Meeting', child: Text('Client Meeting')),
-                                  DropdownMenuItem(value: 'Handover', child: Text('Handover')),
-                                ],
-                                onChanged: (val) {
-                                  if (val != null) setDialogState(() => purpose = val);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel', style: GoogleFonts.inter(fontSize: 12)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final dist = double.tryParse(kmController.text.trim()) ?? 10.0;
-                    setState(() {
-                      _visits.insert(
-                        0,
-                        FieldVisitItem(
-                          id: 'vst-${DateTime.now().millisecondsSinceEpoch}',
-                          clientName: clientController.text.trim().isEmpty ? 'Client Visit' : clientController.text.trim(),
-                          siteLocation: locationController.text.trim().isEmpty ? 'Site Location' : locationController.text.trim(),
-                          visitDate: 'Today',
-                          distanceKm: dist,
-                          reimbursementAmount: dist * 10,
-                          status: 'pending',
-                          purpose: purpose,
-                        ),
-                      );
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Visit logged and reimbursement queued for approval', style: GoogleFonts.inter(fontSize: 12)),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
-                  ),
-                  child: Text('Save Visit', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            );
-          },
+  void _openLogVisitModal() {
+    LogTravelModal.show(
+      context,
+      mileageRatePerKm: _summary?.mileageRatePerKm ?? 12.0,
+      onLogTrip: ({
+        required String clientName,
+        required String projectName,
+        required String fromLocation,
+        required String toLocation,
+        required double distanceKm,
+        required String purpose,
+      }) async {
+        await _repository.logFieldVisit(
+          clientName: clientName,
+          projectName: projectName,
+          fromLocation: fromLocation,
+          toLocation: toLocation,
+          distanceKm: distanceKm,
+          purpose: purpose,
         );
+        _loadData();
       },
     );
   }
@@ -212,6 +126,8 @@ class _DashboardTravelPageState extends State<DashboardTravelPage> {
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: SafeArea(
         child: SingleChildScrollView(
+          controller: _scrollController,
+          key: const PageStorageKey('dashboard_travel_scroll'),
           padding: EdgeInsets.symmetric(
             horizontal: isMobile ? 12 : 20,
             vertical: 16,
@@ -219,19 +135,29 @@ class _DashboardTravelPageState extends State<DashboardTravelPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
+              // 1. Common Header
               DashboardHeader(
-                title: 'Field Visits & Mileage Telemetry',
-                subtitle: 'On-site inspections, verified GPS odometer tracking & fuel reimbursement audits',
-                icon: Icons.directions_car_filled_outlined,
-                activeFilter: _dateFilter,
-                onFilterChanged: (val) => setState(() => _dateFilter = val),
+                title: 'Travel & Field Mileage Hub',
+                subtitle: 'Track field site visits, GPS distance telemetry & fuel reimbursement claims',
+                icon: Icons.commute_rounded,
+                userName: widget.userName,
+                activeDateFilter: _dateFilter,
+                activeScopeFilter: _scopeFilter,
+                onDateFilterChanged: (f) {
+                  setState(() => _dateFilter = f);
+                  _loadData();
+                },
+                onScopeFilterChanged: (s) {
+                  setState(() => _scopeFilter = s);
+                  _loadData();
+                },
+                onRefresh: _loadData,
                 primaryAction: ElevatedButton.icon(
-                  onPressed: _openLogVisitDialog,
-                  icon: const Icon(Icons.add, size: 14),
+                  onPressed: _openLogVisitModal,
+                  icon: const Icon(Icons.add_location_alt_rounded, size: 16),
                   label: Text(
-                    'Log Visit',
-                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600),
+                    '+ Log Field Visit',
+                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -243,21 +169,40 @@ class _DashboardTravelPageState extends State<DashboardTravelPage> {
                 ),
               ),
 
-              // Active Trip GPS Tracker Card
-              _buildActiveTripCard(isDark, isMobile),
-              const SizedBox(height: 18),
+              // Non-disruptive inline indicator right below header
+              DashboardInlineLoadingIndicator(isLoading: _isLoading && _summary != null),
 
-              // 4 Mileage KPI Metrics
-              _buildKpis(isMobile, isTablet),
-              const SizedBox(height: 18),
+              if (_isLoading && _summary == null) ...[
+                const DashboardSkeletonLoader(height: 100),
+                const SizedBox(height: 16),
+                const DashboardSkeletonLoader(height: 140),
+                const SizedBox(height: 16),
+                const DashboardSkeletonLoader(height: 280),
+              ] else if (_summary != null) ...[
+                // 2. Travel Summary Cards Strip
+                _buildTravelSummaryKpis(isDark, isMobile, isTablet),
+                const SizedBox(height: 18),
 
-              // Charts Row: 30-day mileage line & purpose pie chart
-              _buildChartsRow(isDark, isMobile, isTablet),
-              const SizedBox(height: 18),
+                // 3. Live Trip & Waypoint Route Visualization Card
+                _buildRouteAndGpsCard(isDark, isMobile),
+                const SizedBox(height: 18),
 
-              // Field Visits Data Grid
-              _buildVisitsTable(isDark),
-              const SizedBox(height: 24),
+                // 4. Configurable Mileage Rate & Reimbursement Formula Card
+                _buildMileageRateCard(isDark, isMobile),
+                const SizedBox(height: 18),
+
+                // 5. Travel Charts Row (30-Day Line Chart + Purpose Pie Chart)
+                _buildTravelChartsRow(isDark, isMobile, isTablet),
+                const SizedBox(height: 20),
+
+                // 6. Travel Claims & Field Visit History Table / Cards with Localized Loading
+                LocalizedLoadingOverlay(
+                  isLoading: _isLoading && _summary != null,
+                  message: 'Refreshing claims & visits...',
+                  child: _buildTravelHistorySection(isDark, isMobile),
+                ),
+                const SizedBox(height: 24),
+              ],
             ],
           ),
         ),
@@ -265,7 +210,77 @@ class _DashboardTravelPageState extends State<DashboardTravelPage> {
     );
   }
 
-  Widget _buildActiveTripCard(bool isDark, bool isMobile) {
+  // ===========================================================================
+  // SECTION: TRAVEL SUMMARY CARDS
+  // ===========================================================================
+  Widget _buildTravelSummaryKpis(bool isDark, bool isMobile, bool isTablet) {
+    final s = _summary!;
+    final kpis = [
+      _buildKpiCard('Total Distance', '${s.totalDistanceKm} KM', 'GPS verified', const Color(0xFF2563EB), isDark),
+      _buildKpiCard('Total Visits', '${s.totalVisits}', 'client sites', const Color(0xFF6366F1), isDark),
+      _buildKpiCard('Approved Reimbursement', '₹${s.approvedReimbursement.toStringAsFixed(0)}', 'credited to wallet', const Color(0xFF10B981), isDark),
+      _buildKpiCard('Pending Reimbursement', '₹${s.pendingReimbursement.toStringAsFixed(0)}', 'under finance review', const Color(0xFFF59E0B), isDark),
+      _buildKpiCard('This Month Total', '₹${s.thisMonthTotal.toStringAsFixed(0)}', 'eligible mileage', const Color(0xFF0EA5E9), isDark),
+    ];
+
+    if (isMobile) {
+      return SizedBox(
+        height: 88,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: kpis.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 10),
+          itemBuilder: (context, index) => SizedBox(width: 145, child: kpis[index]),
+        ),
+      );
+    }
+
+    return Row(
+      children: kpis.map((k) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: k))).toList(),
+    );
+  }
+
+  Widget _buildKpiCard(String title, String val, String sub, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(val, style: GoogleFonts.inter(fontSize: 19, fontWeight: FontWeight.w800, color: color)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  sub,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 9.5, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SECTION: LIVE TRIP & WAYPOINT ROUTE CARD
+  // ===========================================================================
+  Widget _buildRouteAndGpsCard(bool isDark, bool isMobile) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -273,333 +288,410 @@ class _DashboardTravelPageState extends State<DashboardTravelPage> {
         borderRadius: AppRadius.md,
         border: Border.all(
           color: _isTripActive
-              ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+              ? const Color(0xFF2563EB).withValues(alpha: 0.5)
               : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
         ),
       ),
-      child: isMobile
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.alt_route_rounded, size: 16, color: Color(0xFF2563EB)),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Operational Field Route Telemetry',
+                    style: GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: _toggleLiveGpsTrip,
+                icon: Icon(_isTripActive ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 15),
+                label: Text(
+                  _isTripActive ? 'End Trip & Claim' : 'Start Live GPS Trip',
+                  style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isTripActive ? const Color(0xFFEF4444) : const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Visual Waypoints Path (Office -> Site A -> Site B -> Site C)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                _buildTripInfo(isDark),
-                const SizedBox(height: 12),
-                _buildTripActionButton(),
-              ],
-            )
-          : Row(
-              children: [
-                Expanded(child: _buildTripInfo(isDark)),
-                const SizedBox(width: 20),
-                _buildTripActionButton(),
+                _buildWaypointStep('Office HQ Hub', '09:30 AM', 'Start Point', true, isDark),
+                _buildRouteArrow(18.4, isDark),
+                _buildWaypointStep('Project #104 (DLF Phase 5)', '10:15 AM', 'Framing Laser Check', false, isDark),
+                _buildRouteArrow(24.2, isDark),
+                _buildWaypointStep('Sobha City #402', '02:00 PM', 'CAD Measurement', false, isDark),
+                _buildRouteArrow(16.5, isDark),
+                _buildWaypointStep('Godrej Woods 3BHK', '04:30 PM', 'Marble Signoff', false, isDark),
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildTripInfo(bool isDark) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: (_isTripActive ? const Color(0xFF2563EB) : const Color(0xFF64748B)).withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            _isTripActive ? Icons.navigation : Icons.near_me_disabled,
-            size: 18,
-            color: _isTripActive ? const Color(0xFF2563EB) : const Color(0xFF64748B),
-          ),
+  Widget _buildWaypointStep(String title, String time, String desc, bool isStart, bool isDark) {
+    return Container(
+      width: 170,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceSubtle : const Color(0xFFF8FAFC),
+        borderRadius: AppRadius.sm,
+        border: Border.all(
+          color: isStart ? const Color(0xFF2563EB) : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          width: isStart ? 1.2 : 0.8,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isStart ? Icons.business_rounded : Icons.location_on_rounded,
+                size: 14,
+                color: isStart ? const Color(0xFF2563EB) : const Color(0xFF10B981),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                time,
+                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: const Color(0xFF64748B)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          Text(
+            desc,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(fontSize: 10.5, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRouteArrow(double km, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Column(
+        children: [
+          Text(
+            '${km.toStringAsFixed(1)} km',
+            style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFF2563EB)),
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Container(width: 14, height: 1.5, color: const Color(0xFF2563EB)),
+              const Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF2563EB)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // SECTION: CONFIGURABLE MILEAGE RATE CARD
+  // ===========================================================================
+  Widget _buildMileageRateCard(bool isDark, bool isMobile) {
+    final s = _summary!;
+    final estimatedPayout = s.totalDistanceKm * s.mileageRatePerKm;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+        borderRadius: AppRadius.md,
+        border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Text(
-                    _isTripActive ? 'GPS Live Trip In Progress' : 'No Active Field Trip',
+                    'Company Mileage Rate: ',
                     style: GoogleFonts.inter(
                       fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                      color: isDark ? const Color(0xFFBFDBFE) : const Color(0xFF1E40AF),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  DashboardBadge(
-                    label: _isTripActive ? 'RECORDING GPS' : 'STANDBY',
-                    color: _isTripActive ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                  Text(
+                    '₹${s.mileageRatePerKm.toStringAsFixed(0)} / KM',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF2563EB),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(
-                _isTripActive
-                    ? 'Route: HQ -> Prestige Falcon Site | Est. 14.2 km | Start Odometer: 14,892 km'
-                    : 'Start a trip when traveling for client visits, site measurements or material inspections.',
+                'Total Eligible Distance: ${s.totalDistanceKm} KM  ×  ₹${s.mileageRatePerKm.toStringAsFixed(0)}',
                 style: GoogleFonts.inter(
                   fontSize: 11,
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF3B82F6),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Estimated Reimbursement',
+                style: GoogleFonts.inter(
+                  fontSize: 10.5,
+                  color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                ),
+              ),
+              Text(
+                '₹${estimatedPayout.toStringAsFixed(2)}',
+                style: GoogleFonts.inter(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF2563EB),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildTripActionButton() {
-    return ElevatedButton.icon(
-      onPressed: _toggleTrip,
-      icon: Icon(_isTripActive ? Icons.stop_circle_outlined : Icons.play_arrow_rounded, size: 16),
-      label: Text(
-        _isTripActive ? 'End Trip & Upload Proof' : 'Start GPS Trip',
-        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _isTripActive ? const Color(0xFFEF4444) : AppColors.primary,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
-      ),
+  // ===========================================================================
+  // SECTION: CHARTS ROW
+  // ===========================================================================
+  Widget _buildTravelChartsRow(bool isDark, bool isMobile, bool isTablet) {
+    const lineChartWidget = DashboardTravelMileageLineChart(
+      dataPoints: DashboardMockData.travelMileageTrend,
     );
-  }
 
-  Widget _buildKpis(bool isMobile, bool isTablet) {
-    final kpis = DashboardMockData.travelKpis;
-    final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 4);
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisExtent: 118,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: kpis.length,
-      itemBuilder: (context, index) {
-        return DashboardMetricCard(metric: kpis[index]);
-      },
+    const pieChartWidget = DashboardVisitPurposePieChart(
+      visits: DashboardMockData.fieldVisits,
     );
-  }
 
-  Widget _buildChartsRow(bool isDark, bool isMobile, bool isTablet) {
     if (isMobile || isTablet) {
       return Column(
         children: [
-          DashboardTravelMileageLineChart(dataPoints: DashboardMockData.travelMileageTrend),
-          const SizedBox(height: 16),
-          DashboardVisitPurposePieChart(visits: _visits),
+          lineChartWidget,
+          const SizedBox(height: 14),
+          pieChartWidget,
         ],
       );
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 6,
-          child: DashboardTravelMileageLineChart(dataPoints: DashboardMockData.travelMileageTrend),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 4,
-          child: DashboardVisitPurposePieChart(visits: _visits),
-        ),
+        Expanded(flex: 6, child: lineChartWidget),
+        const SizedBox(width: 14),
+        Expanded(flex: 4, child: pieChartWidget),
       ],
     );
   }
 
-  Widget _buildVisitsTable(bool isDark) {
-    return CompactTableCard(
-      title: 'Field Visits & Reimbursement Ledger',
-      subtitle: 'Verified site visits with GPS distance calculations & claims',
-      trailing: OutlinedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.file_download_outlined, size: 13),
-        label: Text('Download Ledger', style: GoogleFonts.inter(fontSize: 11)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          visualDensity: VisualDensity.compact,
-          side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-        ),
+  // ===========================================================================
+  // SECTION: TRAVEL HISTORY TABLE / CARDS
+  // ===========================================================================
+  Widget _buildTravelHistorySection(bool isDark, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: AppRadius.md,
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final tableWidth = math.max(constraints.maxWidth, 920.0);
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Field Visit & Mileage Ledger',
+                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              Text(
+                '${_records.length} Recorded Trips',
+                style: GoogleFonts.inter(fontSize: 11.5, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: tableWidth,
-              child: Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(2.6), // CLIENT / PROJECT
-                  1: FlexColumnWidth(2.4), // SITE LOCATION
-                  2: FlexColumnWidth(2.0), // PURPOSE
-                  3: FlexColumnWidth(1.2), // DISTANCE
-                  4: FlexColumnWidth(1.3), // FUEL CLAIM
-                  5: FlexColumnWidth(1.3), // STATUS
-                  6: FlexColumnWidth(0.9), // PROOF
-                },
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    children: [
-                      _buildHeaderCell('CLIENT / PROJECT', isDark),
-                      _buildHeaderCell('SITE LOCATION', isDark),
-                      _buildHeaderCell('PURPOSE', isDark),
-                      _buildHeaderCell('DISTANCE', isDark),
-                      _buildHeaderCell('FUEL CLAIM', isDark),
-                      _buildHeaderCell('STATUS', isDark),
-                      _buildHeaderCell('PROOF', isDark, align: TextAlign.center),
-                    ],
-                  ),
-                  ..._visits.map((v) {
-                    return TableRow(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark ? AppColors.darkBorder.withValues(alpha: 0.5) : AppColors.lightBorder.withValues(alpha: 0.8),
-                            width: 0.8,
-                          ),
-                        ),
-                      ),
+          if (isMobile) ...[
+            ..._records.map((r) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurfaceSubtle : const Color(0xFFF8FAFC),
+                  borderRadius: AppRadius.sm,
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // CLIENT / PROJECT
-                        _buildDataCell(
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                v.clientName,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                v.visitDate,
-                                style: GoogleFonts.inter(
-                                  fontSize: 10.5,
-                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                ),
-                              ),
-                            ],
+                        Text(r.date, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: r.status.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ),
-                        // SITE LOCATION
-                        _buildDataCell(
-                          Text(
-                            v.siteLocation,
-                            style: GoogleFonts.inter(
-                              fontSize: 11.5,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                            ),
+                          child: Text(
+                            r.status.label,
+                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: r.status.color),
                           ),
-                        ),
-                        // PURPOSE
-                        _buildDataCell(
-                          Text(
-                            v.purpose,
-                            style: GoogleFonts.inter(
-                              fontSize: 11.5,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                        ),
-                        // DISTANCE
-                        _buildDataCell(
-                          Text(
-                            '${v.distanceKm} km',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                            ),
-                          ),
-                        ),
-                        // FUEL CLAIM
-                        _buildDataCell(
-                          Text(
-                            '₹${v.reimbursementAmount.toStringAsFixed(0)}',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF10B981),
-                            ),
-                          ),
-                        ),
-                        // STATUS
-                        _buildDataCell(
-                          DashboardBadge(label: v.status.toUpperCase(), color: v.statusColor),
-                        ),
-                        // PROOF
-                        _buildDataCell(
-                          Center(
-                            child: IconButton(
-                              icon: const Icon(Icons.receipt_long_outlined, size: 16),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Verified GPS odometer proof attached', style: GoogleFonts.inter(fontSize: 11.5)),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              tooltip: 'View Odometer Photo Proof',
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                         ),
                       ],
-                    );
-                  }),
-                ],
-              ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text('${r.fromLocation} → ${r.toLocation}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(r.purpose, style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${r.distanceKm} KM @ ₹${r.ratePerKm.toInt()}/KM', style: GoogleFonts.inter(fontSize: 11)),
+                        Text('₹${r.reimbursementAmount.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF2563EB))),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ] else ...[
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(1.6),
+                1: FlexColumnWidth(3.0),
+                2: FlexColumnWidth(2.2),
+                3: FlexColumnWidth(1.4),
+                4: FlexColumnWidth(1.2),
+                5: FlexColumnWidth(1.6),
+                6: FlexColumnWidth(1.6),
+              },
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurfaceSubtle : const Color(0xFFF1F5F9),
+                    borderRadius: AppRadius.xs,
+                  ),
+                  children: [
+                    _tableHeader('Date', isDark),
+                    _tableHeader('Route (From → To)', isDark),
+                    _tableHeader('Project', isDark),
+                    _tableHeader('Distance', isDark),
+                    _tableHeader('Rate/KM', isDark),
+                    _tableHeader('Claim (₹)', isDark),
+                    _tableHeader('Status', isDark),
+                  ],
+                ),
+                ..._records.map((r) {
+                  return TableRow(
+                    decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder, width: 0.8)),
+                    ),
+                    children: [
+                      _tableCell(r.date, isDark, isBold: true),
+                      _tableCell('${r.fromLocation} → ${r.toLocation}', isDark),
+                      _tableCell(r.projectName, isDark),
+                      _tableCell('${r.distanceKm} KM', isDark),
+                      _tableCell('₹${r.ratePerKm.toInt()}', isDark),
+                      _tableCell('₹${r.reimbursementAmount.toStringAsFixed(2)}', isDark, color: const Color(0xFF2563EB), isBold: true),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: r.status.color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              r.status.label,
+                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: r.status.color),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ],
             ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildHeaderCell(String text, bool isDark, {TextAlign align = TextAlign.start}) {
+  Widget _tableHeader(String title, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       child: Text(
-        text,
-        textAlign: align,
+        title,
         style: GoogleFonts.inter(
-          fontSize: 10.5,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
           color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
         ),
       ),
     );
   }
 
-  Widget _buildDataCell(Widget content, {EdgeInsetsGeometry? padding}) {
+  Widget _tableCell(String text, bool isDark, {bool isBold = false, Color? color}) {
     return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      child: content,
+      padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8),
+      child: Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 11.5,
+          fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+          color: color ?? (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+        ),
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/navigation/admin_navigation_config.dart';
 import '../navigation/client_navigation_registry.dart';
 import '../navigation/navigation_menu_registry.dart';
 import '../theme/app_colors.dart';
@@ -40,6 +41,19 @@ class PanelPageTemplate extends StatelessWidget {
         description: info.description,
         icon: info.icon,
         subFeatures: info.subFeatures,
+      );
+    }
+
+    final adminItem = AdminNavigationConfig.findItemByRoute(path);
+    final adminGroup = AdminNavigationConfig.findGroupByRoute(path);
+    if (adminItem != null) {
+      return PanelPageTemplate(
+        title: adminItem.label,
+        clusterName: adminGroup?.label ?? 'HOMIO Operations',
+        routePath: path,
+        description: 'Manage and monitor ${adminItem.label} operations',
+        icon: adminItem.icon,
+        subFeatures: adminItem.keywords,
       );
     }
 

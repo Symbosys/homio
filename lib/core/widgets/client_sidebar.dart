@@ -691,6 +691,8 @@ class _ClientSidebarState extends State<ClientSidebar> {
                   final isLast = item.id == ClientNavigationRegistry.items.last.id;
                   _scrollToItem(key, isLastItem: isLast);
                 }
+                _controller.setActiveRoute(item.routePath);
+                context.go(item.routePath);
               },
               borderRadius: AppRadius.md,
               child: AnimatedContainer(

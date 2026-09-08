@@ -9,6 +9,8 @@ abstract class RouteNames {
   static const String loginPath = '/login';
 
   // 1. Dashboard Submenu Routes
+  static const String dashboard = '/dashboard';
+  static const String dashboardMyTasks = '/dashboard/my-tasks';
   static const String dashboardOverview = 'dashboardOverview';
   static const String dashboardOverviewPath = '/dashboard/overview';
 
@@ -25,6 +27,7 @@ abstract class RouteNames {
   static const String dashboardWalletPath = '/dashboard/wallet';
 
   // 2. Reports & Analytics Submenu Routes
+  static const String reportsExecutive = '/reports/executive';
   static const String reportsMarketing = 'reportsMarketing';
   static const String reportsMarketingPath = '/reports/marketing';
 
@@ -43,7 +46,36 @@ abstract class RouteNames {
   static const String reportsFinances = 'reportsFinances';
   static const String reportsFinancesPath = '/reports/finances';
 
+  static const String reportsHr = '/reports/hr';
+  static const String reportsService = '/reports/service';
+  static const String reportsFeedback = '/reports/feedback';
+  static const String reportsGoals = '/reports/goals';
+
+  // Marketing Submenu Routes
+  static const String marketingOverview = 'marketingOverview';
+  static const String marketingOverviewPath = '/marketing/overview';
+  static const String marketingSources = 'marketingSources';
+  static const String marketingSourcesPath = '/marketing/sources';
+  static const String marketingLeadSourcesPath = '/marketing/lead-sources';
+  static const String marketingCampaigns = 'marketingCampaigns';
+  static const String marketingCampaignsPath = '/marketing/campaigns';
+  static const String marketingSocial = 'marketingSocial';
+  static const String marketingSocialPath = '/marketing/social';
+  static const String marketingSocialAnalyticsPath = '/marketing/social-analytics';
+  static const String marketingReports = 'marketingReports';
+  static const String marketingReportsPath = '/marketing/reports';
+
   // 3. Sales & CRM Submenu Routes
+  static const String crmOverview = '/crm/overview';
+  static const String crmLeads = '/crm/leads';
+  static const String crmCustomers = '/crm/customers';
+  static const String crmFunnels = '/crm/funnels';
+  static const String crmFollowups = '/crm/follow-ups';
+  static const String crmCalls = '/crm/calls';
+  static const String crmMeetings = '/crm/meetings';
+  static const String crmTasks = '/crm/tasks';
+  static const String crmAutomation = '/crm/automation';
+
   static const String salesOverview = 'salesOverview';
   static const String salesOverviewPath = '/sales/overview';
 
@@ -66,6 +98,13 @@ abstract class RouteNames {
   static const String salesTasksPath = '/sales/tasks';
 
   // 4. Quotation & Estimation Submenu Routes
+  static const String quotationsAll = '/quotations/all';
+  static const String quotationsCreate = '/quotations/create';
+  static const String quotationsRateMaster = '/quotations/rate-master';
+  static const String quotationsDocuments = '/quotations/documents';
+  static const String quotationsExpiryReminders = '/quotations/expiry-reminders';
+  static const String quotationsSelf = '/quotations/self-quotation';
+
   static const String quoteBuilder = 'quoteBuilder';
   static const String quoteBuilderPath = '/quotation/builder';
 
@@ -82,6 +121,17 @@ abstract class RouteNames {
   static const String quoteSelfServicePath = '/quotation/self-service';
 
   // 5. Project Execution Submenu Routes
+  static const String projectsAll = '/projects/all';
+  static const String projectsOverview = '/projects/overview';
+  static const String projectsGantt = '/projects/gantt';
+  static const String projectsMilestones = '/projects/milestones';
+  static const String projectsTasks = '/projects/tasks';
+  static const String projectsSiteProgress = '/projects/site-progress';
+  static const String projectsSiteVisits = '/projects/site-visits';
+  static const String projectsApprovals = '/projects/approvals';
+  static const String projectsSnags = '/projects/snags';
+  static const String projectsCommercials = '/projects/commercials';
+
   static const String execProjects = 'execProjects';
   static const String execProjectsPath = '/execution/projects';
 
@@ -107,6 +157,13 @@ abstract class RouteNames {
   static const String execSpreadsheetPath = '/execution/spreadsheet';
 
   // 6. Designs & DAM Submenu Routes
+  static const String designsWorkspace = '/designs/workspace';
+  static const String designsFiles = '/designs/files';
+  static const String designsRevisions = '/designs/revisions';
+  static const String designsApprovals = '/designs/approvals';
+  static const String designsHandover = '/designs/handover';
+  static const String designsDrive = '/designs/drive';
+
   static const String damWorkspace = 'damWorkspace';
   static const String damWorkspacePath = '/designs/workspace';
 
@@ -117,11 +174,24 @@ abstract class RouteNames {
   static const String damCloudDrivePath = '/designs/cloud-drive';
 
   // 7. Service Booking & Labour Submenu Routes
+  static const String labourDirectory = '/service-labour/directory';
+  static const String labourOnboard = '/service-labour/onboard';
+  static const String labourKyc = '/service-labour/kyc';
+  static const String labourAvailability = '/service-labour/availability';
+  static const String labourBookings = '/service-labour/bookings';
+  static const String labourActiveJobs = '/service-labour/active-jobs';
+  static const String labourPayments = '/service-labour/payments';
+  static const String labourRatings = '/service-labour/ratings';
+  static const String labourDisputes = '/service-labour/disputes';
+
   static const String srvHireLabour = 'srvHireLabour';
   static const String srvHireLabourPath = '/service-booking/hire-labour';
 
   static const String srvLabourKyc = 'srvLabourKyc';
   static const String srvLabourKycPath = '/service-booking/labour-kyc';
+
+  static const String srvOnboardLabour = 'srvOnboardLabour';
+  static const String srvOnboardLabourPath = '/service-booking/onboard-labour';
 
   static const String srvActiveBookings = 'srvActiveBookings';
   static const String srvActiveBookingsPath = '/service-booking/active-bookings';
@@ -130,6 +200,13 @@ abstract class RouteNames {
   static const String srvLegalHubPath = '/service-booking/legal-hub';
 
   // 8. Shopping & Marketplace Submenu Routes
+  static const String marketplaceDigital = '/marketplace/digital-store';
+  static const String marketplaceDecor = '/marketplace/home-decor';
+  static const String marketplaceProperties = '/marketplace/properties';
+  static const String marketplaceMaterials = '/marketplace/materials';
+  static const String marketplaceOrders = '/marketplace/orders';
+  static const String marketplaceManagement = '/marketplace/management';
+
   static const String shopDigitalStore = 'shopDigitalStore';
   static const String shopDigitalStorePath = '/shopping/digital-store';
 
@@ -139,9 +216,24 @@ abstract class RouteNames {
   static const String shopProperties = 'shopProperties';
   static const String shopPropertiesPath = '/shopping/properties';
 
+  static const String shopMaterials = 'shopMaterials';
+  static const String shopMaterialsPath = '/shopping/materials';
+
   // 9. Communication Hub Submenu Routes
+  static const String communicationInbox = '/communication/inbox';
+  static const String communicationWhatsapp = '/communication/whatsapp';
+  static const String communicationBroadcasts = '/communication/broadcasts';
+  static const String communicationBulk = '/communication/bulk';
+  static const String communicationTemplates = '/communication/templates';
+  static const String communicationScheduled = '/communication/scheduled';
+  static const String communicationDrip = '/communication/drip';
+  static const String communicationHistory = '/communication/history';
+
   static const String commChats = 'commChats';
   static const String commChatsPath = '/communication/chats';
+
+  static const String commBroadcasts = 'commBroadcasts';
+  static const String commBroadcastsPath = '/communication/broadcasts';
 
   static const String commBulkMessages = 'commBulkMessages';
   static const String commBulkMessagesPath = '/communication/bulk-messages';
@@ -168,6 +260,15 @@ abstract class RouteNames {
   static const String commMeetingsPath = '/communication/meetings';
 
   // 10. AI Architectural Suite Submenu Routes
+  static const String aiRoomDesigner = '/ai-studio/room-designer';
+  static const String aiVastu = '/ai-studio/vastu';
+  static const String aiBudget = '/ai-studio/budget-calculator';
+  static const String aiDoubtSolver = 'aiDoubtSolver';
+  static const String aiDoubtSolverPath = '/ai-suite/doubt-solver';
+  static const String aiDesignerCalls = '/ai-studio/designer-calls';
+  static const String aiWallet = '/ai-studio/wallet';
+  static const String aiUsageRevenue = '/ai-studio/usage-revenue';
+
   static const String aiRoomGenerator = 'aiRoomGenerator';
   static const String aiRoomGeneratorPath = '/ai-suite/room-generator';
 
@@ -177,13 +278,18 @@ abstract class RouteNames {
   static const String aiBudgetCalculator = 'aiBudgetCalculator';
   static const String aiBudgetCalculatorPath = '/ai-suite/budget-calculator';
 
-  static const String aiDoubtSolver = 'aiDoubtSolver';
-  static const String aiDoubtSolverPath = '/ai-suite/doubt-solver';
-
   static const String aiDesignerVideoCall = 'aiDesignerVideoCall';
   static const String aiDesignerVideoCallPath = '/ai-suite/designer-video-call';
 
   // 11. Operations & Procurement Submenu Routes
+  static const String procurementMaterialRequests = '/procurement/material-requests';
+  static const String procurementVendorRfqs = '/procurement/vendor-rfqs';
+  static const String procurementVendorQuotations = '/procurement/vendor-quotations';
+  static const String procurementPurchaseOrders = '/procurement/purchase-orders';
+  static const String procurementDispatch = '/procurement/dispatch';
+  static const String procurementDesignPayments = '/procurement/design-payments';
+  static const String procurementWeeklyFees = '/procurement/weekly-fees';
+
   static const String opsMaterialRfq = 'opsMaterialRfq';
   static const String opsMaterialRfqPath = '/operations/material-rfq';
 
@@ -194,6 +300,16 @@ abstract class RouteNames {
   static const String opsSaturdayFeesPath = '/operations/saturday-fees';
 
   // 12. Accounting & Finance Submenu Routes
+  static const String financeOverview = '/finance/overview';
+  static const String financeCustomerLedgers = '/finance/customer-ledgers';
+  static const String financeInvoices = '/finance/invoices';
+  static const String financePayments = '/finance/payments';
+  static const String financeExpenses = '/finance/expenses';
+  static const String financeVendorPayments = '/finance/vendor-payments';
+  static const String financeLabourPayments = '/finance/labour-payments';
+  static const String financeCommissions = '/finance/commissions';
+  static const String financeCollections = '/finance/collections';
+
   static const String accCustomerSummary = 'accCustomerSummary';
   static const String accCustomerSummaryPath = '/accounting/customer-summary';
 
@@ -204,6 +320,16 @@ abstract class RouteNames {
   static const String accOverdueAlertsPath = '/accounting/overdue-alerts';
 
   // 13. HRMS & Field Ops Submenu Routes
+  static const String hrmsEmployees = '/hrms/employees';
+  static const String hrmsDepartments = '/hrms/departments';
+  static const String hrmsAttendance = '/hrms/attendance';
+  static const String hrmsTravel = '/hrms/travel';
+  static const String hrmsLeave = '/hrms/leave';
+  static const String hrmsPerformance = '/hrms/performance';
+  static const String hrmsPayroll = '/hrms/payroll';
+  static const String hrmsIncentives = '/hrms/incentives';
+  static const String hrmsNoticePeriod = '/hrms/notice-period';
+
   static const String hrEmployeeDirectory = 'hrEmployeeDirectory';
   static const String hrEmployeeDirectoryPath = '/hrms/employee-directory';
 
@@ -226,6 +352,13 @@ abstract class RouteNames {
   static const String hrNoticePeriodPath = '/hrms/notice-period';
 
   // 14. After-Sales Service Submenu Routes
+  static const String afterSalesRequests = '/after-sales/requests';
+  static const String afterSalesComplaints = '/after-sales/complaints';
+  static const String afterSalesWarranty = '/after-sales/warranty';
+  static const String afterSalesVisits = '/after-sales/visits';
+  static const String afterSalesRetention = '/after-sales/retention';
+  static const String afterSalesFeedback = '/after-sales/feedback';
+
   static const String svcSnagsWarranty = 'svcSnagsWarranty';
   static const String svcSnagsWarrantyPath = '/after-sales/snags-warranty';
 
@@ -236,6 +369,11 @@ abstract class RouteNames {
   static const String orgDepartments = 'orgDepartments';
   static const String orgDepartmentsPath = '/organization/departments';
 
+  static const String orgTeams = '/organization/teams';
+  static const String orgEmployees = '/organization/employees';
+  static const String orgRoles = '/organization/roles';
+  static const String orgPermissions = '/organization/permissions';
+
   static const String orgRoleLevels = 'orgRoleLevels';
   static const String orgRoleLevelsPath = '/organization/role-levels';
 
@@ -243,6 +381,17 @@ abstract class RouteNames {
   static const String orgAccessScopePath = '/organization/access-scope';
 
   // 16. System Administration Submenu Routes
+  static const String adminUsersRbac = '/admin/users-rbac';
+  static const String adminMasterData = '/admin/master-data';
+  static const String adminRateMasters = '/admin/rate-masters';
+  static const String adminTemplates = '/admin/message-templates';
+  static const String adminIntegrations = '/admin/integrations';
+  static const String adminNotifications = '/admin/notifications';
+  static const String adminAutomations = '/admin/automations';
+  static const String adminAuditLogs = '/admin/audit-logs';
+  static const String adminBackup = '/admin/backup-recovery';
+  static const String adminSettings = '/admin/settings';
+
   static const String admRbacMatrix = 'admRbacMatrix';
   static const String admRbacMatrixPath = '/admin/rbac-matrix';
 
@@ -337,4 +486,35 @@ abstract class RouteNames {
   static const String clientPropertiesPath = '/client/properties';
   static const String clientHireLabour = 'clientHireLabour';
   static const String clientHireLabourPath = '/client/hire-labour';
+
+  /// Legacy Route Map preserving old URLs and redirecting to canonical routes
+  static const Map<String, String> legacyRouteAliases = {
+    '/milestones': projectsMilestones,
+    '/approval-history': projectsApprovals,
+    '/design-revisions': designsRevisions,
+    '/documents': designsFiles,
+    '/meetings': crmMeetings,
+    '/cost-summary': projectsCommercials,
+    '/invoices': financeInvoices,
+    '/warranty': afterSalesWarranty,
+    '/ai-room-generator': aiRoomDesigner,
+    '/ai-vastu': aiVastu,
+    '/ai-budget': aiBudget,
+    '/ai-doubt-solver': '/ai-studio/doubt-solver',
+    '/designer-call': aiDesignerCalls,
+    '/digital-store': marketplaceDigital,
+    '/decor-store': marketplaceDecor,
+    '/properties': marketplaceProperties,
+    '/hire-labour': labourDirectory,
+    '/marketing/lead-sources': marketingSourcesPath,
+    '/marketing/social-analytics': marketingSocialPath,
+  };
+
+  /// Resolves legacy route aliases to the current canonical navigation route
+  static String resolveCanonicalRoute(String currentPath) {
+    if (legacyRouteAliases.containsKey(currentPath)) {
+      return legacyRouteAliases[currentPath]!;
+    }
+    return currentPath;
+  }
 }

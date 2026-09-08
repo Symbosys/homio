@@ -218,7 +218,7 @@ abstract class ClientNavigationRegistry {
       icon: Icons.auto_awesome_rounded,
       routeName: RouteNames.clientAiSuite,
       routePath: RouteNames.clientAiSuitePath,
-      badgeCount: 4,
+      badgeCount: 5,
       badgeColor: Color(0xFF6366F1),
       description: 'Instant 3D room generator, Vastu score, budget calculator & doubt solver',
       subFeatures: [
@@ -226,6 +226,7 @@ abstract class ClientNavigationRegistry {
         'AI Vastu Consultant (Floor Plan Chakra Score & Remedies)',
         'AI Furniture Budget Calculator (Price Estimator & Comparisons)',
         'AI Doubt Solver (Rs. 50/Question Technical Advice)',
+        '30-Min On-Demand Video Consultation (Live Call & Sketchpad)',
       ],
       subItems: [
         ClientSubMenuItem(
@@ -259,6 +260,14 @@ abstract class ClientNavigationRegistry {
           routeName: RouteNames.clientAiDoubtSolver,
           routePath: RouteNames.clientAiDoubtSolverPath,
           description: 'Instant technical advice at Rs. 50/query',
+        ),
+        ClientSubMenuItem(
+          id: 'client_designer_call',
+          title: '30-Min Expert Consultation',
+          icon: Icons.video_call_rounded,
+          routeName: RouteNames.clientDesignerCall,
+          routePath: RouteNames.clientDesignerCallPath,
+          description: '1-on-1 video call & live sketch whiteboard',
         ),
       ],
     ),

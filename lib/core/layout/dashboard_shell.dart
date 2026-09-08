@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../navigation/sidebar_controller.dart';
 import '../responsive/breakpoints.dart';
 import '../theme/app_colors.dart';
@@ -51,12 +52,18 @@ class _DashboardShellState extends State<DashboardShell> {
     }
   }
 
+  void _onNavigate(String route) {
+    _sidebarController.setActiveRoute(route);
+    context.go(route);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < Breakpoints.medium;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBottomTabScreen = _sidebarController.isCurrentRouteInBottomTabs;
+    final currentRoute = GoRouterState.of(context).uri.path;
 
     final bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
 
@@ -70,9 +77,13 @@ class _DashboardShellState extends State<DashboardShell> {
             _sidebarController.closeMobileDrawer();
           }
         },
-        drawer: const Drawer(
+        drawer: Drawer(
           width: 290,
-          child: AppSidebar(isDrawer: true),
+          child: AppSidebar(
+            currentRoute: currentRoute,
+            onNavigate: _onNavigate,
+            isMobileDrawer: true,
+          ),
         ),
         appBar: const AppTopBar(),
         body: widget.child,
@@ -87,7 +98,11 @@ class _DashboardShellState extends State<DashboardShell> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Persistent Responsive Sidebar
-          const AppSidebar(isDrawer: false),
+          AppSidebar(
+            currentRoute: currentRoute,
+            onNavigate: _onNavigate,
+            isMobileDrawer: false,
+          ),
 
           // Main Content Area with Top Bar
           Expanded(
