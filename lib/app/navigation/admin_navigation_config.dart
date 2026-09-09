@@ -805,6 +805,7 @@ class AdminNavigationConfig {
       ],
     ),
 
+    /*
     // 12. HRMS
     NavigationGroup(
       id: 'hrms',
@@ -1264,6 +1265,7 @@ class AdminNavigationConfig {
         ),
       ],
     ),
+    */
   ];
 
   /// Filters navigation groups and children based on user permissions.

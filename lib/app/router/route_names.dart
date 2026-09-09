@@ -398,6 +398,24 @@ abstract class RouteNames {
   static const String afterSalesRetention = '/after-sales/retention';
   static const String afterSalesFeedback = '/after-sales/feedback';
 
+  static const String svcRequests = 'svcRequests';
+  static const String svcRequestsPath = '/after-sales/requests';
+
+  static const String svcComplaints = 'svcComplaints';
+  static const String svcComplaintsPath = '/after-sales/complaints';
+
+  static const String svcWarranty = 'svcWarranty';
+  static const String svcWarrantyPath = '/after-sales/warranty';
+
+  static const String svcVisits = 'svcVisits';
+  static const String svcVisitsPath = '/after-sales/visits';
+
+  static const String svcRetention = 'svcRetention';
+  static const String svcRetentionPath = '/after-sales/retention';
+
+  static const String svcFeedback = 'svcFeedback';
+  static const String svcFeedbackPath = '/after-sales/feedback';
+
   static const String svcSnagsWarranty = 'svcSnagsWarranty';
   static const String svcSnagsWarrantyPath = '/after-sales/snags-warranty';
 

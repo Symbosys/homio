@@ -1,22 +1,29 @@
+// Homio CRM — Communication Module Barrel Export
+
 // Models
-export 'models/broadcast_models.dart';
-export 'models/broadcast_mock_data.dart';
-export 'models/chat_models.dart';
-export 'models/template_models.dart';
-export 'models/drip_models.dart';
-export 'models/history_models.dart';
-export 'models/site_progress_models.dart';
-export 'models/blueprint_models.dart';
-export 'models/meeting_models.dart';
+export 'models/communication_models.dart';
+export 'models/communication_mock_data.dart';
 
-// Phase 1 Pages
-export 'chats/live_customer_chats_page.dart';
-export 'broadcasts/broadcasts_scheduled_page.dart';
-export 'templates/message_templates_page.dart';
-export 'drip_campaigns/drip_campaigns_page.dart';
+// Reusable Widgets
+export 'widgets/comm_page_header.dart';
+export 'widgets/comm_kpi_card.dart';
+export 'widgets/comm_status_badge.dart';
+export 'widgets/comm_filter_bar.dart';
+export 'widgets/comm_data_table.dart';
+export 'widgets/message_composer.dart';
+export 'widgets/message_bubble.dart';
+export 'widgets/customer_context_panel.dart';
+export 'widgets/conversation_list_tile.dart';
+export 'widgets/template_preview_card.dart';
+export 'widgets/drip_workflow_canvas.dart';
+export 'widgets/broadcast_progress_indicator.dart';
 
-// Phase 2 Pages
-export 'history/call_message_history_page.dart';
-export 'site_progress/live_site_progress_feed_page.dart';
-export 'blueprints/blueprints_dam_files_page.dart';
-export 'meetings/meeting_scheduling_page.dart';
+// Pages
+export 'pages/inbox_chats_page.dart';
+export 'pages/whatsapp_workspace_page.dart';
+export 'pages/broadcasts_page.dart';
+export 'pages/bulk_messages_page.dart';
+export 'pages/templates_page.dart';
+export 'pages/scheduled_messages_page.dart';
+export 'pages/drip_campaigns_page.dart';
+export 'pages/communication_history_page.dart';

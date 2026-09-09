@@ -494,11 +494,13 @@ class _SnagsWarrantyPageState extends State<SnagsWarrantyPage> {
     Color color;
     switch (priority) {
       case SnagPriority.critical:
+      case SnagPriority.urgent:
         color = const Color(0xFFEF4444);
         break;
       case SnagPriority.high:
         color = const Color(0xFFF59E0B);
         break;
+      case SnagPriority.normal:
       case SnagPriority.medium:
         color = const Color(0xFF3B82F6);
         break;

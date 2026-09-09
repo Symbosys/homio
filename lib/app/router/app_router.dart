@@ -269,20 +269,51 @@ abstract class AppRouter {
                   }
 
                   // Service Booking & Labour Submenus
-                  if (sub.routeName == RouteNames.srvHireLabour) {
-                    return const HireLabourPage();
+                  if (sub.routeName == RouteNames.srvHireLabour ||
+                      sub.routeName == 'labour_directory' ||
+                      sub.routePath == '/service-labour/directory' ||
+                      sub.routePath == RouteNames.srvHireLabourPath) {
+                    return const LabourDirectoryPage();
                   }
-                  if (sub.routeName == RouteNames.srvLabourKyc) {
-                    return const LabourKycPage();
-                  }
-                  if (sub.routeName == RouteNames.srvOnboardLabour) {
+                  if (sub.routeName == RouteNames.srvOnboardLabour ||
+                      sub.routeName == 'labour_onboard' ||
+                      sub.routePath == '/service-labour/onboard' ||
+                      sub.routePath == RouteNames.srvOnboardLabourPath) {
                     return const OnboardLabourPage();
                   }
-                  if (sub.routeName == RouteNames.srvActiveBookings) {
-                    return const ActiveBookingsPage();
+                  if (sub.routeName == RouteNames.srvLabourKyc ||
+                      sub.routeName == 'labour_kyc' ||
+                      sub.routePath == '/service-labour/kyc' ||
+                      sub.routePath == RouteNames.srvLabourKycPath) {
+                    return const LabourKycPage();
                   }
-                  if (sub.routeName == RouteNames.srvLegalHub) {
-                    return const LegalHubPage();
+                  if (sub.routeName == 'labour_availability' ||
+                      sub.routePath == '/service-labour/availability') {
+                    return const LabourAvailabilityPage();
+                  }
+                  if (sub.routeName == RouteNames.srvActiveBookings ||
+                      sub.routeName == 'labour_bookings' ||
+                      sub.routePath == '/service-labour/bookings' ||
+                      sub.routePath == RouteNames.srvActiveBookingsPath) {
+                    return const ServiceBookingsPage();
+                  }
+                  if (sub.routeName == 'labour_active_jobs' ||
+                      sub.routePath == '/service-labour/active-jobs') {
+                    return const ActiveJobsPage();
+                  }
+                  if (sub.routeName == 'labour_payments' ||
+                      sub.routePath == '/service-labour/payments') {
+                    return const LabourWagePaymentsPage();
+                  }
+                  if (sub.routeName == 'labour_ratings' ||
+                      sub.routePath == '/service-labour/ratings') {
+                    return const LabourRatingsPage();
+                  }
+                  if (sub.routeName == RouteNames.srvLegalHub ||
+                      sub.routeName == 'labour_disputes' ||
+                      sub.routePath == '/service-labour/disputes' ||
+                      sub.routePath == RouteNames.srvLegalHubPath) {
+                    return const LegalDisputesPage();
                   }
 
                   // Shopping & Marketplace Submenus
@@ -301,30 +332,28 @@ abstract class AppRouter {
 
                   // Communication Hub Submenus
                   if (sub.routeName == RouteNames.commChats) {
-                    return const LiveCustomerChatsPage();
+                    return const InboxChatsPage();
                   }
-                  if (sub.routeName == RouteNames.commBroadcasts ||
-                      sub.routeName == RouteNames.commBulkMessages ||
-                      sub.routeName == RouteNames.commScheduled) {
-                    return const BroadcastsScheduledPage();
+                  if (sub.routeName == RouteNames.commBroadcasts) {
+                    return const BroadcastsPage();
+                  }
+                  if (sub.routeName == RouteNames.commBulkMessages) {
+                    return const BulkMessagesPage();
+                  }
+                  if (sub.routeName == RouteNames.commScheduled) {
+                    return const ScheduledMessagesPage();
                   }
                   if (sub.routeName == RouteNames.commTemplates) {
-                    return const MessageTemplatesPage();
+                    return const TemplatesPage();
                   }
                   if (sub.routeName == RouteNames.commDripCampaigns) {
                     return const DripCampaignsPage();
                   }
-                  if (sub.routeName == RouteNames.commHistory) {
-                    return const CallMessageHistoryPage();
-                  }
-                  if (sub.routeName == RouteNames.commSiteProgress) {
-                    return const LiveSiteProgressFeedPage();
-                  }
-                  if (sub.routeName == RouteNames.commBlueprints) {
-                    return const BlueprintsDamFilesPage();
-                  }
-                  if (sub.routeName == RouteNames.commMeetings) {
-                    return const MeetingSchedulingPage();
+                  if (sub.routeName == RouteNames.commHistory ||
+                      sub.routeName == RouteNames.commSiteProgress ||
+                      sub.routeName == RouteNames.commBlueprints ||
+                      sub.routeName == RouteNames.commMeetings) {
+                    return const CommunicationHistoryPage();
                   }
 
                   // AI Architectural Suite Submenus
@@ -426,6 +455,42 @@ abstract class AppRouter {
                   }
 
                   // After-Sales Service Submenus
+                  if (sub.routeName == RouteNames.svcRequests ||
+                      sub.routeName == RouteNames.afterSalesRequests ||
+                      sub.routePath == '/after-sales/requests' ||
+                      sub.routeName == 'after_sales_requests') {
+                    return const ServiceRequestsPage();
+                  }
+                  if (sub.routeName == RouteNames.svcComplaints ||
+                      sub.routeName == RouteNames.afterSalesComplaints ||
+                      sub.routePath == '/after-sales/complaints' ||
+                      sub.routeName == 'after_sales_complaints') {
+                    return const ComplaintsSnagsPage();
+                  }
+                  if (sub.routeName == RouteNames.svcWarranty ||
+                      sub.routeName == RouteNames.afterSalesWarranty ||
+                      sub.routePath == '/after-sales/warranty' ||
+                      sub.routeName == 'after_sales_warranty') {
+                    return const WarrantyManagementPage();
+                  }
+                  if (sub.routeName == RouteNames.svcVisits ||
+                      sub.routeName == RouteNames.afterSalesVisits ||
+                      sub.routePath == '/after-sales/visits' ||
+                      sub.routeName == 'after_sales_visits') {
+                    return const ServiceVisitsPage();
+                  }
+                  if (sub.routeName == RouteNames.svcRetention ||
+                      sub.routeName == RouteNames.afterSalesRetention ||
+                      sub.routePath == '/after-sales/retention' ||
+                      sub.routeName == 'after_sales_retention') {
+                    return const RetentionFollowupsPage();
+                  }
+                  if (sub.routeName == RouteNames.svcFeedback ||
+                      sub.routeName == RouteNames.afterSalesFeedback ||
+                      sub.routePath == '/after-sales/feedback' ||
+                      sub.routeName == 'after_sales_feedback') {
+                    return const CustomerFeedbackPage();
+                  }
                   if (sub.routeName == RouteNames.svcSnagsWarranty) {
                     return const SnagsWarrantyPage();
                   }
@@ -816,36 +881,120 @@ abstract class AppRouter {
         return const OverdueCollectionsPage();
 
       // 9. Communication
+      case 'communication_inbox':
       case 'communication_chats':
-        return const LiveCustomerChatsPage();
+      case '/communication/inbox':
+      case '/communication/chats':
+        return const InboxChatsPage();
+      case 'communication_whatsapp':
+      case '/communication/whatsapp':
+        return const WhatsAppWorkspacePage();
       case 'communication_broadcasts':
+      case '/communication/broadcasts':
+        return const BroadcastsPage();
       case 'communication_bulk':
-      case 'communication_scheduled':
-        return const BroadcastsScheduledPage();
+      case '/communication/bulk':
+      case '/communication/bulk-messages':
+        return const BulkMessagesPage();
       case 'communication_templates':
-        return const MessageTemplatesPage();
+      case '/communication/templates':
+        return const TemplatesPage();
+      case 'communication_scheduled':
+      case '/communication/scheduled':
+        return const ScheduledMessagesPage();
       case 'communication_drip':
+      case '/communication/drip':
+      case '/communication/drip-campaigns':
         return const DripCampaignsPage();
       case 'communication_history':
-        return const CallMessageHistoryPage();
+      case '/communication/history':
+        return const CommunicationHistoryPage();
 
       // 10. Service & Labour
+      case 'labour_directory':
       case 'service_labour_directory':
-        return const HireLabourPage();
-      case 'service_labour_kyc':
-        return const LabourKycPage();
+      case '/service-labour/directory':
+      case '/hire-labour':
+        return const LabourDirectoryPage();
+
+      case 'labour_onboard':
       case 'service_labour_onboard':
+      case '/service-labour/onboard':
         return const OnboardLabourPage();
+
+      case 'labour_kyc':
+      case 'service_labour_kyc':
+      case '/service-labour/kyc':
+        return const LabourKycPage();
+
+      case 'labour_availability':
+      case 'service_labour_availability':
+      case '/service-labour/availability':
+        return const LabourAvailabilityPage();
+
+      case 'labour_bookings':
       case 'service_labour_bookings':
-        return const ActiveBookingsPage();
+      case '/service-labour/bookings':
+        return const ServiceBookingsPage();
+
+      case 'labour_active_jobs':
+      case 'service_labour_active_jobs':
+      case '/service-labour/active-jobs':
+        return const ActiveJobsPage();
+
+      case 'labour_payments':
+      case 'service_labour_payments':
+      case '/service-labour/payments':
+        return const LabourWagePaymentsPage();
+
+      case 'labour_ratings':
+      case 'service_labour_ratings':
+      case '/service-labour/ratings':
+        return const LabourRatingsPage();
+
+      case 'labour_disputes':
       case 'service_labour_disputes':
-        return const LegalHubPage();
+      case '/service-labour/disputes':
+        return const LegalDisputesPage();
 
       // 11. After-Sales
       case 'after_sales_requests':
+      case 'svcRequests':
+      case '/after-sales/requests':
+        return const ServiceRequestsPage();
+
+      case 'after_sales_complaints':
+      case 'svcComplaints':
+      case '/after-sales/complaints':
+        return const ComplaintsSnagsPage();
+
       case 'after_sales_warranty':
-        return const SnagsWarrantyPage();
+      case 'svcWarranty':
+      case '/after-sales/warranty':
+      case '/warranty':
+        return const WarrantyManagementPage();
+
+      case 'after_sales_visits':
+      case 'svcVisits':
+      case '/after-sales/visits':
+        return const ServiceVisitsPage();
+
       case 'after_sales_retention':
+      case 'svcRetention':
+      case '/after-sales/retention':
+        return const RetentionFollowupsPage();
+
+      case 'after_sales_feedback':
+      case 'svcFeedback':
+      case '/after-sales/feedback':
+        return const CustomerFeedbackPage();
+
+      case 'svcSnagsWarranty':
+      case '/after-sales/snags-warranty':
+        return const SnagsWarrantyPage();
+
+      case 'svcRetentionCalls':
+      case '/after-sales/retention-calls':
         return const RetentionCallsPage();
 
       // 12. HRMS
