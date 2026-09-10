@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../data/ai_suite_repository.dart';
 import '../models/ai_suite_models.dart';
 import '../models/ai_suite_mock_data.dart';
 
@@ -16,8 +17,14 @@ class _DoubtChatInterfaceState extends State<DoubtChatInterface> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  int _freeQueriesRemaining = 1; // 1 out of initial 3 remaining in mock session
+  late int _freeQueriesRemaining;
   DoubtCategory? _activeCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _freeQueriesRemaining = AiSuiteRepository.instance.freeDoubtQueriesRemaining;
+  }
 
   @override
   void dispose() {
@@ -203,13 +210,20 @@ class _DoubtChatInterfaceState extends State<DoubtChatInterface> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
+                AiSuiteRepository.instance.deductCredits(
+                  amount: 0,
+                  rupeeEquivalent: 50.0,
+                  title: 'Technical Doubt Query: $pendingQuestion',
+                  referenceId: 'DBT-${DateTime.now().millisecondsSinceEpoch}',
+                  type: WalletTransactionType.doubtSolverDebit,
+                );
                 setState(() {
                   _freeQueriesRemaining++; // Unlock 1 paid query
                 });
                 _sendMessage();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Payment verified: ₹50 debited for Technical Query.'),
+                    content: Text('Payment verified: ₹50 debited for Technical Query. Recorded in Ledger.'),
                     backgroundColor: Color(0xFF10B981),
                   ),
                 );

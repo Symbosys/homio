@@ -1,662 +1,697 @@
-import 'package:flutter/material.dart';
 import 'ai_suite_models.dart';
 
-abstract class AiSuiteMockData {
-  // ============================================================================
-  // 1. MOCK WALLET & REVENUE SHARING LEDGER
-  // ============================================================================
-  static final AiWalletModel defaultWallet = AiWalletModel(
-    totalTokens: 420,
-    freeDoubtQueriesRemaining: 3,
-    platformCommissionRate: 50.0,
-    designerRevenueShareRate: 50.0,
-    transactionHistory: [
-      AiRevenueSplitRecord(
-        id: 'REV-9801',
-        type: RevenueSplitType.roomRenderDebit,
-        totalAmount: 100.0,
-        platformShare: 50.0,
-        designerShare: 50.0,
-        designerName: 'Pooja Hegde (Senior Interior Architect)',
-        clientName: 'Vikram Malhotra (Penthouse #402)',
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-      AiRevenueSplitRecord(
-        id: 'REV-9798',
-        type: RevenueSplitType.walkthroughVideoDebit,
-        totalAmount: 250.0,
-        platformShare: 125.0,
-        designerShare: 125.0,
-        designerName: 'Aarav Singhania (3D Visualizer)',
-        clientName: 'Sunita Mehra (DLF Phase 5)',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      AiRevenueSplitRecord(
-        id: 'REV-9765',
-        type: RevenueSplitType.videoConsultationDebit,
-        totalAmount: 300.0,
-        platformShare: 150.0,
-        designerShare: 150.0,
-        designerName: 'Karan Mehra (Principal Architect)',
-        clientName: 'Rajesh Khanna (Golf Course Extn)',
-        timestamp: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-      AiRevenueSplitRecord(
-        id: 'REV-9740',
-        type: RevenueSplitType.doubtSolverDebit,
-        totalAmount: 50.0,
-        platformShare: 25.0,
-        designerShare: 25.0,
-        designerName: 'Homio AI Engineering Core',
-        clientName: 'Deepak Chopra (Villa #12)',
-        timestamp: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-    ],
+class AiSuiteMockData {
+  static final AiCommercialConfig defaultCommercialConfig = AiCommercialConfig(
+    doubtQueryFee: 50.0,
+    freeDoubtQueriesQuota: 3,
+    consultation30MinFee: 300.0,
+    platformRevenueSharePercent: 50.0,
+    designerRevenueSharePercent: 50.0,
+    roomDesignCreditCost: 10,
+    vastuAnalysisCreditCost: 15,
+    budgetEstimateCreditCost: 5,
+    propertyContactUnlockFee: 500.0,
   );
 
-  // ============================================================================
-  // 2. MOCK ROOM GENERATION GALLERY & BOQ SPECIFICATIONS
-  // ============================================================================
-  static final List<AiRoomGenerationItem> roomGenerations = [
-    AiRoomGenerationItem(
-      id: 'GEN-101',
-      title: 'Luxury Living Room with Fluted Marble & Brass Accents',
+  static const List<CreditPackage> creditPackages = [
+    CreditPackage(
+      id: 'pkg_starter',
+      title: 'Starter Pack',
+      credits: 100,
+      price: 499.0,
+      bonusCredits: 10,
+      validity: '180 Days',
+      description: 'Ideal for 1-2 room redesigns, quick Vastu checks & budget estimations.',
+    ),
+    CreditPackage(
+      id: 'pkg_standard',
+      title: 'Standard Creator',
+      credits: 500,
+      price: 1999.0,
+      bonusCredits: 75,
+      isPopular: true,
+      validity: '365 Days',
+      description: 'Most popular choice for 2BHK/3BHK full home visualization & material estimation.',
+    ),
+    CreditPackage(
+      id: 'pkg_pro',
+      title: 'Pro Designer',
+      credits: 1200,
+      price: 3999.0,
+      bonusCredits: 250,
+      validity: '365 Days',
+      description: 'High-volume generation for studios, architects, and multi-flat property projects.',
+    ),
+    CreditPackage(
+      id: 'pkg_enterprise',
+      title: 'Enterprise Studio',
+      credits: 3000,
+      price: 8999.0,
+      bonusCredits: 800,
+      validity: 'Lifetime',
+      description: 'Unlimited team multi-seat generation with dedicated priority GPU rendering queue.',
+    ),
+  ];
+
+  static final List<AiJobEntity> initialJobs = [
+    AiJobEntity(
+      id: 'JOB-9021',
+      productType: 'Room Designer',
+      title: 'Italian Luxury Living Room 4K Render',
+      user: 'Rahul Sharma (DLF Phase 5)',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 8)),
+      startedAt: DateTime.now().subtract(const Duration(minutes: 7)),
+      completedAt: DateTime.now().subtract(const Duration(minutes: 5)),
+      status: AiJobStatus.completed,
+      creditsCharged: 10,
+      prompt: 'Living room, Modern Luxury, Concealed warm cove, Bookmatched marble TV unit',
+    ),
+    AiJobEntity(
+      id: 'JOB-9022',
+      productType: 'Vastu Consultant',
+      title: '16-Zone Floor Plan Energy Diagnostic',
+      user: 'Pooja Verma (Prestige Lakeside)',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 18)),
+      startedAt: DateTime.now().subtract(const Duration(minutes: 17)),
+      completedAt: DateTime.now().subtract(const Duration(minutes: 14)),
+      status: AiJobStatus.completed,
+      creditsCharged: 15,
+      prompt: 'North-East 42° calibration, Agneya kitchen check, Master bedroom southwest analysis',
+    ),
+    AiJobEntity(
+      id: 'JOB-9023',
+      productType: 'Room Designer',
+      title: 'Japandi Master Bedroom Render',
+      user: 'Arjun Mehta (Lodha Park)',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 25)),
+      startedAt: DateTime.now().subtract(const Duration(minutes: 24)),
+      status: AiJobStatus.processing,
+      creditsCharged: 10,
+      prompt: 'Japandi bedroom, light oak fluting, neutral linen textures, low wooden platform bed',
+    ),
+    AiJobEntity(
+      id: 'JOB-9024',
+      productType: 'Room Designer',
+      title: 'Neo-Classical Modular Kitchen 4K',
+      user: 'Kavita Singh (Godrej Woods)',
+      createdAt: DateTime.now().subtract(const Duration(minutes: 42)),
+      startedAt: DateTime.now().subtract(const Duration(minutes: 41)),
+      completedAt: DateTime.now().subtract(const Duration(minutes: 40)),
+      status: AiJobStatus.failed,
+      creditsCharged: 10,
+      prompt: 'Neo-classical kitchen, champagne profile handles, quartz waterfall island',
+      failureReason: 'GPU Memory OutOfBounds: High-resolution depth tensor failed on ceiling mesh.',
+    ),
+    AiJobEntity(
+      id: 'JOB-9025',
+      productType: 'Budget Calculator',
+      title: '3BHK Wardrobe & Kitchen Material BOQ',
+      user: 'Sanjay Deshmukh (Brigade Gateway)',
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      startedAt: DateTime.now().subtract(const Duration(hours: 2)),
+      completedAt: DateTime.now().subtract(const Duration(hours: 2)),
+      status: AiJobStatus.completed,
+      creditsCharged: 5,
+      prompt: 'Master wardrobe HDHMR acrylic finish + U-shaped modular kitchen estimation',
+    ),
+  ];
+
+  static final List<WalletTransaction> walletTransactions = [
+    WalletTransaction(
+      id: 'TXN-801',
+      date: DateTime.now().subtract(const Duration(hours: 1)),
+      title: 'Standard Pack Recharge (575 Credits)',
+      type: WalletTransactionType.purchase,
+      credits: 575,
+      rupeeAmount: 1999.0,
+      referenceId: 'RAZOR_PAY_9824',
+      clientName: 'Rahul Sharma',
+    ),
+    WalletTransaction(
+      id: 'TXN-802',
+      date: DateTime.now().subtract(const Duration(hours: 2)),
+      title: 'Room Redesign - DLF Living Room',
+      type: WalletTransactionType.roomDebit,
+      credits: -10,
+      rupeeAmount: 50.0,
+      referenceId: 'JOB-9021',
+      clientName: 'Rahul Sharma',
+    ),
+    WalletTransaction(
+      id: 'TXN-803',
+      date: DateTime.now().subtract(const Duration(hours: 5)),
+      title: '16-Zone Vastu Diagnostic - Prestige Flat',
+      type: WalletTransactionType.vastuDebit,
+      credits: -15,
+      rupeeAmount: 75.0,
+      referenceId: 'JOB-9022',
+      clientName: 'Pooja Verma',
+    ),
+    WalletTransaction(
+      id: 'TXN-804',
+      date: DateTime.now().subtract(const Duration(hours: 8)),
+      title: '30-Min Video Consultation - Ananya Iyer',
+      type: WalletTransactionType.consultationDebit,
+      credits: 0,
+      rupeeAmount: 300.0,
+      referenceId: 'CNS-501',
+      clientName: 'Rahul Sharma',
+      designerName: 'Ananya Iyer',
+      platformShare: 150.0,
+      designerShare: 150.0,
+    ),
+    WalletTransaction(
+      id: 'TXN-805',
+      date: DateTime.now().subtract(const Duration(days: 1)),
+      title: 'Refund: Failed GPU Generation JOB-9024',
+      type: WalletTransactionType.refund,
+      credits: 10,
+      rupeeAmount: 50.0,
+      referenceId: 'JOB-9024',
+      clientName: 'Kavita Singh',
+    ),
+  ];
+
+  static final List<AiRoomDesignEntity> mockRoomDesigns = [
+    AiRoomDesignEntity(
+      id: 'DES-101',
+      title: 'Modern Luxury Living Room',
+      projectName: 'DLF Phase 5 Penthouse',
       roomType: AiRoomType.livingRoom,
-      theme: AiDesignTheme.modernMinimalist,
-      lighting: AiLightingCondition.warmEvening,
-      colorPalette: AiColorPalette.warmNeutrals,
-      prompt:
-          'Staged modern living room with bookmatched Statuario marble TV backdrop, fluted charcoal acoustic wall panelling, concealed 3000K linear warm LED cove, Italian low-profile modular sectional in oat boucle, and brushed brass floating shelving.',
-      rawPhotoUrl:
-          'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
-      renderPhotoUrl:
-          'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80',
-      videoWalkthroughUrl:
-          'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
-      splitSliderPosition: 0.52,
-      createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-      designerAssigned: 'Pooja Hegde (Senior Interior Architect)',
-      renderCost: 100.0,
-      boqItems: [
-        BoqSpecificationItem(
-          category: 'Wall Panelling',
-          itemName: 'Charcoal Charcoal Charcoal Louvers',
-          materialSpec: 'HDHMR base with 1.0mm anti-fingerprint fluted polymer sheet',
-          quantity: '120 Sq.Ft',
-          unitCost: 320.0,
-          totalCost: 38400.0,
+      lighting: AiLightingMode.warm,
+      style: AiDesignStyle.luxury,
+      colorPalette: AiColorPalette.neutral,
+      customRequirements: 'Preserve marble floor, add concealed acoustic fluted wood TV wall, warm ceiling cove.',
+      carpetAreaSqFt: 340.0,
+      originalImageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&auto=format&fit=crop&q=80',
+      generatedImageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1200&auto=format&fit=crop&q=80',
+      createdAt: DateTime(2026, 9, 8, 14, 30),
+      creditsUsed: 10,
+      isSaved: true,
+      advancedSettings: {
+        'Preserve layout': true,
+        'Add concealed storage': true,
+        'Add false ceiling': true,
+        'Add accent artwork': true,
+      },
+      preliminarySpecs: [
+        AiMaterialSpecItem(
+          category: 'Flooring',
+          suggestedMaterial: 'Italian Statuario Marble Polish',
+          specification: 'Diamond glazed crystal buffing with epoxy grouting',
+          quantity: 340.0,
+          unit: 'Sq.Ft.',
         ),
-        BoqSpecificationItem(
-          category: 'Feature Wall',
-          itemName: 'Statuario Composite Marble Slab',
-          materialSpec: '15mm seamless bookmatched composite tile with brass T-profiles',
-          quantity: '85 Sq.Ft',
-          unitCost: 650.0,
-          totalCost: 55250.0,
+        AiMaterialSpecItem(
+          category: 'Wall Finish',
+          suggestedMaterial: 'Charcoal Smoked Oak Veneer Panelling',
+          specification: '12mm calibrated MR plywood with 4mm natural crown-cut veneer',
+          quantity: 180.0,
+          unit: 'Sq.Ft.',
         ),
-        BoqSpecificationItem(
-          category: 'Carpentry Console',
-          itemName: 'Floating TV Low-Ledge Unit',
-          materialSpec: 'BWP Marine Ply (IS 710) + Smoked Eucalyptus Natural Veneer',
-          quantity: '14 R.Ft',
-          unitCost: 1850.0,
-          totalCost: 25900.0,
+        AiMaterialSpecItem(
+          category: 'Lighting',
+          suggestedMaterial: 'Philips Hue Cob Strip 3000K & Magnetic Track',
+          specification: 'Concealed aluminium profile channels with glare-free diffusers',
+          quantity: 48.0,
+          unit: 'R.Ft.',
         ),
-        BoqSpecificationItem(
-          category: 'Architectural Lighting',
-          itemName: 'Concealed 3000K Linear COB LED Profile',
-          materialSpec: 'Philips warm golden 24V strip with frosted diffuser & Meanwell driver',
-          quantity: '45 R.Ft',
-          unitCost: 240.0,
-          totalCost: 10800.0,
+        AiMaterialSpecItem(
+          category: 'Furniture',
+          suggestedMaterial: 'Modular 3-Seater Velvet Sofa with Chaise',
+          specification: 'Solid salwood frame, 40-density high-resilience foam',
+          quantity: 1.0,
+          unit: 'Nos',
         ),
       ],
     ),
-    AiRoomGenerationItem(
-      id: 'GEN-102',
-      title: 'Scandinavian Master Suite with Light Oak Walk-in Wardrobe',
+    AiRoomDesignEntity(
+      id: 'DES-102',
+      title: 'Japandi Minimalist Master Suite',
+      projectName: 'Lodha Bellissimo',
       roomType: AiRoomType.masterBedroom,
-      theme: AiDesignTheme.scandinavian,
-      lighting: AiLightingCondition.daylight,
-      colorPalette: AiColorPalette.lightPastels,
-      prompt:
-          'Spacious master bedroom with floor-to-ceiling panoramic glass, natural white oak wood flooring, fluted bed back in sage linen fabric, floating nightstands with ribbed glass lamps, and semi-open tinted glass wardrobe.',
-      rawPhotoUrl:
-          'https://images.unsplash.com/photo-1540518614846-7ede433c4550?auto=format&fit=crop&w=1200&q=80',
-      renderPhotoUrl:
-          'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=80',
-      videoWalkthroughUrl:
-          'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1200&q=80',
-      splitSliderPosition: 0.48,
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      designerAssigned: 'Aarav Singhania (3D Visualizer)',
-      renderCost: 100.0,
-      boqItems: [
-        BoqSpecificationItem(
-          category: 'Wardrobe Joinery',
-          itemName: 'Full Height Sliding Tinted Wardrobe',
-          materialSpec: 'Action TESA HDHMR, Hafele In-Line Soft-Close slider & Bronze glass',
-          quantity: '72 Sq.Ft',
-          unitCost: 1450.0,
-          totalCost: 104400.0,
+      lighting: AiLightingMode.natural,
+      style: AiDesignStyle.japandi,
+      colorPalette: AiColorPalette.earthy,
+      customRequirements: 'Low platform wooden bed, limewash texture paint on headboard, minimal wardrobe.',
+      carpetAreaSqFt: 260.0,
+      originalImageUrl: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=1200&auto=format&fit=crop&q=80',
+      generatedImageUrl: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&auto=format&fit=crop&q=80',
+      createdAt: DateTime(2026, 9, 9, 11, 15),
+      creditsUsed: 10,
+      isSaved: true,
+      advancedSettings: {
+        'Preserve layout': false,
+        'Add wardrobe': true,
+        'Add plants': true,
+      },
+      preliminarySpecs: [
+        AiMaterialSpecItem(
+          category: 'Flooring',
+          suggestedMaterial: 'Engineered White Oak Wood Planks',
+          specification: '15mm click-lock tongue and groove with acoustic underlay',
+          quantity: 260.0,
+          unit: 'Sq.Ft.',
         ),
-        BoqSpecificationItem(
-          category: 'Headboard Wall',
-          itemName: 'Acoustic Sage Linen Upholstered Panels',
-          materialSpec: 'High-density 32D foam backing with stain-proof Belgian linen fabric',
-          quantity: '90 Sq.Ft',
-          unitCost: 480.0,
-          totalCost: 43200.0,
+        AiMaterialSpecItem(
+          category: 'Wall Finish',
+          suggestedMaterial: 'Mineral Limewash Wabi-Sabi Plaster',
+          specification: 'Eco-friendly breathable lime putty with soft clouding',
+          quantity: 220.0,
+          unit: 'Sq.Ft.',
         ),
-        BoqSpecificationItem(
-          category: 'Nightstands',
-          itemName: 'Floating Minimal Bedside Drawers',
-          materialSpec: 'BWR Marine Ply with 1mm matte Arctic White laminate & Blum runners',
-          quantity: '2 Nos',
-          unitCost: 6500.0,
-          totalCost: 13000.0,
-        ),
-      ],
-    ),
-    AiRoomGenerationItem(
-      id: 'GEN-103',
-      title: 'Neo-Classical Modular Kitchen with Quartz Island Counter',
-      roomType: AiRoomType.modularKitchen,
-      theme: AiDesignTheme.neoClassical,
-      lighting: AiLightingCondition.studioBright,
-      colorPalette: AiColorPalette.warmNeutrals,
-      prompt:
-          'Luxury parallel island kitchen with slate blue Shaker-style profile shutters, brass knurled handles, Calacatta Gold quartz countertop with 40mm waterfall edge, Blum Aventos bi-fold lift-ups, and built-in Bosch appliance tall unit.',
-      rawPhotoUrl:
-          'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
-      renderPhotoUrl:
-          'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1200&q=80',
-      videoWalkthroughUrl:
-          'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=1200&q=80',
-      splitSliderPosition: 0.55,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      designerAssigned: 'Karan Mehra (Principal Architect)',
-      renderCost: 100.0,
-      boqItems: [
-        BoqSpecificationItem(
-          category: 'Base & Wall Cabinets',
-          itemName: 'Shaker Profile PU Coated Shutters',
-          materialSpec: '19mm BWP Marine Ply (IS 710) with 6-coat polyurethane satin spray',
-          quantity: '185 Sq.Ft',
-          unitCost: 1750.0,
-          totalCost: 323750.0,
-        ),
-        BoqSpecificationItem(
-          category: 'Countertop',
-          itemName: 'Calacatta Gold Engineered Quartz',
-          materialSpec: '20mm stain-proof quartz with mitered 40mm seamless waterfall edge',
-          quantity: '75 Sq.Ft',
-          unitCost: 850.0,
-          totalCost: 63750.0,
-        ),
-        BoqSpecificationItem(
-          category: 'Hardware & Drawers',
-          itemName: 'Blum Legrabox Heavy Tandem Systems',
-          materialSpec: '70kg dynamic load capacity with integrated Tip-on Blumotion',
-          quantity: '12 Sets',
-          unitCost: 5200.0,
-          totalCost: 62400.0,
+        AiMaterialSpecItem(
+          category: 'Furniture',
+          suggestedMaterial: 'Floating Teak Bed with Cane Headboard',
+          specification: 'Seasoned CP teak wood with natural matte PU seal',
+          quantity: 1.0,
+          unit: 'Nos',
         ),
       ],
     ),
   ];
 
-  // ============================================================================
-  // 3. MOCK VASTU CHAKRA 16-ZONE AUDIT DATA
-  // ============================================================================
-  static final VastuAuditReport sampleVastuReport = VastuAuditReport(
-    id: 'VASTU-AUDIT-2026',
-    projectName: 'DLF Crest Villa #402',
-    clientName: 'Vikram Malhotra',
-    floorPlanImageUrl:
-        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-    northOrientationDegrees: 28.0,
-    overallComplianceScore: 84,
-    auditedAt: DateTime.now().subtract(const Duration(days: 1)),
-    zones: [
-      VastuZoneDetail(
-        zoneCode: 'NE',
-        zoneName: 'North-East (Ishanya)',
-        degreeStart: 33.75,
-        degreeEnd: 56.25,
-        element: 'Water / Space',
-        rulingDeity: 'Lord Shiva (Divine Clarity)',
-        recommendedColor: 'Light Blue, Crystal White',
-        currentRoomPlacement: 'Pooja Room & Open Meditation Foyer',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Auspicious placement. Free from clutter, heavy structural masonry, or overhead water tanks. Channeling serene morning sun energy.',
-        remedyAdvice: 'Maintain water fountain or brass urli with fresh water and camphor.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'E',
-        zoneName: 'East (Purva)',
-        degreeStart: 78.75,
-        degreeEnd: 101.25,
-        element: 'Air / Fire',
-        rulingDeity: 'Lord Indra (Social Connect)',
-        recommendedColor: 'Light Emerald Green, Mint',
-        currentRoomPlacement: 'Living Room Formal Seating & Main Balcony',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Ideal orientation for social networking, government connections, and dynamic family reputation.',
-        remedyAdvice: 'Add indoor green plants (bamboo / money plant) along East window sills.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'SE',
-        zoneName: 'South-East (Agneya)',
-        degreeStart: 123.75,
-        degreeEnd: 146.25,
-        element: 'Fire (Agni)',
-        rulingDeity: 'Lord Agni (Cash Flow & Health)',
-        recommendedColor: 'Warm Coral, Peach, Soft Orange',
-        currentRoomPlacement: 'Modular Kitchen (Hob facing East)',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Perfect fire zone synergy. Cooking burner placed with chef facing East ensures family vitality and uninterrupted financial liquidity.',
-        remedyAdvice: 'Avoid placing water purifiers or refrigerators within 3 feet of burner.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'SSW',
-        zoneName: 'South-South-West (Nirriti Sub-Zone)',
-        degreeStart: 191.25,
-        degreeEnd: 213.75,
-        element: 'Earth (Depletion Zone)',
-        rulingDeity: 'Yama (Disposal / Waste Elimination)',
-        recommendedColor: 'Mustard Yellow, Earthy Beige',
-        currentRoomPlacement: 'Powder Toilet & Soil Pipe Shaft',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Excellent. SSW is the natural zone of disposal. Drainage pipes here prevent waste retention in health and business.',
-        remedyAdvice: 'Keep toilet lid closed; ensure yellow brass strip in entrance sill.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'SW',
-        zoneName: 'South-West (Nairutya)',
-        degreeStart: 213.75,
-        degreeEnd: 236.25,
-        element: 'Earth (Prithvi)',
-        rulingDeity: 'Nirriti (Stability & Authority)',
-        recommendedColor: 'Warm Ochre, Sand Brown',
-        currentRoomPlacement: 'Master Bedroom (Head to South)',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Optimal positioning for head of the household. Heavy wooden wardrobe anchor placed on South-West wall gives grounded stability.',
-        remedyAdvice: 'Keep heaviest furniture against SW boundary wall. Avoid mirrors facing the bed.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'NNE',
-        zoneName: 'North-North-East',
-        degreeStart: 11.25,
-        degreeEnd: 33.75,
-        element: 'Water',
-        rulingDeity: 'Dhanvantari (Immunity & Healing)',
-        recommendedColor: 'Off-White, Sky Blue',
-        currentRoomPlacement: 'Guest Bathroom (Wet Enclosure)',
-        status: VastuZoneStatus.minorImbalance,
-        diagnosticNotes:
-            'Wet toilet in NNE may cause seasonal respiratory lethargy or minor health drain for elderly occupants.',
-        remedyAdvice:
-            'Install 3mm pure copper energetic isolation strip along bathroom threshold door frame. Place rock sea salt bowl.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'NW',
-        zoneName: 'North-West (Vayavya)',
-        degreeStart: 303.75,
-        degreeEnd: 326.25,
-        element: 'Air / Wind',
-        rulingDeity: 'Vayu (Support & Banking Relations)',
-        recommendedColor: 'Silver Grey, Pearl White',
-        currentRoomPlacement: 'Guest Bedroom & Study Ledge',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Encourages supportive external relationships, swift bank loan approvals, and dynamic trade partner connections.',
-        remedyAdvice: 'Hang 5-rod silver chime or circular brass clock on North-West wall.',
-      ),
-      VastuZoneDetail(
-        zoneCode: 'N',
-        zoneName: 'North (Kuber Sthana)',
-        degreeStart: 348.75,
-        degreeEnd: 11.25,
-        element: 'Water (Jal)',
-        rulingDeity: 'Lord Kuber (Treasury & New Opportunities)',
-        recommendedColor: 'Emerald Green, Sea Blue',
-        currentRoomPlacement: 'Home Office Desk & Financial Locker',
-        status: VastuZoneStatus.auspicious,
-        diagnosticNotes:
-            'Flawless. North opening welcomes steady high-paying client contracts and continuous business expansion.',
-        remedyAdvice: 'Ensure safe locker opens towards North or East.',
-      ),
-    ],
-    recommendedRemedies: [
-      VastuRemedyItem(
-        title: 'NNE Toilet Energy Isolation Copper Threshold Strip',
-        targetedDosha: 'Minor health drain from wet bathroom in North-North-East healing quadrant',
-        nonDemolitionMethod:
-            'Precision 3mm pure electrolysed copper ribbon embedded flush inside the bathroom door threshold under marble transition.',
-        materialUsed: '99.9% Pure Copper Vastu Energy Strip (10ft length)',
-        estimatedCost: 3500.0,
-        isApplied: true,
-      ),
-      VastuRemedyItem(
-        title: 'South-West Wall Heavy Pyramidal Brass Energy Stabilizer',
-        targetedDosha: 'Grounding master bedroom authority and mitigating corner structural cut',
-        nonDemolitionMethod:
-            'Set of 9 Lead and Brass energetic micro-pyramids mounted invisibly behind master bed panel skirting.',
-        materialUsed: 'Solid Casted Brass 9-Chamber Pyramid Matrix',
-        estimatedCost: 6800.0,
-        isApplied: false,
-      ),
-      VastuRemedyItem(
-        title: 'South-East Kitchen Elemental Color Balancing Strip',
-        targetedDosha: 'Mitigate sink and gas hob proximity conflict (Water vs Fire)',
-        nonDemolitionMethod:
-            'Install a 12mm green granite / glass separator barrier between the stainless steel sink and induction hob.',
-        materialUsed: 'Toughened Lacquered Green Glass Barricade',
-        estimatedCost: 2200.0,
-        isApplied: false,
-      ),
-    ],
-  );
-
-  // ============================================================================
-  // 4. MOCK BRANDS CATALOGUE & VERIFIED DISTRIBUTORS
-  // ============================================================================
-  static final List<BrandRecommendation> recommendedBrands = [
-    // Plywood Brands
-    BrandRecommendation(
-      category: 'Plywood & Core Substrates',
-      brandName: 'CenturyPly (Club Prime / Architect)',
-      tagline: 'India\'s #1 BWP Marine plywood with Firewall & ViroKill technology',
-      qualityGrade: 'IS:710 Marine Grade Gurjan Core',
-      warrantyYears: '30-Year No-Questions Warranty',
-      marketShare: '38% National Tier-1 Share',
-      logoText: 'CP',
-      brandColor: const Color(0xFFDC2626),
-    ),
-    BrandRecommendation(
-      category: 'Plywood & Core Substrates',
-      brandName: 'Greenply (Green Platinum)',
-      tagline: 'Zero-emission E-0 compliant calibrated waterproof plywood',
-      qualityGrade: 'IS:710 E-0 Formaldehyde Free',
-      warrantyYears: 'Lifetime 2X Replacement Warranty',
-      marketShare: '32% National Market Share',
-      logoText: 'GP',
-      brandColor: const Color(0xFF16A34A),
-    ),
-    BrandRecommendation(
-      category: 'Plywood & Core Substrates',
-      brandName: 'Austin Plywood (Defender)',
-      tagline: '100% Calibrated borer & termite proof marine ply',
-      qualityGrade: 'IS:710 4-Times Pressed Ply',
-      warrantyYears: '25-Year Guarantee',
-      marketShare: '18% National Premium Share',
-      logoText: 'AP',
-      brandColor: const Color(0xFF2563EB),
-    ),
-
-    // Laminates Brands
-    BrandRecommendation(
-      category: 'Decorative Laminates & Surfaces',
-      brandName: 'Greenlam Laminates',
-      tagline: 'Anti-bacterial HD matte & textured architectural laminates',
-      qualityGrade: '1.0mm Anti-Fingerprint Silky Touch',
-      warrantyYears: '10-Year Surface Warranty',
-      marketShare: '42% Designer Preferred',
-      logoText: 'GL',
-      brandColor: const Color(0xFF059669),
-    ),
-    BrandRecommendation(
-      category: 'Decorative Laminates & Surfaces',
-      brandName: 'Merino Laminates (Specialty Tuff)',
-      tagline: 'High impact scuff-resistant laminates in 500+ finishes',
-      qualityGrade: '1.0mm Super Matte & Synchronized',
-      warrantyYears: '10-Year Fade Proof Guarantee',
-      marketShare: '35% Contractor Volume',
-      logoText: 'ML',
-      brandColor: const Color(0xFFD97706),
-    ),
-    BrandRecommendation(
-      category: 'Decorative Laminates & Surfaces',
-      brandName: 'Royale Touche',
-      tagline: 'Luxury 1.25mm deep embossed architectural surfaces',
-      qualityGrade: '1.25mm Ultra-High Density',
-      warrantyYears: '12-Year Warranty',
-      marketShare: '23% Luxury Niche',
-      logoText: 'RT',
-      brandColor: const Color(0xFF7C3AED),
-    ),
-
-    // Hardware Brands
-    BrandRecommendation(
-      category: 'Hardware & Movement Systems',
-      brandName: 'Hafele (Matrix & Free Flap)',
-      tagline: 'German engineered silent drawer slides and folding mechanisms',
-      qualityGrade: 'Tested to 100,000 Action Cycles',
-      warrantyYears: '10-Year Mechanical Warranty',
-      marketShare: '45% Modular Market Share',
-      logoText: 'HF',
-      brandColor: const Color(0xFFBE123C),
-    ),
-    BrandRecommendation(
-      category: 'Hardware & Movement Systems',
-      brandName: 'Blum (Aventos & Tandembox)',
-      tagline: 'Austrian precision motion fittings for luxury kitchens & wardrobes',
-      qualityGrade: 'Lifetime Dynamic Rating (70kg)',
-      warrantyYears: 'Lifetime Product Guarantee',
-      marketShare: '35% Ultra-Luxury Share',
-      logoText: 'BL',
-      brandColor: const Color(0xFFEA580C),
-    ),
-    BrandRecommendation(
-      category: 'Hardware & Movement Systems',
-      brandName: 'Hettich (Quadro & Sensys)',
-      tagline: 'German intelligent furniture fittings with soft-close damping',
-      qualityGrade: 'Corrosion Tested to 200h Salt Spray',
-      warrantyYears: '10-Year Replacement Warranty',
-      marketShare: '20% Architectural Specification',
-      logoText: 'HT',
-      brandColor: const Color(0xFF0284C7),
+  static final List<AiVastuReportEntity> mockVastuReports = [
+    AiVastuReportEntity(
+      id: 'VAS-701',
+      projectName: 'Prestige Lakeside Habitat 3BHK',
+      propertyType: 'Residential Apartment',
+      plotAreaSqFt: 1850.0,
+      builtUpAreaSqFt: 1650.0,
+      totalFloors: 1,
+      bedrooms: 3,
+      bathrooms: 3,
+      entranceDirection: VastuDirection.northeast,
+      kitchenDirection: VastuDirection.southeast,
+      northCalibratedDegrees: 42.5,
+      overallScore: 84,
+      floorPlanImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&auto=format&fit=crop&q=80',
+      createdAt: DateTime(2026, 9, 7, 16, 20),
+      creditsUsed: 15,
+      positiveObservations: [
+        'Main Entrance in Northeast (Ishanya) attracts immense prosperity, peace and positive prana.',
+        'Kitchen perfectly aligned in Agneya (South-East), boosting family health and digestive vitality.',
+        'Master bedroom located in South-West (Nairutya), establishing grounding stability and leadership.',
+      ],
+      areasRequiringAttention: [
+        'Study desk facing South causes mental fatigue; recommended facing North or East.',
+        'Water purifier located too close to the cooking hob causing fire-water element clash.',
+      ],
+      zoneRecords: [
+        VastuZoneRecord(
+          zone: 'North (Kuber)',
+          element: 'Water',
+          currentCondition: 'Living Room Foyer with indoor planter',
+          assessment: 'Auspicious financial flow & wealth accumulation',
+          recommendedAction: 'Place brass vessel with fresh water and green plants',
+          priority: 'Low',
+        ),
+        VastuZoneRecord(
+          zone: 'North-East (Ishanya)',
+          element: 'Water / Ether',
+          currentCondition: 'Puja Alcove & clear ventilation',
+          assessment: 'Optimal spiritual clarity & high energy vibration',
+          recommendedAction: 'Keep clutter-free, use light yellow or white lighting',
+          priority: 'Low',
+        ),
+        VastuZoneRecord(
+          zone: 'South-East (Agneya)',
+          element: 'Fire',
+          currentCondition: 'Modular Kitchen cooking counter',
+          assessment: 'Excellent spatial placement for digestion & vigor',
+          recommendedAction: 'Ensure chef faces East while preparing meals',
+          priority: 'Medium',
+        ),
+        VastuZoneRecord(
+          zone: 'South-West (Nairutya)',
+          element: 'Earth',
+          currentCondition: 'Master Bedroom suite',
+          assessment: 'High stability, grounding and decision-making power',
+          recommendedAction: 'Headboard should touch South or West wall firmly',
+          priority: 'Medium',
+        ),
+      ],
+      colorRecommendations: [
+        VastuColorRecommendation(
+          color: 'Warm Off-White & Soft Gold',
+          suggestedRoom: 'North-East Puja & Living Room',
+          reason: 'Enhances cosmic positivity and mental peace without obstructing light.',
+        ),
+        VastuColorRecommendation(
+          color: 'Earthy Terracotta & Almond',
+          suggestedRoom: 'South-West Master Bedroom',
+          reason: 'Bolsters the Earth element, promoting deep restful sleep and stability.',
+        ),
+        VastuColorRecommendation(
+          color: 'Pistachio Green & Pale Peach',
+          suggestedRoom: 'South-East Kitchen Accent Wall',
+          reason: 'Harmonizes fire energy with fresh organic growth vibrations.',
+        ),
+      ],
+      furniturePlacements: [
+        VastuFurniturePlacement(
+          furniture: 'Master Bed',
+          recommendedDirection: 'South-West zone',
+          placement: 'Headboard against South wall, sleeping head pointing South',
+          notes: 'Avoid mirrors reflecting the bed while sleeping.',
+        ),
+        VastuFurniturePlacement(
+          furniture: 'Study / Work Desk',
+          recommendedDirection: 'North or East zone',
+          placement: 'Seated person faces East towards morning light',
+          notes: 'Keep open space ahead of the desk for mental clarity.',
+        ),
+      ],
+      remedies: [
+        VastuRemedy(
+          issue: 'Mirror facing toilet door in bedroom corridor',
+          recommendedRemedy: 'Apply frosted decorative film or reposition mirror to North wall',
+          priority: 'High',
+          implementationNote: 'Non-demolition instant solution requiring zero structural rework.',
+        ),
+        VastuRemedy(
+          issue: 'Overhead beam running directly across dining table',
+          recommendedRemedy: 'Conceal beam with false ceiling cove or hang crystal lotus',
+          priority: 'Medium',
+          implementationNote: 'Relieves subconscious pressure and promotes harmonious meals.',
+        ),
+      ],
     ),
   ];
 
-  static final List<VendorContactCard> verifiedVendors = [
-    VendorContactCard(
-      vendorName: 'Praveen Goel',
-      companyName: 'Timberland Plywood & Hardware Superstore',
-      cityRegion: 'Delhi NCR (Sector 29, Gurgaon)',
-      phone: '+91 98112 34567',
-      wholesaleDiscount: 'Flat 22% Off MRP for Homio Projects',
+  static final List<AiBudgetEstimateEntity> mockBudgetEstimates = [
+    AiBudgetEstimateEntity(
+      id: 'EST-401',
+      title: 'Full Height Sliding Wardrobe (10x8)',
+      projectName: 'DLF Phase 5',
+      room: 'Master Bedroom',
+      furnitureType: 'Sliding Wardrobe',
+      width: 10.0,
+      height: 8.0,
+      depth: 2.0,
+      unit: 'Sq.Ft.',
+      coreMaterial: 'BWP Marine Grade Plywood (IS:710)',
+      thickness: '18mm carcass, 12mm backer, 25mm shelves',
+      finish: '1mm Anti-Fingerprint Matte Laminate + Acrylic Door Panels',
+      hardware: 'Hafele Slido Classic 50VF Soft-Close System',
+      budgetTier: 'Premium Tier',
+      includeInstallation: true,
+      includeDelivery: true,
+      includeLabour: true,
+      includeGst: true,
+      materialCost: 72000.0,
+      labourCost: 28000.0,
+      hardwareCost: 18500.0,
+      finishCost: 14500.0,
+      installationCost: 7000.0,
+      subtotal: 140000.0,
+      gstAmount: 25200.0,
+      totalEstimate: 165200.0,
+      createdAt: DateTime(2026, 9, 9, 10, 0),
+      boqItems: [
+        AiBudgetBoqItem(
+          item: 'Carcase Fabrication',
+          specification: 'CenturyPly Club Prime BWP 18mm with 0.8mm internal off-white liner',
+          quantity: 80.0,
+          unit: 'Sq.Ft.',
+          estimatedRate: 900.0,
+          estimatedAmount: 72000.0,
+        ),
+        AiBudgetBoqItem(
+          item: 'Sliding Door Mechanism',
+          specification: 'Hafele Top-Hung 2-Door System with Synchro Soft Dampers',
+          quantity: 1.0,
+          unit: 'Set',
+          estimatedRate: 18500.0,
+          estimatedAmount: 18500.0,
+        ),
+        AiBudgetBoqItem(
+          item: 'External Finish',
+          specification: 'Greenlam Anti-Fingerprint Laminate with PVC edgebanding 2mm',
+          quantity: 80.0,
+          unit: 'Sq.Ft.',
+          estimatedRate: 181.25,
+          estimatedAmount: 14500.0,
+        ),
+      ],
+      recommendedBrands: [
+        RecommendedBrandItem(
+          brand: 'CenturyPly',
+          materialName: 'Club Prime BWP 710 Plywood',
+          qualityTier: 'Tier 1 Certified Marine',
+          priceRange: '₹105 - ₹125 / Sq.Ft.',
+          vendorName: 'Greenply Century Hub Okhla',
+          vendorRating: 4.9,
+          warranty: '30-Year Borer & Fungus Warranty',
+        ),
+        RecommendedBrandItem(
+          brand: 'Hafele India',
+          materialName: 'Slido Classic 50VF Hardware Kit',
+          qualityTier: 'German Engineered Architectural Hardware',
+          priceRange: '₹16,500 - ₹19,800 / Kit',
+          vendorName: 'Hafele Design Studio MG Road',
+          vendorRating: 4.8,
+          warranty: '10-Year Mechanical Replacement Warranty',
+        ),
+      ],
+    ),
+  ];
+
+  static final List<AiDoubtConversationEntity> mockDoubtConversations = [
+    AiDoubtConversationEntity(
+      id: 'CONV-301',
+      title: 'Kitchen Cabinet Plywood Selection',
+      projectContext: 'DLF Penthouse',
+      roomContext: 'Kitchen',
+      updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
+      totalQuestions: 2,
+      creditsConsumed: 0,
+      messages: [
+        AiDoubtMessage(
+          id: 'MSG-1',
+          isUser: true,
+          text: 'Which plywood is best for kitchen cabinets under the sink area to prevent water damage?',
+          timestamp: DateTime.now().subtract(const Duration(hours: 3, minutes: 2)),
+        ),
+        AiDoubtMessage(
+          id: 'MSG-2',
+          isUser: false,
+          text: '''For under-sink kitchen carcases, **IS:710 Marine Grade BWP (Boiling Water Proof) Plywood** or **HDHMR (High Density High Moisture Resistance)** are the industry benchmarks:
+
+### Key Recommendations:
+1. **BWP 710 Plywood (Century Club Prime / Greenply 710):**
+   - Built with phenol formaldehyde synthetic resin adhesive.
+   - Can withstand 72 hours of boiling water without delamination.
+   - Ideal for load-bearing under-sink carcases with water purifiers and RO units.
+
+2. **Edge-Banding & Sealing (Critical):**
+   - Always insist on **2mm machine PVC edge-banding** with PUR waterproof glue.
+   - Seal all plumbing pipe cutouts with silicone sealant.
+
+3. **Avoid Commercial MR Plywood:**
+   - Moisture Resistant (MR) is only interior grade and will swell when exposed to pipe drips.''',
+          timestamp: DateTime.now().subtract(const Duration(hours: 3, minutes: 1)),
+          sources: [
+            'Bureau of Indian Standards (IS 710:2010)',
+            'Homio Standard Construction Quality Guidelines v3',
+          ],
+          followUpChips: [
+            'What is the cost difference between BWP and MR?',
+            'Should I use acrylic or PU finish for kitchen shutters?',
+            'How to seal plumbing pipe penetrations?',
+          ],
+        ),
+      ],
+    ),
+  ];
+
+  static final List<DesignerConsultant> designerRoster = [
+    const DesignerConsultant(
+      id: 'DSG-1',
+      name: 'Ananya Iyer',
+      title: 'Principal Luxury Architect',
+      qualification: 'B.Arch (NID Ahmedabad) • CoA Registered',
+      yearsExperience: 12,
+      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80',
       rating: 4.9,
-      isVerified: true,
-      authorizedBrands: ['CenturyPly', 'Hafele', 'Greenlam', 'Blum'],
+      totalConsultations: 148,
+      specializations: ['Luxury Contemporary', 'Vastu Shastra', 'High-Rise Penthouses'],
+      consultationFee: 300.0,
+      bio: 'Alumnus of NID Ahmedabad with 12+ years of experience designing luxury penthouses across Mumbai & Bengaluru.',
+      availability: DesignerAvailability.online,
     ),
-    VendorContactCard(
-      vendorName: 'Rajeev Singhal',
-      companyName: 'Apex Plywood Distributors & Veneer House',
-      cityRegion: 'Mumbai Western Suburbs (Andheri West)',
-      phone: '+91 98201 88990',
-      wholesaleDiscount: 'Flat 24% Off Wholesale Mill Rates',
+    const DesignerConsultant(
+      id: 'DSG-2',
+      name: 'Vikram Malhotra',
+      title: 'Senior Interior & Modular Specialist',
+      qualification: 'M.Des (CEPT University)',
+      yearsExperience: 9,
+      avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=500&auto=format&fit=crop&q=80',
       rating: 4.8,
-      isVerified: true,
-      authorizedBrands: ['Greenply', 'Merino', 'Hettich', 'Austin Plywood'],
+      totalConsultations: 112,
+      specializations: ['Modular Kitchens', 'Storage Engineering', 'Hafele / Blum Hardware'],
+      consultationFee: 300.0,
+      bio: 'Expert in European kitchen hardware and precision storage optimization.',
+      availability: DesignerAvailability.online,
     ),
-    VendorContactCard(
-      vendorName: 'Girish Patel',
-      companyName: 'South India Hardware & Surface Hub',
-      cityRegion: 'Bengaluru (Indiranagar 100ft Rd)',
-      phone: '+91 99004 12389',
-      wholesaleDiscount: 'Flat 20% Direct Contractor Margin',
+    const DesignerConsultant(
+      id: 'DSG-3',
+      name: 'Rhea Sen',
+      title: 'Biophilic & Sustainable Design Lead',
+      qualification: 'B.Arch (SPA Delhi) • LEED AP',
+      yearsExperience: 7,
+      avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=80',
       rating: 4.9,
-      isVerified: true,
-      authorizedBrands: ['Hafele', 'Blum', 'Royale Touche', 'CenturyPly'],
+      totalConsultations: 89,
+      specializations: ['Japandi Minimalist', 'Biophilic Design', 'Sustainable Timber'],
+      consultationFee: 300.0,
+      bio: 'Passionate about sustainable timber, breathable textures, and serene neutral homes.',
+      availability: DesignerAvailability.busy,
     ),
   ];
 
-  // ============================================================================
-  // 5. MOCK AI DOUBT SOLVER Q&A THREAD
-  // ============================================================================
+  static final List<BookedConsultationSession> bookedSessions = [];
+
+  static final List<DesignerProfile> mockDesigners = [
+    const DesignerProfile(
+      id: 'DSG-1',
+      name: 'Ananya Iyer',
+      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80',
+      specialization: 'Luxury Contemporary & Vastu Compliance',
+      experienceYears: 12,
+      rating: 4.9,
+      consultationsCount: 148,
+      languages: ['English', 'Hindi', 'Tamil'],
+      consultationFee: 300.0,
+      bio: 'Alumnus of NID Ahmedabad with 12+ years of experience designing celebrity penthouses across Mumbai & Bengaluru. Specializes in luxury marble and Vastu harmony.',
+      availableSlots: ['Today 04:30 PM', 'Today 06:00 PM', 'Tomorrow 11:00 AM', 'Tomorrow 03:30 PM'],
+    ),
+    const DesignerProfile(
+      id: 'DSG-2',
+      name: 'Vikram Malhotra',
+      avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=500&auto=format&fit=crop&q=80',
+      specialization: 'Modular Kitchens & Material Engineering',
+      experienceYears: 9,
+      rating: 4.8,
+      consultationsCount: 112,
+      languages: ['English', 'Hindi', 'Punjabi'],
+      consultationFee: 300.0,
+      bio: 'Expert in European kitchen hardware (Hafele, Blum) and precision storage optimization. Helped 300+ homeowners save 20-30% on interior procurement.',
+      availableSlots: ['Today 05:00 PM', 'Tomorrow 10:00 AM', 'Tomorrow 02:00 PM'],
+    ),
+    const DesignerProfile(
+      id: 'DSG-3',
+      name: 'Rhea Sen',
+      avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&auto=format&fit=crop&q=80',
+      specialization: 'Scandinavian, Japandi & Biophilic Design',
+      experienceYears: 7,
+      rating: 4.9,
+      consultationsCount: 89,
+      languages: ['English', 'Bengali', 'Hindi'],
+      consultationFee: 300.0,
+      bio: 'Passionate about sustainable timber, breathable textures, and serene neutral homes. Regular contributor to Architectural Digest India.',
+      availableSlots: ['Today 06:30 PM', 'Tomorrow 12:30 PM', 'Tomorrow 04:00 PM'],
+    ),
+  ];
+
+  static final List<ConsultationBookingEntity> mockConsultations = [
+    ConsultationBookingEntity(
+      id: 'CNS-501',
+      designer: mockDesigners[0],
+      clientName: 'Rahul Sharma',
+      clientPhone: '+91 98765 43210',
+      clientEmail: 'rahul.sharma@gmail.com',
+      projectName: 'DLF Phase 5 Penthouse',
+      consultationType: 'Interior Design & Vastu Review',
+      scheduledDate: DateTime.now().add(const Duration(hours: 2)),
+      timeSlot: 'Today 04:30 PM',
+      durationMinutes: 30,
+      topic: 'Living Room False Ceiling & Puja Zone Alignment',
+      description: 'Need advice on concealing an overhead structural beam without lowering the ceiling height, plus puja unit placement.',
+      fee: 300.0,
+      platformShare: 150.0,
+      designerShare: 150.0,
+      meetingStatus: 'Scheduled',
+      paymentStatus: 'Paid',
+      meetingUrl: 'https://meet.homio.in/cns-501-room',
+      attachments: ['floor_plan_dlf.pdf', 'living_room_photo.jpg'],
+    ),
+    ConsultationBookingEntity(
+      id: 'CNS-502',
+      designer: mockDesigners[1],
+      clientName: 'Rahul Sharma',
+      clientPhone: '+91 98765 43210',
+      clientEmail: 'rahul.sharma@gmail.com',
+      projectName: 'DLF Phase 5 Penthouse',
+      consultationType: 'Material & Hardware Review',
+      scheduledDate: DateTime.now().subtract(const Duration(days: 3)),
+      timeSlot: '11:00 AM',
+      durationMinutes: 30,
+      topic: 'Kitchen Plywood & Hafele Fittings Review',
+      description: 'Verified BWP vs HDHMR quotes and selected soft-close tandem boxes.',
+      fee: 300.0,
+      platformShare: 150.0,
+      designerShare: 150.0,
+      meetingStatus: 'Completed',
+      paymentStatus: 'Paid',
+      meetingUrl: 'https://meet.homio.in/cns-502-room',
+      ratingGiven: 5,
+      feedbackText: 'Vikram saved us ₹65,000 by catching an overpriced hardware line item in our vendor quotation!',
+    ),
+  ];
+
+  static final List<AiAuditRecord> auditRecords = [
+    AiAuditRecord(
+      id: 'AUD-101',
+      action: 'Credit Package Purchase',
+      user: 'Rahul Sharma',
+      entity: 'AiWallet',
+      previousValue: '120 Credits',
+      newValue: '695 Credits (+575 Standard Pack)',
+      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+      reason: 'Online Payment Gateway confirmation #RAZOR_PAY_9824',
+    ),
+    AiAuditRecord(
+      id: 'AUD-102',
+      action: 'GPU Job Credit Debit',
+      user: 'Rahul Sharma',
+      entity: 'AiJob-9021',
+      previousValue: '695 Credits',
+      newValue: '685 Credits (-10 Credits)',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
+      reason: 'Generated 4K AI Living Room Render with preliminary BOQ',
+    ),
+    AiAuditRecord(
+      id: 'AUD-103',
+      action: 'Job Failure Credit Refund',
+      user: 'Kavita Singh',
+      entity: 'AiJob-9024',
+      previousValue: '45 Credits',
+      newValue: '55 Credits (+10 Credits Refunded)',
+      timestamp: DateTime.now().subtract(const Duration(days: 1)),
+      reason: 'GPU OutOfMemory tensor failure during ceiling mesh calculation',
+    ),
+  ];
+
   static final List<DoubtQueryMessage> initialDoubtChat = [
     DoubtQueryMessage(
-      id: 'MSG-001',
-      isFromUser: false,
-      content:
-          'Welcome to the **Homio AI Construction & Architectural Expert Solver**!\n\nI am trained on official IS/CPWD codes, actual wholesale rate cards, and field snag diagnostics. Your first **3 technical questions are 100% FREE**.\n\nAsk any question regarding material testing, prevailing labour rates, waterproofing snags, or false ceiling framing.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-    ),
-    DoubtQueryMessage(
-      id: 'MSG-002',
+      id: 'MSG-INIT-1',
       isFromUser: true,
-      content:
-          'How do I test on site whether my plywood delivery is genuine 100% BWP Marine (IS 710) or fake Commercial MR with face veneer?',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
+      content: 'Which plywood grade is strictly specified for kitchen under-sink carcase and wet areas?',
+      timestamp: DateTime.now().subtract(const Duration(hours: 4)),
       category: DoubtCategory.materialQuality,
     ),
     DoubtQueryMessage(
-      id: 'MSG-003',
+      id: 'MSG-INIT-2',
       isFromUser: false,
-      content:
-          '### 🔍 4 Rapid On-Site Tests for Genuine IS:710 BWP Marine Plywood\n\n'
-          '1. **72-Hour Boiling Water Test (Lab Benchmark):** Cut a 2" x 2" sample piece. Boil it in water for 72 continuous hours. Genuine BWP Marine plywood bonded with Phenol Formaldehyde resin will **not delaminate, swell, or separate**. Fake MR ply will disintegrate within 30 minutes.\n\n'
-          '2. **Core Veneer Layer Inspection:** Count the alternating plies from the edge. Genuine marine ply has at least 7 to 9 tightly calibrated solid hardwood veneers without internal core gaps or overlapping patches.\n\n'
-          '3. **Weight & Calibration Gauge:** Take a digital vernier caliper. Standard 19mm calibrated ply should measure strictly 18.8mm to 19.2mm. A 8x4 sheet of Gurjan marine ply weighs approximately 42kg to 48kg. Anything below 35kg is lightweight commercial timber.\n\n'
-          '4. **Chemical Smell Test:** Phenol resin emits a dark reddish/brown glue line between layers. If the glue line is light yellow (Urea Formaldehyde), it is not marine grade.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 19)),
-      actionChecklist: [
-        'Perform 72-hr boiling test on delivery sample',
-        'Verify IS:710 ISI stamp with 7-digit CML license number',
-        'Check sheet weight (must be > 40kg for 19mm 8x4)',
-        'Inspect cross-section for hollow voids or overlapping plies',
+      content: 'Under-sink carcases must utilize **IS:710 Certified BWP (Boiling Water Proof)** Marine Grade Plywood bonded with unextended phenol formaldehyde resin, or **HDHMR** with 2mm PVC edge-banding.',
+      timestamp: DateTime.now().subtract(const Duration(hours: 4)),
+      category: DoubtCategory.materialQuality,
+      actionChecklist: const [
+        'Inspect genuine ISI mark with manufacturer license CML number',
+        'Ensure 2mm machine PVC edge-banding with PUR glue',
       ],
-      mistakeSavedAmountNote:
-          'Saved ~Rs. 1,40,000 by preventing premature kitchen cabinet termite decay within 2 years.',
-    ),
-    DoubtQueryMessage(
-      id: 'MSG-004',
-      isFromUser: true,
-      content:
-          'What is the current prevailing carpentry fabrication labour rate per sqft for acrylic modular kitchen in Gurgaon / Delhi NCR?',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 14)),
-      category: DoubtCategory.rateCards,
-    ),
-    DoubtQueryMessage(
-      id: 'MSG-005',
-      isFromUser: false,
-      content:
-          '### 📊 Prevailing Gurgaon / Delhi NCR Carpentry Labour Rates (Q3 2026)\n\n'
-          '| Component | Rate Range (Per Sq.Ft / Unit) | Notes |\n'
-          '| :--- | :--- | :--- |\n'
-          '| **Base Cabinets (BWP + 1mm Laminate)** | Rs. 420 – Rs. 480 / Sq.Ft | Inclusive of carcass cutting & PVC edge banding |\n'
-          '| **Acrylic Shutter Fabrication (2mm)** | Rs. 550 – Rs. 650 / Sq.Ft | Requires precision hot-melt edge bander machine |\n'
-          '| **Wall Overhead Cabinets** | Rs. 380 – Rs. 440 / Sq.Ft | Includes wall hanging anchors & alignment |\n'
-          '| **Tall Pantry Appliance Unit** | Rs. 480 – Rs. 540 / Sq.Ft | Includes cut-outs for oven & microwave |\n'
-          '| **Drawer / Tandem Box Installation** | Rs. 350 – Rs. 450 per drawer | Fitting Blum / Hafele runners & damper tuning |\n\n'
-          '> ⚠️ **Contractor Tip:** Ensure labour rate contract clearly stipulates whether **edge banding machine charges (Rs. 12/running ft)** are included or extra.',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 13)),
-      actionChecklist: [
-        'Confirm edge banding machine charges in contract',
-        'Verify whether handle profile groove routing is included',
-        'Fix 10% retention amount payable after snag handover',
-      ],
-      mistakeSavedAmountNote:
-          'Saved ~Rs. 45,000 on contractor overcharging and hidden edge banding extras.',
-    ),
-  ];
-
-  // ============================================================================
-  // 6. MOCK DESIGNER VIDEO CONSULTANTS ROSTER (RS. 300 / SESSION)
-  // ============================================================================
-  static final List<DesignerConsultant> designerRoster = [
-    DesignerConsultant(
-      id: 'DES-01',
-      name: 'Ar. Pooja Hegde',
-      title: 'Senior Interior Architect & Luxury Lead',
-      qualification: 'B.Arch (SPA Delhi), M.Des (Domus Academy Milan)',
-      rating: 4.96,
-      totalConsultations: 248,
-      yearsExperience: 9,
-      availability: DesignerAvailability.online,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
-      specializations: ['Luxury Contemporary', 'Modular Kitchens', 'Space Optimization', 'Vastu'],
-      sessionFee: 300.0,
-    ),
-    DesignerConsultant(
-      id: 'DES-02',
-      name: 'Ar. Karan Mehra',
-      title: 'Principal Architect & Turnkey Specialist',
-      qualification: 'B.Arch (CEPT University), Council of Architecture Certified',
-      rating: 4.92,
-      totalConsultations: 195,
-      yearsExperience: 12,
-      availability: DesignerAvailability.online,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-      specializations: ['Turnkey Contracting', 'Civil Renovations', 'BOQ Cost Engineering'],
-      sessionFee: 300.0,
-    ),
-    DesignerConsultant(
-      id: 'DES-03',
-      name: 'Aarav Singhania',
-      title: '3D Spatial Visualizer & Lighting Designer',
-      qualification: 'B.Des (NID Ahmedabad), Unreal Engine Architectural Certified',
-      rating: 4.88,
-      totalConsultations: 142,
-      yearsExperience: 7,
-      availability: DesignerAvailability.inCall,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-      specializations: ['Photorealistic 3D Renders', 'Acoustics & Lighting', 'Scandinavian'],
-      sessionFee: 300.0,
-    ),
-    DesignerConsultant(
-      id: 'DES-04',
-      name: 'Dr. Radhika Sen',
-      title: 'Vastu Shastra Consultant & Bio-Geometry Expert',
-      qualification: 'Ph.D. in Vedic Vastu, M.A. Astrological Sciences',
-      rating: 4.98,
-      totalConsultations: 310,
-      yearsExperience: 16,
-      availability: DesignerAvailability.offline,
-      avatarUrl:
-          'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80',
-      specializations: ['Non-Demolition Vastu Remedies', 'Commercial Real Estate', 'Energy Chakra'],
-      sessionFee: 300.0,
-    ),
-  ];
-
-  static final List<BookedConsultationSession> bookedSessions = [
-    BookedConsultationSession(
-      id: 'SESS-201',
-      clientName: 'Vikram Malhotra (DLF Crest #402)',
-      clientPhone: '+91 98112 99011',
-      expert: designerRoster[0],
-      scheduledTime: DateTime.now().add(const Duration(minutes: 15)),
-      feePaid: 300.0,
-      status: 'Active / In Progress',
-    ),
-    BookedConsultationSession(
-      id: 'SESS-202',
-      clientName: 'Sunita Mehra (Golf Course Extn)',
-      clientPhone: '+91 98201 44552',
-      expert: designerRoster[1],
-      scheduledTime: DateTime.now().add(const Duration(hours: 2)),
-      feePaid: 300.0,
-      status: 'Scheduled',
-    ),
-    BookedConsultationSession(
-      id: 'SESS-203',
-      clientName: 'Deepak Chopra (Villa #12)',
-      clientPhone: '+91 99004 88776',
-      expert: designerRoster[2],
-      scheduledTime: DateTime.now().subtract(const Duration(days: 1)),
-      feePaid: 300.0,
-      status: 'Completed',
+      contractorTip: 'Never allow commercial MR grade plywood in under-sink areas.',
     ),
   ];
 }

@@ -6,7 +6,7 @@ import '../models/ai_suite_models.dart';
 
 class VastuChakraDial extends StatefulWidget {
   final double northDegrees;
-  final ValueChanged<double> onNorthDegreesChanged;
+  final ValueChanged<double>? onNorthDegreesChanged;
   final List<VastuZoneDetail> zones;
   final VastuZoneDetail? selectedZone;
   final ValueChanged<VastuZoneDetail>? onZoneSelected;
@@ -14,13 +14,34 @@ class VastuChakraDial extends StatefulWidget {
 
   const VastuChakraDial({
     super.key,
-    required this.northDegrees,
-    required this.onNorthDegreesChanged,
-    required this.zones,
+    double northDegrees = 0.0,
+    double? calibratedDegrees,
+    this.onNorthDegreesChanged,
+    List<VastuZoneDetail>? zones,
     this.selectedZone,
     this.onZoneSelected,
     this.size = 320.0,
-  });
+  })  : northDegrees = calibratedDegrees ?? northDegrees,
+        zones = zones ?? _default16Zones;
+
+  static const List<VastuZoneDetail> _default16Zones = [
+    VastuZoneDetail(zoneCode: 'N', name: 'North (Kuber)', element: 'Water', deity: 'Kuber', status: VastuZoneStatus.balanced, currentUsage: 'Wealth Entrance', recommendedRemedy: 'Keep clean and clear'),
+    VastuZoneDetail(zoneCode: 'NNE', name: 'North-North-East', element: 'Water', deity: 'Diti', status: VastuZoneStatus.balanced, currentUsage: 'Health & Healing', recommendedRemedy: 'Keep light green/blue'),
+    VastuZoneDetail(zoneCode: 'NE', name: 'North-East (Ishanya)', element: 'Water / Ether', deity: 'Shiva', status: VastuZoneStatus.balanced, currentUsage: 'Puja & Meditation', recommendedRemedy: 'Auspicious prana zone'),
+    VastuZoneDetail(zoneCode: 'ENE', name: 'East-North-East', element: 'Air', deity: 'Jayant', status: VastuZoneStatus.balanced, currentUsage: 'Recreation', recommendedRemedy: 'Family lounge area'),
+    VastuZoneDetail(zoneCode: 'E', name: 'East (Indra)', element: 'Air', deity: 'Indra', status: VastuZoneStatus.balanced, currentUsage: 'Social Networking', recommendedRemedy: 'Open airy windows'),
+    VastuZoneDetail(zoneCode: 'ESE', name: 'East-South-East', element: 'Air', deity: 'Surya', status: VastuZoneStatus.neutral, currentUsage: 'Churning & Analysis', recommendedRemedy: 'Study alcove'),
+    VastuZoneDetail(zoneCode: 'SE', name: 'South-East (Agneya)', element: 'Fire', deity: 'Agni', status: VastuZoneStatus.balanced, currentUsage: 'Kitchen Cooking', recommendedRemedy: 'Keep gas stove facing East'),
+    VastuZoneDetail(zoneCode: 'SSE', name: 'South-South-East', element: 'Fire', deity: 'Pusha', status: VastuZoneStatus.balanced, currentUsage: 'Confidence & Power', recommendedRemedy: 'Red or warm orange accent'),
+    VastuZoneDetail(zoneCode: 'S', name: 'South (Yama)', element: 'Fire', deity: 'Yama', status: VastuZoneStatus.neutral, currentUsage: 'Fame & Relaxation', recommendedRemedy: 'Relaxation lounge'),
+    VastuZoneDetail(zoneCode: 'SSW', name: 'South-South-West', element: 'Earth', deity: 'Gandharva', status: VastuZoneStatus.mildIssue, currentUsage: 'Expenditure / Waste', recommendedRemedy: 'Keep heavy storage'),
+    VastuZoneDetail(zoneCode: 'SW', name: 'South-West (Nairutya)', element: 'Earth', deity: 'Pitri', status: VastuZoneStatus.balanced, currentUsage: 'Master Bedroom', recommendedRemedy: 'Solid headboard touching South/West'),
+    VastuZoneDetail(zoneCode: 'WSW', name: 'West-South-West', element: 'Space', deity: 'Dauvarika', status: VastuZoneStatus.balanced, currentUsage: 'Education & Knowledge', recommendedRemedy: 'Bookshelves and study desk'),
+    VastuZoneDetail(zoneCode: 'W', name: 'West (Varuna)', element: 'Space', deity: 'Varuna', status: VastuZoneStatus.balanced, currentUsage: 'Profit & Gains', recommendedRemedy: 'Dining and wealth gains'),
+    VastuZoneDetail(zoneCode: 'WNW', name: 'West-North-West', element: 'Air', deity: 'Roga', status: VastuZoneStatus.neutral, currentUsage: 'Depression / Detox', recommendedRemedy: 'Exercise or washroom'),
+    VastuZoneDetail(zoneCode: 'NW', name: 'North-West (Vayavya)', element: 'Air', deity: 'Vayu', status: VastuZoneStatus.balanced, currentUsage: 'Support & Guests', recommendedRemedy: 'Guest bedroom and pantry'),
+    VastuZoneDetail(zoneCode: 'NNW', name: 'North-North-West', element: 'Water', deity: 'Bhallat', status: VastuZoneStatus.balanced, currentUsage: 'Attraction & Charm', recommendedRemedy: 'Perfumes and wardrobe dressing'),
+  ];
 
   @override
   State<VastuChakraDial> createState() => _VastuChakraDialState();
@@ -66,7 +87,7 @@ class _VastuChakraDialState extends State<VastuChakraDial> {
                   final angle = math.atan2(touch.dy - center.dy, touch.dx - center.dx);
                   double degrees = angle * (180 / math.pi) + 90;
                   if (degrees < 0) degrees += 360;
-                  widget.onNorthDegreesChanged(degrees % 360);
+                  widget.onNorthDegreesChanged?.call(degrees % 360);
                 },
                 child: CustomPaint(
                   size: Size(widget.size, widget.size),
@@ -150,7 +171,7 @@ class _VastuChakraDialState extends State<VastuChakraDial> {
                 divisions: 72,
                 activeColor: const Color(0xFF7C3AED),
                 inactiveColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                onChanged: widget.onNorthDegreesChanged,
+                onChanged: widget.onNorthDegreesChanged ?? (_) {},
               ),
             ),
             Container(

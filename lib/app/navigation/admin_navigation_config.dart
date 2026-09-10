@@ -948,7 +948,6 @@ class AdminNavigationConfig {
       ],
     ),
 
-/*
     // 14. AI Studio
     NavigationGroup(
       id: 'ai_studio',
@@ -956,6 +955,15 @@ class AdminNavigationConfig {
       icon: Icons.auto_awesome_rounded,
       permission: 'ai_studio.view',
       children: [
+        NavigationItem(
+          id: 'ai_overview',
+          label: 'Overview',
+          route: '/ai-studio',
+          icon: Icons.dashboard_customize_outlined,
+          permission: 'ai_studio.view',
+          legacyAliases: ['/ai-studio/overview'],
+          keywords: ['ai studio', 'hub', 'overview', 'dashboard'],
+        ),
         NavigationItem(
           id: 'ai_room_designer',
           label: 'Room Designer',
@@ -1020,6 +1028,7 @@ class AdminNavigationConfig {
       ],
     ),
 
+/*
     // 15. Reports & Analytics
     NavigationGroup(
       id: 'reports',

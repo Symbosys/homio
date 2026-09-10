@@ -5,12 +5,18 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/ai_suite_models.dart';
 
 class VideoConsultationRoom extends StatefulWidget {
-  final DesignerConsultant designer;
+  final DesignerConsultant? designer;
+  final String? designerName;
+  final String? consultationTopic;
+  final String? clientName;
   final VoidCallback onEndCall;
 
   const VideoConsultationRoom({
     super.key,
-    required this.designer,
+    this.designer,
+    this.designerName,
+    this.consultationTopic,
+    this.clientName,
     required this.onEndCall,
   });
 
@@ -19,6 +25,10 @@ class VideoConsultationRoom extends StatefulWidget {
 }
 
 class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
+  String get _designerName => widget.designer?.name ?? widget.designerName ?? 'Ar. Pooja Mehta';
+  String get _designerAvatar => widget.designer?.avatarUrl ?? 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80';
+  String get _clientName => widget.clientName ?? 'You (Client)';
+
   // Timer State (30 mins = 1800 seconds)
   int _secondsRemaining = 1800;
   Timer? _timer;
@@ -147,7 +157,7 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Live Consultation: ${widget.designer.name}',
+                'Live Consultation: $_designerName',
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
                   fontSize: 14,
@@ -252,7 +262,7 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.network(
-                      widget.designer.avatarUrl,
+                      _designerAvatar,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => const Center(
                         child: Icon(Icons.person_rounded, size: 48, color: Colors.white38),
@@ -273,7 +283,7 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                           const Icon(Icons.mic_rounded, size: 12, color: Color(0xFF10B981)),
                           const SizedBox(width: 5),
                           Text(
-                            '${widget.designer.name} (Architect)',
+                            '$_designerName (Architect)',
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 11,
@@ -336,7 +346,7 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            'You (Client)',
+                            _clientName,
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 11,
@@ -687,7 +697,7 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '• Total Session Fee: ₹300.00\n• Platform Commission: ₹150.00 (50%)\n• Designer Payout: ₹150.00 (50% Credited to ${widget.designer.name})',
+                      '• Total Session Fee: ₹300.00\n• Platform Commission: ₹150.00 (50%)\n• Designer Payout: ₹150.00 (50% Credited to $_designerName)',
                       style: GoogleFonts.plusJakartaSans(
                         color: const Color(0xFFA5B4FC),
                         fontSize: 12,

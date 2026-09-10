@@ -269,6 +269,7 @@ abstract class RouteNames {
   static const String commMeetingsPath = '/communication/meetings';
 
   // 10. AI Architectural Suite Submenu Routes
+  static const String aiStudioOverview = '/ai-studio';
   static const String aiRoomDesigner = '/ai-studio/room-designer';
   static const String aiVastu = '/ai-studio/vastu';
   static const String aiBudget = '/ai-studio/budget-calculator';

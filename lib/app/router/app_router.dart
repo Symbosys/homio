@@ -389,21 +389,57 @@ abstract class AppRouter {
                     return const CommunicationHistoryPage();
                   }
 
-                  // AI Architectural Suite Submenus
-                  if (sub.routeName == RouteNames.aiRoomGenerator) {
+                  // AI Architectural Suite / AI Studio Submenus
+                  if (sub.routeName == 'ai_overview' ||
+                      sub.routeName == RouteNames.aiStudioOverview ||
+                      sub.routePath == RouteNames.aiStudioOverview ||
+                      sub.routePath == '/ai-studio' ||
+                      sub.routePath == '/ai-studio/overview') {
+                    return const AiStudioOverviewPage();
+                  }
+                  if (sub.routeName == 'ai_room_designer' ||
+                      sub.routeName == RouteNames.aiRoomGenerator ||
+                      sub.routePath == RouteNames.aiRoomDesigner ||
+                      sub.routePath == RouteNames.aiRoomGeneratorPath ||
+                      sub.routePath == '/ai-studio/room-designer') {
                     return const AiRoomGeneratorPage();
                   }
-                  if (sub.routeName == RouteNames.aiVastuConsultant) {
+                  if (sub.routeName == 'ai_vastu' ||
+                      sub.routeName == RouteNames.aiVastuConsultant ||
+                      sub.routePath == RouteNames.aiVastu ||
+                      sub.routePath == RouteNames.aiVastuConsultantPath ||
+                      sub.routePath == '/ai-studio/vastu') {
                     return const AiVastuConsultantPage();
                   }
-                  if (sub.routeName == RouteNames.aiBudgetCalculator) {
+                  if (sub.routeName == 'ai_budget' ||
+                      sub.routeName == RouteNames.aiBudgetCalculator ||
+                      sub.routePath == RouteNames.aiBudget ||
+                      sub.routePath == RouteNames.aiBudgetCalculatorPath ||
+                      sub.routePath == '/ai-studio/budget-calculator') {
                     return const AiBudgetCalculatorPage();
                   }
-                  if (sub.routeName == RouteNames.aiDoubtSolver) {
+                  if (sub.routeName == 'ai_doubt_solver' ||
+                      sub.routeName == RouteNames.aiDoubtSolver ||
+                      sub.routePath == RouteNames.aiDoubtSolverPath ||
+                      sub.routePath == '/ai-studio/doubt-solver') {
                     return const AiDoubtSolverPage();
                   }
-                  if (sub.routeName == RouteNames.aiDesignerVideoCall) {
+                  if (sub.routeName == 'ai_designer_calls' ||
+                      sub.routeName == RouteNames.aiDesignerVideoCall ||
+                      sub.routePath == RouteNames.aiDesignerCalls ||
+                      sub.routePath == RouteNames.aiDesignerVideoCallPath ||
+                      sub.routePath == '/ai-studio/designer-calls') {
                     return const AiDesignerVideoCallPage();
+                  }
+                  if (sub.routeName == 'ai_wallet' ||
+                      sub.routePath == RouteNames.aiWallet ||
+                      sub.routePath == '/ai-studio/wallet') {
+                    return const AiWalletCreditsPage();
+                  }
+                  if (sub.routeName == 'ai_usage_revenue' ||
+                      sub.routePath == RouteNames.aiUsageRevenue ||
+                      sub.routePath == '/ai-studio/usage-revenue') {
+                    return const AiUsageRevenuePage();
                   }
 
                   // Operations & Procurement Submenus
@@ -758,6 +794,32 @@ abstract class AppRouter {
     }
     if (id == 'marketplace_management' || path == '/marketplace/management') {
       return const MarketplaceManagementPage();
+    }
+
+    // AI Studio fast path / ID resolution
+    if (id == 'ai_overview' || path == '/ai-studio' || path == '/ai-studio/overview') {
+      return const AiStudioOverviewPage();
+    }
+    if (id == 'ai_room_designer' || path == '/ai-studio/room-designer' || path == '/ai-room-generator') {
+      return const AiRoomGeneratorPage();
+    }
+    if (id == 'ai_vastu' || path == '/ai-studio/vastu' || path == '/ai-vastu') {
+      return const AiVastuConsultantPage();
+    }
+    if (id == 'ai_budget' || path == '/ai-studio/budget-calculator' || path == '/ai-budget') {
+      return const AiBudgetCalculatorPage();
+    }
+    if (id == 'ai_doubt_solver' || path == '/ai-studio/doubt-solver' || path == '/ai-doubt-solver') {
+      return const AiDoubtSolverPage();
+    }
+    if (id == 'ai_designer_calls' || path == '/ai-studio/designer-calls' || path == '/designer-call') {
+      return const AiDesignerVideoCallPage();
+    }
+    if (id == 'ai_wallet' || path == '/ai-studio/wallet') {
+      return const AiWalletCreditsPage();
+    }
+    if (id == 'ai_usage_revenue' || path == '/ai-studio/usage-revenue') {
+      return const AiUsageRevenuePage();
     }
 
     switch (id) {
@@ -1216,16 +1278,36 @@ abstract class AppRouter {
         return const MarketplaceManagementPage();
 
       // 14. AI Studio
+      case 'ai_overview':
+      case '/ai-studio':
+      case '/ai-studio/overview':
+        return const AiStudioOverviewPage();
       case 'ai_room_designer':
+      case '/ai-studio/room-designer':
+      case '/ai-room-generator':
         return const AiRoomGeneratorPage();
       case 'ai_vastu':
+      case '/ai-studio/vastu':
+      case '/ai-vastu':
         return const AiVastuConsultantPage();
       case 'ai_budget':
+      case '/ai-studio/budget-calculator':
+      case '/ai-budget':
         return const AiBudgetCalculatorPage();
       case 'ai_doubt_solver':
+      case '/ai-studio/doubt-solver':
+      case '/ai-doubt-solver':
         return const AiDoubtSolverPage();
       case 'ai_designer_calls':
+      case '/ai-studio/designer-calls':
+      case '/designer-call':
         return const AiDesignerVideoCallPage();
+      case 'ai_wallet':
+      case '/ai-studio/wallet':
+        return const AiWalletCreditsPage();
+      case 'ai_usage_revenue':
+      case '/ai-studio/usage-revenue':
+        return const AiUsageRevenuePage();
 
       // 15. Reports & Analytics
       case 'reports_executive':

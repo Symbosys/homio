@@ -295,7 +295,7 @@ class _ClientDesignerConsultationPageState extends State<ClientDesignerConsultat
                     maxCrossAxisExtent: 560,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: isMobile ? 1.25 : 1.6,
+                    mainAxisExtent: isMobile ? 320 : 270,
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
@@ -419,12 +419,12 @@ class _ClientDesignerConsultationPageState extends State<ClientDesignerConsultat
           const SizedBox(height: 10),
 
           // Experience & Rating
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
               _buildPill('★ ${exp.rating}', const Color(0xFFF59E0B)),
-              const SizedBox(width: 8),
               _buildPill('${exp.yearsExperience} Yrs Experience', const Color(0xFF6366F1)),
-              const SizedBox(width: 8),
               _buildPill('${exp.totalConsultations} Consults', const Color(0xFF10B981)),
             ],
           ),
@@ -453,8 +453,11 @@ class _ClientDesignerConsultationPageState extends State<ClientDesignerConsultat
           const Spacer(),
 
           // Price set by admin & Book button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,7 +483,7 @@ class _ClientDesignerConsultationPageState extends State<ClientDesignerConsultat
               ElevatedButton.icon(
                 onPressed: isOnline ? () => _bookSession(exp) : null,
                 icon: const Icon(Icons.video_call_rounded, size: 18),
-                label: Text(isOnline ? 'Book Video Call (₹${exp.sessionFee.toInt()})' : 'Next Slot at 4 PM'),
+                label: Text(isOnline ? 'Book Call (₹${exp.sessionFee.toInt()})' : 'Next Slot at 4 PM'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
