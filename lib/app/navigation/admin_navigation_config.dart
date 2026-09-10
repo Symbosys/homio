@@ -805,7 +805,6 @@ class AdminNavigationConfig {
       ],
     ),
 
-    /*
     // 12. HRMS
     NavigationGroup(
       id: 'hrms',
@@ -949,6 +948,7 @@ class AdminNavigationConfig {
       ],
     ),
 
+/*
     // 14. AI Studio
     NavigationGroup(
       id: 'ai_studio',

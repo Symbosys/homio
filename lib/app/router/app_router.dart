@@ -35,6 +35,7 @@ import '../../features/ai_suite/index.dart';
 import '../../features/operations/index.dart';
 import '../../features/accounting/index.dart';
 import '../../features/hrms/index.dart';
+import '../../features/marketplace/index.dart';
 import '../../features/after_sales/index.dart';
 import '../../features/organization/index.dart';
 import '../../features/system_admin/index.dart';
@@ -330,6 +331,38 @@ abstract class AppRouter {
                     return const MaterialsPage();
                   }
 
+                  // Marketplace Operations Submenus
+                  if (sub.routeName == 'marketplace_digital' ||
+                      sub.routePath == RouteNames.marketplaceDigital ||
+                      sub.routePath == '/marketplace/digital-store') {
+                    return const MarketplaceDigitalPage();
+                  }
+                  if (sub.routeName == 'marketplace_decor' ||
+                      sub.routePath == RouteNames.marketplaceDecor ||
+                      sub.routePath == '/marketplace/home-decor') {
+                    return const MarketplaceDecorPage();
+                  }
+                  if (sub.routeName == 'marketplace_properties' ||
+                      sub.routePath == RouteNames.marketplaceProperties ||
+                      sub.routePath == '/marketplace/properties') {
+                    return const MarketplacePropertiesPage();
+                  }
+                  if (sub.routeName == 'marketplace_materials' ||
+                      sub.routePath == RouteNames.marketplaceMaterials ||
+                      sub.routePath == '/marketplace/materials') {
+                    return const MarketplaceMaterialsPage();
+                  }
+                  if (sub.routeName == 'marketplace_orders' ||
+                      sub.routePath == RouteNames.marketplaceOrders ||
+                      sub.routePath == '/marketplace/orders') {
+                    return const MarketplaceOrdersPage();
+                  }
+                  if (sub.routeName == 'marketplace_management' ||
+                      sub.routePath == RouteNames.marketplaceManagement ||
+                      sub.routePath == '/marketplace/management') {
+                    return const MarketplaceManagementPage();
+                  }
+
                   // Communication Hub Submenus
                   if (sub.routeName == RouteNames.commChats) {
                     return const InboxChatsPage();
@@ -432,26 +465,55 @@ abstract class AppRouter {
                   }
 
                   // HRMS & Field Operations Submenus
-                  if (sub.routeName == RouteNames.hrEmployeeDirectory) {
-                    return const EmployeeDirectoryPage();
+                  if (sub.routeName == RouteNames.hrOverview ||
+                      sub.routePath == RouteNames.hrOverviewPath ||
+                      sub.routePath == RouteNames.hrmsOverview) {
+                    return const HrmsOverviewPage();
                   }
-                  if (sub.routeName == RouteNames.hrDepartments) {
-                    return const DepartmentsTeamsPage();
+                  if (sub.routeName == RouteNames.hrEmployeeDirectory ||
+                      sub.routePath == RouteNames.hrEmployeeDirectoryPath ||
+                      sub.routePath == RouteNames.hrmsEmployees) {
+                    return const HrmsEmployeesPage();
                   }
-                  if (sub.routeName == RouteNames.hrGeofenceAttendance) {
-                    return const GeofenceAttendancePage();
+                  if (sub.routeName == RouteNames.hrDepartments ||
+                      sub.routePath == RouteNames.hrDepartmentsPath ||
+                      sub.routePath == RouteNames.hrmsDepartments) {
+                    return const HrmsDepartmentsPage();
                   }
-                  if (sub.routeName == RouteNames.hrTravelMileage) {
-                    return const TravelMileagePage();
+                  if (sub.routeName == RouteNames.hrGeofenceAttendance ||
+                      sub.routePath == RouteNames.hrGeofenceAttendancePath ||
+                      sub.routePath == RouteNames.hrmsAttendance) {
+                    return const HrmsAttendancePage();
                   }
-                  if (sub.routeName == RouteNames.hrLeavePenalty) {
-                    return const LeavePenaltyPage();
+                  if (sub.routeName == RouteNames.hrTravelMileage ||
+                      sub.routePath == RouteNames.hrTravelMileagePath ||
+                      sub.routePath == RouteNames.hrmsTravel) {
+                    return const HrmsTravelPage();
                   }
-                  if (sub.routeName == RouteNames.hrPayrollSlips) {
-                    return const PayrollSlipsPage();
+                  if (sub.routeName == RouteNames.hrLeavePenalty ||
+                      sub.routePath == RouteNames.hrLeavePenaltyPath ||
+                      sub.routePath == RouteNames.hrmsLeave) {
+                    return const HrmsLeavePage();
                   }
-                  if (sub.routeName == RouteNames.hrNoticePeriod) {
-                    return const NoticePeriodPage();
+                  if (sub.routeName == RouteNames.hrPerformance ||
+                      sub.routePath == RouteNames.hrPerformancePath ||
+                      sub.routePath == RouteNames.hrmsPerformance) {
+                    return const HrmsPerformancePage();
+                  }
+                  if (sub.routeName == RouteNames.hrIncentives ||
+                      sub.routePath == RouteNames.hrIncentivesPath ||
+                      sub.routePath == RouteNames.hrmsIncentives) {
+                    return const HrmsIncentivesPage();
+                  }
+                  if (sub.routeName == RouteNames.hrPayrollSlips ||
+                      sub.routePath == RouteNames.hrPayrollSlipsPath ||
+                      sub.routePath == RouteNames.hrmsPayroll) {
+                    return const HrmsPayrollPage();
+                  }
+                  if (sub.routeName == RouteNames.hrNoticePeriod ||
+                      sub.routePath == RouteNames.hrNoticePeriodPath ||
+                      sub.routePath == RouteNames.hrmsNoticePeriod) {
+                    return const HrmsNoticePage();
                   }
 
                   // After-Sales Service Submenus
@@ -496,6 +558,58 @@ abstract class AppRouter {
                   }
                   if (sub.routeName == RouteNames.svcRetentionCalls) {
                     return const RetentionCallsPage();
+                  }
+
+                  // HRMS & Field Ops Submenus
+                  if (sub.routeName == RouteNames.hrOverview ||
+                      sub.routePath == RouteNames.hrOverviewPath ||
+                      sub.routePath == '/hrms/overview') {
+                    return const HrmsOverviewPage();
+                  }
+                  if (sub.routeName == RouteNames.hrEmployeeDirectory ||
+                      sub.routePath == RouteNames.hrEmployeeDirectoryPath ||
+                      sub.routePath == '/hrms/employees') {
+                    return const HrmsEmployeesPage();
+                  }
+                  if (sub.routeName == RouteNames.hrDepartments ||
+                      sub.routePath == RouteNames.hrDepartmentsPath ||
+                      sub.routePath == '/hrms/departments') {
+                    return const HrmsDepartmentsPage();
+                  }
+                  if (sub.routeName == RouteNames.hrGeofenceAttendance ||
+                      sub.routePath == RouteNames.hrGeofenceAttendancePath ||
+                      sub.routePath == '/hrms/attendance') {
+                    return const HrmsAttendancePage();
+                  }
+                  if (sub.routeName == RouteNames.hrTravelMileage ||
+                      sub.routePath == RouteNames.hrTravelMileagePath ||
+                      sub.routePath == '/hrms/travel') {
+                    return const HrmsTravelPage();
+                  }
+                  if (sub.routeName == RouteNames.hrLeavePenalty ||
+                      sub.routePath == RouteNames.hrLeavePenaltyPath ||
+                      sub.routePath == '/hrms/leave') {
+                    return const HrmsLeavePage();
+                  }
+                  if (sub.routeName == RouteNames.hrPerformance ||
+                      sub.routePath == RouteNames.hrPerformancePath ||
+                      sub.routePath == '/hrms/performance') {
+                    return const HrmsPerformancePage();
+                  }
+                  if (sub.routeName == RouteNames.hrIncentives ||
+                      sub.routePath == RouteNames.hrIncentivesPath ||
+                      sub.routePath == '/hrms/incentives') {
+                    return const HrmsIncentivesPage();
+                  }
+                  if (sub.routeName == RouteNames.hrPayrollSlips ||
+                      sub.routePath == RouteNames.hrPayrollSlipsPath ||
+                      sub.routePath == '/hrms/payroll') {
+                    return const HrmsPayrollPage();
+                  }
+                  if (sub.routeName == RouteNames.hrNoticePeriod ||
+                      sub.routePath == RouteNames.hrNoticePeriodPath ||
+                      sub.routePath == '/hrms/notice-period') {
+                    return const HrmsNoticePage();
                   }
 
                   // Organization & Roles Submenus
@@ -624,6 +738,26 @@ abstract class AppRouter {
     }
     if (id == 'quotations_self' || id == 'quoteSelfService' || path == '/quotations/self-quotation' || path == '/quotation/self-service') {
       return const QuotationSelfServicePage();
+    }
+
+    // Marketplace Operations fast path / ID resolution
+    if (id == 'marketplace_digital' || path == '/marketplace/digital-store' || path == '/digital-store') {
+      return const MarketplaceDigitalPage();
+    }
+    if (id == 'marketplace_decor' || path == '/marketplace/home-decor' || path == '/decor-store') {
+      return const MarketplaceDecorPage();
+    }
+    if (id == 'marketplace_properties' || path == '/marketplace/properties' || path == '/properties') {
+      return const MarketplacePropertiesPage();
+    }
+    if (id == 'marketplace_materials' || path == '/marketplace/materials') {
+      return const MarketplaceMaterialsPage();
+    }
+    if (id == 'marketplace_orders' || path == '/marketplace/orders') {
+      return const MarketplaceOrdersPage();
+    }
+    if (id == 'marketplace_management' || path == '/marketplace/management') {
+      return const MarketplaceManagementPage();
     }
 
     switch (id) {
@@ -998,30 +1132,88 @@ abstract class AppRouter {
         return const RetentionCallsPage();
 
       // 12. HRMS
+      case 'hrOverview':
+      case 'hrms_overview':
+      case '/hrms/overview':
+        return const HrmsOverviewPage();
+
+      case 'hrEmployeeDirectory':
       case 'hrms_employees':
-        return const EmployeeDirectoryPage();
+      case '/hrms/employee-directory':
+      case '/hrms/employees':
+        return const HrmsEmployeesPage();
+
+      case 'hrDepartments':
       case 'hrms_departments':
-        return const DepartmentsTeamsPage();
+      case '/hrms/departments':
+        return const HrmsDepartmentsPage();
+
+      case 'hrGeofenceAttendance':
       case 'hrms_attendance':
-        return const GeofenceAttendancePage();
+      case '/hrms/geofence-attendance':
+      case '/hrms/attendance':
+        return const HrmsAttendancePage();
+
+      case 'hrTravelMileage':
       case 'hrms_travel':
-        return const TravelMileagePage();
+      case '/hrms/travel-mileage':
+      case '/hrms/travel':
+        return const HrmsTravelPage();
+
+      case 'hrLeavePenalty':
       case 'hrms_leave':
-        return const LeavePenaltyPage();
+      case '/hrms/leave-penalty':
+      case '/hrms/leave':
+        return const HrmsLeavePage();
+
+      case 'hrPerformance':
+      case 'hrms_performance':
+      case '/hrms/performance':
+        return const HrmsPerformancePage();
+
+      case 'hrIncentives':
+      case 'hrms_incentives':
+      case '/hrms/incentives':
+        return const HrmsIncentivesPage();
+
+      case 'hrPayrollSlips':
       case 'hrms_payroll':
-        return const PayrollSlipsPage();
+      case '/hrms/payroll-slips':
+      case '/hrms/payroll':
+        return const HrmsPayrollPage();
+
+      case 'hrNoticePeriod':
       case 'hrms_notice_period':
-        return const NoticePeriodPage();
+      case '/hrms/notice-period':
+        return const HrmsNoticePage();
 
       // 13. Marketplace
       case 'marketplace_digital':
-        return const DigitalStorePage();
+      case '/marketplace/digital-store':
+      case '/digital-store':
+        return const MarketplaceDigitalPage();
+
       case 'marketplace_decor':
-        return const DecorAffiliatesPage();
+      case '/marketplace/home-decor':
+      case '/decor-store':
+        return const MarketplaceDecorPage();
+
       case 'marketplace_properties':
-        return const PropertiesPage();
+      case '/marketplace/properties':
+      case '/properties':
+        return const MarketplacePropertiesPage();
+
       case 'marketplace_materials':
-        return const MaterialsPage();
+      case '/marketplace/materials':
+        return const MarketplaceMaterialsPage();
+
+      case 'marketplace_orders':
+      case '/marketplace/orders':
+        return const MarketplaceOrdersPage();
+
+      case 'marketplace_management':
+      case '/marketplace/management':
+        return const MarketplaceManagementPage();
 
       // 14. AI Studio
       case 'ai_room_designer':

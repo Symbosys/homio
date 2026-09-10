@@ -802,6 +802,14 @@ abstract class NavigationMenuRegistry {
           tooltip: 'Geofenced attendance, GPS mileage, and strict double salary penalties',
           subItems: [
             NavigationSubMenuItem(
+              id: 'hr_overview',
+              title: 'HRMS Command Center',
+              icon: Icons.dashboard_customize_rounded,
+              routeName: RouteNames.hrOverview,
+              routePath: RouteNames.hrOverviewPath,
+              description: 'Workforce intelligence & live GPS radar terminal',
+            ),
+            NavigationSubMenuItem(
               id: 'hr_employee_directory',
               title: 'Employee Directory & KYC',
               icon: Icons.groups_rounded,
@@ -815,7 +823,7 @@ abstract class NavigationMenuRegistry {
               icon: Icons.account_tree_rounded,
               routeName: RouteNames.hrDepartments,
               routePath: RouteNames.hrDepartmentsPath,
-              description: 'Sales, Design, Execution, Support & Ops teams',
+              description: 'Sales, Design, Execution, Ops & Finance teams',
             ),
             NavigationSubMenuItem(
               id: 'hr_geofence_attendance',
@@ -840,6 +848,22 @@ abstract class NavigationMenuRegistry {
               routeName: RouteNames.hrLeavePenalty,
               routePath: RouteNames.hrLeavePenaltyPath,
               description: 'Denied leave triggers double salary deduction',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_performance',
+              title: 'Performance & OKRs',
+              icon: Icons.insights_rounded,
+              routeName: RouteNames.hrPerformance,
+              routePath: RouteNames.hrPerformancePath,
+              description: 'Strategic goals, KPI reviews & merit appraisal',
+            ),
+            NavigationSubMenuItem(
+              id: 'hr_incentives',
+              title: 'Incentives & Deductions',
+              icon: Icons.paid_rounded,
+              routeName: RouteNames.hrIncentives,
+              routePath: RouteNames.hrIncentivesPath,
+              description: 'Deal commissions, spot awards & policy deductions',
             ),
             NavigationSubMenuItem(
               id: 'hr_payroll_slips',

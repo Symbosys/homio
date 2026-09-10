@@ -359,6 +359,7 @@ abstract class RouteNames {
   static const String accOverdueAlertsPath = '/accounting/overdue-alerts';
 
   // 13. HRMS & Field Ops Submenu Routes
+  static const String hrmsOverview = '/hrms/overview';
   static const String hrmsEmployees = '/hrms/employees';
   static const String hrmsDepartments = '/hrms/departments';
   static const String hrmsAttendance = '/hrms/attendance';
@@ -368,6 +369,9 @@ abstract class RouteNames {
   static const String hrmsPayroll = '/hrms/payroll';
   static const String hrmsIncentives = '/hrms/incentives';
   static const String hrmsNoticePeriod = '/hrms/notice-period';
+
+  static const String hrOverview = 'hrOverview';
+  static const String hrOverviewPath = '/hrms/overview';
 
   static const String hrEmployeeDirectory = 'hrEmployeeDirectory';
   static const String hrEmployeeDirectoryPath = '/hrms/employee-directory';
@@ -384,8 +388,14 @@ abstract class RouteNames {
   static const String hrLeavePenalty = 'hrLeavePenalty';
   static const String hrLeavePenaltyPath = '/hrms/leave-penalty';
 
+  static const String hrPerformance = 'hrPerformance';
+  static const String hrPerformancePath = '/hrms/performance';
+
   static const String hrPayrollSlips = 'hrPayrollSlips';
   static const String hrPayrollSlipsPath = '/hrms/payroll-slips';
+
+  static const String hrIncentives = 'hrIncentives';
+  static const String hrIncentivesPath = '/hrms/incentives';
 
   static const String hrNoticePeriod = 'hrNoticePeriod';
   static const String hrNoticePeriodPath = '/hrms/notice-period';

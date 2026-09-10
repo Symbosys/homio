@@ -1,8 +1,78 @@
 // Domain models for Module 3: Organization, Department & Role Hierarchy
 
-import '../../hrms/models/hrms_models.dart';
+enum DepartmentType {
+  marketing,
+  sales,
+  design,
+  execution,
+  afterSales;
 
-export '../../hrms/models/hrms_models.dart' show DepartmentType, HierarchyLevel, AccessScope;
+  String get displayName {
+    switch (this) {
+      case DepartmentType.marketing:
+        return 'Marketing & Growth';
+      case DepartmentType.sales:
+        return 'Sales & Consultations';
+      case DepartmentType.design:
+        return 'Design & Architecture';
+      case DepartmentType.execution:
+        return 'Turnkey Site Execution';
+      case DepartmentType.afterSales:
+        return 'After-Sales & Warranty';
+    }
+  }
+}
+
+enum HierarchyLevel {
+  lead,
+  manager,
+  specialist,
+  junior,
+  director,
+  departmentHead,
+  fieldLead,
+  executive,
+  intern;
+
+  String get displayName {
+    switch (this) {
+      case HierarchyLevel.director:
+        return 'Director';
+      case HierarchyLevel.lead:
+      case HierarchyLevel.departmentHead:
+        return 'Dept Head / Lead';
+      case HierarchyLevel.manager:
+        return 'Manager';
+      case HierarchyLevel.specialist:
+      case HierarchyLevel.fieldLead:
+        return 'Field Lead / Specialist';
+      case HierarchyLevel.executive:
+        return 'Executive';
+      case HierarchyLevel.junior:
+      case HierarchyLevel.intern:
+        return 'Junior / Intern';
+    }
+  }
+}
+
+enum AccessScope {
+  myLeadsTasks,
+  organizationWide,
+  myLeadsOnly,
+  teamWide;
+
+  String get displayName {
+    switch (this) {
+      case AccessScope.myLeadsTasks:
+      case AccessScope.myLeadsOnly:
+        return 'My Leads/Tasks Only';
+      case AccessScope.teamWide:
+        return 'Team-Wide Scope';
+      case AccessScope.organizationWide:
+        return 'Organization-Wide';
+    }
+  }
+}
 
 class DepartmentEntity {
   final String id;
