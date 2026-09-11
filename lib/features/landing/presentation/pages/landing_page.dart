@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_controller.dart';
-import '../widgets/access_anywhere_section.dart';
-import '../widgets/benefits_section.dart';
-import '../widgets/capabilities_grid.dart';
-import '../widgets/ecosystem_section.dart';
-import '../widgets/final_cta_section.dart';
-import '../widgets/footer_section.dart';
-import '../widgets/hero_section.dart';
-import '../widgets/lifecycle_visual.dart';
+import '../widgets/ai_design_section.dart';
+import '../widgets/ai_vastu_doubt_section.dart';
+import '../widgets/business_operations_section.dart';
+import '../widgets/ecosystem_closing_section.dart';
+import '../widgets/finance_workforce_section.dart';
+import '../widgets/hero_showcase_section.dart';
+import '../widgets/marketplace_showcase_section.dart';
 import '../widgets/mobile_nav_drawer.dart';
+import '../widgets/project_execution_section.dart';
+import '../widgets/sales_crm_section.dart';
 import '../widgets/top_nav_bar.dart';
-import '../widgets/value_strip.dart';
-import '../widgets/workflow_steps.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -25,43 +25,65 @@ class _LandingPageState extends State<LandingPage> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final GlobalKey _heroKey = GlobalKey();
-  final GlobalKey _ecosystemKey = GlobalKey();
-  final GlobalKey _capabilitiesKey = GlobalKey();
-  final GlobalKey _benefitsKey = GlobalKey();
-  final GlobalKey _workflowKey = GlobalKey();
-  final GlobalKey _lifecycleKey = GlobalKey();
+  // GlobalKeys for smooth anchor navigation
+  final GlobalKey _section01HeroKey = GlobalKey();
+  final GlobalKey _section02AiDesignKey = GlobalKey();
+  final GlobalKey _section03AiVastuKey = GlobalKey();
+  final GlobalKey _section04BusinessOpsKey = GlobalKey();
+  final GlobalKey _section05MarketplaceKey = GlobalKey();
+  final GlobalKey _section06SalesCrmKey = GlobalKey();
+  final GlobalKey _section07ProjectExecutionKey = GlobalKey();
+  final GlobalKey _section08FinanceWorkforceKey = GlobalKey();
+  final GlobalKey _section09EcosystemKey = GlobalKey();
 
   void _scrollToSection(int index) {
     GlobalKey targetKey;
     switch (index) {
       case 0:
-        targetKey = _heroKey;
+        // Platform / Hero
+        targetKey = _section01HeroKey;
         break;
       case 1:
-        targetKey = _ecosystemKey;
+        // AI Suite
+        targetKey = _section02AiDesignKey;
         break;
       case 2:
-        targetKey = _capabilitiesKey;
+        // AI Vastu & Doubt
+        targetKey = _section03AiVastuKey;
         break;
       case 3:
-        targetKey = _benefitsKey;
+        // Operations lifecycle
+        targetKey = _section04BusinessOpsKey;
         break;
       case 4:
-        targetKey = _workflowKey;
+        // Marketplace
+        targetKey = _section05MarketplaceKey;
         break;
       case 5:
-        targetKey = _lifecycleKey;
+        // Projects & Sales CRM
+        targetKey = _section06SalesCrmKey;
+        break;
+      case 6:
+        // Project Execution
+        targetKey = _section07ProjectExecutionKey;
+        break;
+      case 7:
+        // Finance & Workforce
+        targetKey = _section08FinanceWorkforceKey;
+        break;
+      case 8:
+        // Ecosystem & Closing
+        targetKey = _section09EcosystemKey;
         break;
       default:
-        targetKey = _heroKey;
+        targetKey = _section01HeroKey;
     }
 
     final currentContext = targetKey.currentContext;
     if (currentContext != null) {
       Scrollable.ensureVisible(
         currentContext,
-        duration: const Duration(milliseconds: 600),
+        duration: const Duration(milliseconds: 700),
         curve: Curves.easeInOutCubic,
       );
     }
@@ -79,70 +101,80 @@ class _LandingPageState extends State<LandingPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark ? AppColors.darkBackground : const Color(0xFFFAFAFA),
       endDrawer: MobileNavDrawer(onSectionSelected: _scrollToSection),
       body: SafeArea(
         child: Column(
           children: [
-            // Sticky Top Navigation
+            // Top Showcase Navigation Bar
             TopNavBar(
               onSectionSelected: _scrollToSection,
               onOpenMobileMenu: () => _scaffoldKey.currentState?.openEndDrawer(),
             ),
 
-            // Scrollable Content
+            // Scrollable 9-Section Showcase Flow
             Expanded(
               child: SingleChildScrollView(
                 controller: _scrollController,
                 child: Column(
                   children: [
-                    // Section 1 & 2: Hero Section & Interactive Mockup
+                    // Section 01: Hero — The Future of Design & Project Operations
                     KeyedSubtree(
-                      key: _heroKey,
-                      child: HeroSection(onExploreTap: () => _scrollToSection(2)),
+                      key: _section01HeroKey,
+                      child: HeroShowcaseSection(
+                        onExploreTap: () => _scrollToSection(1),
+                      ),
                     ),
 
-                    // Section 3: Value Strip
-                    const ValueStrip(),
-
-                    // Section 4: What is the Platform? (Ecosystem)
+                    // Section 02: AI-Powered Design Intelligence
                     KeyedSubtree(
-                      key: _ecosystemKey,
-                      child: const EcosystemSection(),
+                      key: _section02AiDesignKey,
+                      child: const AiDesignSection(),
                     ),
 
-                    // Section 5: Key Capabilities Grid
+                    // Section 03: AI Vastu & Doubt Solving
                     KeyedSubtree(
-                      key: _capabilitiesKey,
-                      child: const CapabilitiesGrid(),
+                      key: _section03AiVastuKey,
+                      child: const AiVastuDoubtSection(),
                     ),
 
-                    // Section 6: Why Businesses Use It (Outcomes)
+                    // Section 04: Complete Project & Business Operations
                     KeyedSubtree(
-                      key: _benefitsKey,
-                      child: const BenefitsSection(),
+                      key: _section04BusinessOpsKey,
+                      child: const BusinessOperationsSection(),
                     ),
 
-                    // Section 7: How Easy It Is (4 Steps)
+                    // Section 05: Premium Marketplace
                     KeyedSubtree(
-                      key: _workflowKey,
-                      child: const WorkflowSteps(),
+                      key: _section05MarketplaceKey,
+                      child: const MarketplaceShowcaseSection(),
                     ),
 
-                    // Section 8: Complete Business Continuum Flow
+                    // Section 06: Sales, CRM & Customer Experience
                     KeyedSubtree(
-                      key: _lifecycleKey,
-                      child: const LifecycleVisual(),
+                      key: _section06SalesCrmKey,
+                      child: const SalesCrmSection(),
                     ),
 
-                    // Section 9: Access Anywhere / Multi-Device Freedom
-                    const AccessAnywhereSection(),
+                    // Section 07: Project Execution & Design Collaboration
+                    KeyedSubtree(
+                      key: _section07ProjectExecutionKey,
+                      child: const ProjectExecutionSection(),
+                    ),
 
-                    // Section 10: Final Call To Action
-                    const FinalCtaSection(),
+                    // Section 08: Finance, Procurement & Workforce Management
+                    KeyedSubtree(
+                      key: _section08FinanceWorkforceKey,
+                      child: const FinanceWorkforceSection(),
+                    ),
 
-                    // Section 11: Footer
-                    FooterSection(onSectionSelected: _scrollToSection),
+                    // Section 09: Unified HOMIO Ecosystem & Closing Showcase
+                    KeyedSubtree(
+                      key: _section09EcosystemKey,
+                      child: EcosystemClosingSection(
+                        onSectionSelected: _scrollToSection,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -153,4 +185,3 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 }
-
