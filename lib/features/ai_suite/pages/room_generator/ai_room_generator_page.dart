@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 import '../../widgets/before_after_slider.dart';
 import '../../widgets/credit_confirmation_dialog.dart';
 
@@ -94,46 +94,23 @@ class _AiRoomGeneratorPageState extends State<AiRoomGeneratorPage> with SingleTi
         builder: (context, _) {
           return Column(
             children: [
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Room Designer',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20, child: VerticalDivider(width: 1, thickness: 1)),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFF7C3AED),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFF7C3AED),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.add_photo_alternate_outlined, size: 15), text: 'New Design'),
-                          Tab(icon: const Icon(Icons.bookmark_outline_rounded, size: 15), text: 'My Designs (${repo.roomDesigns.length})'),
-                          const Tab(icon: Icon(Icons.view_in_ar_rounded, size: 15), text: 'Generated Results'),
-                          Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Design History (${repo.jobs.where((j) => j.productType == 'Room Designer').length})'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'Room Designer',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFF7C3AED),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFF7C3AED),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.add_photo_alternate_outlined, size: 15), text: 'New Design'),
+                    Tab(icon: const Icon(Icons.bookmark_outline_rounded, size: 15), text: 'My Designs (${repo.roomDesigns.length})'),
+                    const Tab(icon: Icon(Icons.view_in_ar_rounded, size: 15), text: 'Generated Results'),
+                    Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Design History (${repo.jobs.where((j) => j.productType == 'Room Designer').length})'),
                   ],
                 ),
               ),
@@ -325,65 +302,136 @@ class _AiRoomGeneratorPageState extends State<AiRoomGeneratorPage> with SingleTi
           const SizedBox(height: 10),
 
           // Project & Room metadata fields
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              SizedBox(
-                width: 220,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _selectedProject,
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Homio Project Link', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'DLF Phase 5 Penthouse', child: Text('DLF Phase 5 Penthouse', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Prestige Lakeside Habitat', child: Text('Prestige Lakeside', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Lodha Bellissimo', child: Text('Lodha Bellissimo', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Direct Personal Session', child: Text('Direct Personal Session', style: TextStyle(fontSize: 12))),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 640;
+
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedProject,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Homio Project Link', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'DLF Phase 5 Penthouse', child: Text('DLF Phase 5 Penthouse', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Prestige Lakeside Habitat', child: Text('Prestige Lakeside', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Lodha Bellissimo', child: Text('Lodha Bellissimo', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Direct Personal Session', child: Text('Direct Personal Session', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _selectedProject = v!),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _roomNameCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Room Name / Label', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: TextFormField(
+                            controller: _areaCtrl,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8), labelText: 'Area (Sq.Ft.)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _widthCtrl,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8), labelText: 'W (Ft)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _lengthCtrl,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8), labelText: 'L (Ft)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _heightCtrl,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8), labelText: 'H (Ft)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _selectedProject = v!),
-                ),
-              ),
-              SizedBox(
-                width: 200,
-                child: TextFormField(
-                  controller: _roomNameCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Room Name / Label', border: OutlineInputBorder()),
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: TextFormField(
-                  controller: _areaCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Area (Sq.Ft.)', border: OutlineInputBorder()),
-                ),
-              ),
-              SizedBox(
-                width: 75,
-                child: TextFormField(
-                  controller: _widthCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'W (Ft)', border: OutlineInputBorder()),
-                ),
-              ),
-              SizedBox(
-                width: 75,
-                child: TextFormField(
-                  controller: _lengthCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'L (Ft)', border: OutlineInputBorder()),
-                ),
-              ),
-              SizedBox(
-                width: 75,
-                child: TextFormField(
-                  controller: _heightCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'H (Ft)', border: OutlineInputBorder()),
-                ),
-              ),
-            ],
+                );
+              }
+
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: 220,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedProject,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Homio Project Link', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'DLF Phase 5 Penthouse', child: Text('DLF Phase 5 Penthouse', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Prestige Lakeside Habitat', child: Text('Prestige Lakeside', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Lodha Bellissimo', child: Text('Lodha Bellissimo', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Direct Personal Session', child: Text('Direct Personal Session', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _selectedProject = v!),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 200,
+                    child: TextFormField(
+                      controller: _roomNameCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Room Name / Label', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: TextFormField(
+                      controller: _areaCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Area (Sq.Ft.)', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 75,
+                    child: TextFormField(
+                      controller: _widthCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'W (Ft)', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 75,
+                    child: TextFormField(
+                      controller: _lengthCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'L (Ft)', border: OutlineInputBorder()),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 75,
+                    child: TextFormField(
+                      controller: _heightCtrl,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'H (Ft)', border: OutlineInputBorder()),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -925,18 +973,20 @@ class _AiRoomGeneratorPageState extends State<AiRoomGeneratorPage> with SingleTi
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Action Bar & Canvas Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 650;
+              final titleSection = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(design.title, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800)),
+                  Text(design.title, style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w800)),
                   Text('${design.projectName} • Created ${design.createdAt.day}/${design.createdAt.month}/${design.createdAt.year}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ],
-              ),
-              Wrap(
+              );
+              final controlsSection = Wrap(
                 spacing: 6,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   SegmentedButton<String>(
                     segments: const [
@@ -958,8 +1008,26 @@ class _AiRoomGeneratorPageState extends State<AiRoomGeneratorPage> with SingleTi
                     tooltip: 'Create Variation',
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleSection,
+                    const SizedBox(height: 8),
+                    controlsSection,
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  titleSection,
+                  controlsSection,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
 
@@ -998,33 +1066,37 @@ class _AiRoomGeneratorPageState extends State<AiRoomGeneratorPage> with SingleTi
           const SizedBox(height: 10),
 
           Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF111827) : Colors.white,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0)),
             ),
-            child: DataTable(
-              headingRowHeight: 34,
-              dataRowMinHeight: 30,
-              dataRowMaxHeight: 34,
-              columns: const [
-                DataColumn(label: Text('Category', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Suggested Material', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Specification', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Qty', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              ],
-              rows: design.preliminarySpecs.map((item) {
-                return DataRow(
-                  cells: [
-                    DataCell(Text(item.category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                    DataCell(Text(item.suggestedMaterial, style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(item.specification, style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(item.quantity.toInt().toString(), style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(item.unit, style: const TextStyle(fontSize: 11))),
-                  ],
-                );
-              }).toList(),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 34,
+                dataRowMinHeight: 30,
+                dataRowMaxHeight: 34,
+                columns: const [
+                  DataColumn(label: Text('Category', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('Suggested Material', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('Specification', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('Qty', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                  DataColumn(label: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                ],
+                rows: design.preliminarySpecs.map((item) {
+                  return DataRow(
+                    cells: [
+                      DataCell(Text(item.category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                      DataCell(Text(item.suggestedMaterial, style: const TextStyle(fontSize: 11))),
+                      DataCell(Text(item.specification, style: const TextStyle(fontSize: 11))),
+                      DataCell(Text(item.quantity.toInt().toString(), style: const TextStyle(fontSize: 11))),
+                      DataCell(Text(item.unit, style: const TextStyle(fontSize: 11))),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ],

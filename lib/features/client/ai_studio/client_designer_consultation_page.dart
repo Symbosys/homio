@@ -38,102 +38,126 @@ class _ClientDesignerConsultationPageState extends State<ClientDesignerConsultat
                 child: const Icon(Icons.video_camera_front_rounded, color: Color(0xFF7C3AED), size: 22),
               ),
               const SizedBox(width: 10),
-              Text(
-                'Confirm Consultation Booking',
-                style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+              Expanded(
+                child: Text(
+                  'Confirm Booking',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'You are booking an instant 30-minute 1-on-1 video call with ${expert.name} (${expert.title}).',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, height: 1.4),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: MediaQuery.sizeOf(ctx).height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'You are booking an instant 30-minute 1-on-1 video call with ${expert.name} (${expert.title}).',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, height: 1.4),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Duration:'),
-                        Text('30 Minutes Live', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
-                      ],
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
                       children: [
-                        const Text('Consultation Fee:'),
-                        Text(
-                          '₹${expert.sessionFee.toInt()} Fixed',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF10B981),
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Duration:'),
+                            Text('30 Minutes Live', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Consultation Fee:'),
+                            Text(
+                              '₹${expert.sessionFee.toInt()} Fixed',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Includes:'),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Live Whiteboard + Summary Dossier',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: const Color(0xFF8B5CF6),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Includes:'),
-                        Text('Live Whiteboard + Summary Dossier',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: const Color(0xFF8B5CF6),
-                              fontWeight: FontWeight.w600,
-                            )),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
 
-                // Add to booked sessions in shared mock data
-                AiSuiteMockData.bookedSessions.insert(
-                  0,
-                  BookedConsultationSession(
-                    id: 'SESS-${DateTime.now().millisecondsSinceEpoch}',
-                    clientName: 'You (Current Client)',
-                    clientPhone: '+91 98765 43210',
-                    expert: expert,
-                    scheduledTime: DateTime.now(),
-                    feePaid: expert.sessionFee,
-                    status: 'Active / In Progress',
+                    // Add to booked sessions in shared mock data
+                    AiSuiteMockData.bookedSessions.insert(
+                      0,
+                      BookedConsultationSession(
+                        id: 'SESS-${DateTime.now().millisecondsSinceEpoch}',
+                        clientName: 'You (Current Client)',
+                        clientPhone: '+91 98765 43210',
+                        expert: expert,
+                        scheduledTime: DateTime.now(),
+                        feePaid: expert.sessionFee,
+                        status: 'Active / In Progress',
+                      ),
+                    );
+
+                    setState(() => _activeVideoCall = expert);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
                   ),
-                );
-
-                setState(() => _activeVideoCall = expert);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Pay ₹${expert.sessionFee.toInt()} & Join Room'),
+                  child: Text('Pay ₹${expert.sessionFee.toInt()} & Join Room'),
+                ),
+              ],
             ),
           ],
         );

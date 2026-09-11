@@ -13,23 +13,29 @@ class CompactAiSuiteActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final showRevenueBadge = screenWidth >= 800;
+    final showCreditLabel = screenWidth >= 420;
+
     return ListenableBuilder(
       listenable: AiSuiteRepository.instance,
       builder: (context, _) {
         final repo = AiSuiteRepository.instance;
         return Padding(
-          padding: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsets.only(right: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const RevenueShareBadge(isCompact: true),
-              const SizedBox(width: 8),
+              if (showRevenueBadge) ...[
+                const RevenueShareBadge(isCompact: true),
+                const SizedBox(width: 8),
+              ],
               // Compact Credits Chip
               InkWell(
                 onTap: () => CreditPurchaseModal.show(context),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -41,22 +47,22 @@ class CompactAiSuiteActions extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.toll_rounded, size: 13, color: Color(0xFF10B981)),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 4),
                       Text(
-                        '${repo.totalCredits} Credits',
+                        showCreditLabel ? '${repo.totalCredits} Credits' : '${repo.totalCredits}',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       const Icon(Icons.add_circle_outline_rounded, size: 13, color: Color(0xFF10B981)),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               // Compact Config Button
               IconButton(
                 tooltip: 'Commercial Rules & Pricing',

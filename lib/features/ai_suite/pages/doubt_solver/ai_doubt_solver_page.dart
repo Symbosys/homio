@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/router/route_names.dart';
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 import '../../widgets/credit_confirmation_dialog.dart';
 
 class AiDoubtSolverPage extends StatefulWidget {
@@ -62,45 +62,22 @@ class _AiDoubtSolverPageState extends State<AiDoubtSolverPage> with SingleTicker
         builder: (context, _) {
           return Column(
             children: [
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Doubt Solver',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20, child: VerticalDivider(width: 1, thickness: 1)),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFFF59E0B),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFFF59E0B),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.chat_bubble_outline_rounded, size: 15), text: 'Ask AI'),
-                          Tab(icon: const Icon(Icons.forum_outlined, size: 15), text: 'Conversations (${repo.doubtConversations.length})'),
-                          Tab(icon: const Icon(Icons.pie_chart_outline_rounded, size: 15), text: 'Usage & Quotas (${repo.freeDoubtQueriesRemaining} Free)'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'Doubt Solver',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFFF59E0B),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFFF59E0B),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.chat_bubble_outline_rounded, size: 15), text: 'Ask AI'),
+                    Tab(icon: const Icon(Icons.forum_outlined, size: 15), text: 'Conversations (${repo.doubtConversations.length})'),
+                    Tab(icon: const Icon(Icons.pie_chart_outline_rounded, size: 15), text: 'Usage & Quotas (${repo.freeDoubtQueriesRemaining} Free)'),
                   ],
                 ),
               ),
@@ -137,10 +114,14 @@ class _AiDoubtSolverPageState extends State<AiDoubtSolverPage> with SingleTicker
             color: isDark ? const Color(0xFF111827) : Colors.white,
             border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -239,10 +220,14 @@ class _AiDoubtSolverPageState extends State<AiDoubtSolverPage> with SingleTicker
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           color: const Color(0xFFEC4899).withValues(alpha: 0.08),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.video_camera_front_outlined, size: 14, color: Color(0xFFEC4899)),
                   SizedBox(width: 6),
@@ -258,41 +243,44 @@ class _AiDoubtSolverPageState extends State<AiDoubtSolverPage> with SingleTicker
         ),
 
         // Input Area
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF111827) : Colors.white,
-            border: Border(top: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _questionCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    hintText: 'Ask any construction, design, material or cost question...',
-                    hintStyle: TextStyle(fontSize: 11),
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        SafeArea(
+          top: false,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF111827) : Colors.white,
+              border: Border(top: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _questionCtrl,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      hintText: 'Ask any construction, design, material or cost question...',
+                      hintStyle: TextStyle(fontSize: 11),
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    ),
+                    onSubmitted: (_) => _submitQuestion(repo),
                   ),
-                  onSubmitted: (_) => _submitQuestion(repo),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => _submitQuestion(repo),
-                icon: const Icon(Icons.send_rounded, size: 14),
-                label: const Text('Ask AI'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF59E0B),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  textStyle: const TextStyle(fontSize: 11),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _submitQuestion(repo),
+                  icon: const Icon(Icons.send_rounded, size: 14),
+                  label: const Text('Ask AI'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF59E0B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    textStyle: const TextStyle(fontSize: 11),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -482,10 +470,11 @@ class _AiDoubtSolverPageState extends State<AiDoubtSolverPage> with SingleTicker
         children: [
           Text('Doubt Solver Quotas & Commercial Ledger', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
             children: [
               _buildQuotaMetric('Free Questions Remaining', '${repo.freeDoubtQueriesRemaining}', const Color(0xFF10B981)),
-              const SizedBox(width: 10),
               _buildQuotaMetric('Commercial Fee Post-Free', '₹${repo.commercialConfig.doubtQueryFee.toInt()}', const Color(0xFFF59E0B)),
             ],
           ),

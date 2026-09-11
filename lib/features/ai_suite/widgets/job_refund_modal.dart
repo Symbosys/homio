@@ -64,13 +64,16 @@ class _JobRefundModalState extends State<JobRefundModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final job = widget.job;
 
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        constraints: BoxConstraints(maxWidth: 520, maxHeight: screenHeight * 0.88),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,10 +96,11 @@ class _JobRefundModalState extends State<JobRefundModal> {
                         Text(
                           'Authorize Credit Refund',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Job #${job.id} • ${job.productType}',
@@ -104,6 +108,7 @@ class _JobRefundModalState extends State<JobRefundModal> {
                             fontSize: 12,
                             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -188,20 +193,21 @@ class _JobRefundModalState extends State<JobRefundModal> {
 
               const SizedBox(height: 22),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 10,
+                runSpacing: 8,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('Cancel', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                   ),
-                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: _isRefunding ? null : _submitRefund,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 0,
                     ),
@@ -231,12 +237,17 @@ class _JobRefundModalState extends State<JobRefundModal> {
             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
           ),
         ),
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-            color: color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+              color: color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

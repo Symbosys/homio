@@ -6,7 +6,7 @@ import '../../data/ai_suite_repository.dart';
 import '../../widgets/ai_metric_card.dart';
 import '../../widgets/job_refund_modal.dart';
 import '../../widgets/ai_commercial_config_dialog.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 
 class AiUsageRevenuePage extends StatefulWidget {
   const AiUsageRevenuePage({super.key});
@@ -42,50 +42,27 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
         builder: (context, _) {
           return Column(
             children: [
-              // Sleek 46px top header bar
-              Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'AI Usage & Revenue',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const VerticalDivider(width: 16, indent: 12, endIndent: 12),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFF7C3AED),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFF7C3AED),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.dashboard_outlined, size: 14), text: 'Overview'),
-                          const Tab(icon: Icon(Icons.show_chart_rounded, size: 14), text: 'AI Usage'),
-                          const Tab(icon: Icon(Icons.currency_rupee_rounded, size: 14), text: 'Revenue'),
-                          Tab(icon: const Icon(Icons.memory_rounded, size: 14), text: 'AI Jobs (${repo.jobs.length})'),
-                          Tab(icon: const Icon(Icons.error_outline_rounded, size: 14), text: 'Failed Jobs (${repo.pendingFailedJobsCount})'),
-                          const Tab(icon: Icon(Icons.handshake_outlined, size: 14), text: 'Designer Revenue'),
-                          Tab(icon: const Icon(Icons.receipt_long_rounded, size: 14), text: 'Transactions (${repo.transactions.length})'),
-                          const Tab(icon: Icon(Icons.history_edu_rounded, size: 14), text: 'Reports & Audit'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'AI Usage & Revenue',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFF7C3AED),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFF7C3AED),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.dashboard_outlined, size: 14), text: 'Overview'),
+                    const Tab(icon: Icon(Icons.show_chart_rounded, size: 14), text: 'AI Usage'),
+                    const Tab(icon: Icon(Icons.currency_rupee_rounded, size: 14), text: 'Revenue'),
+                    Tab(icon: const Icon(Icons.memory_rounded, size: 14), text: 'AI Jobs (${repo.jobs.length})'),
+                    Tab(icon: const Icon(Icons.error_outline_rounded, size: 14), text: 'Failed Jobs (${repo.pendingFailedJobsCount})'),
+                    const Tab(icon: Icon(Icons.handshake_outlined, size: 14), text: 'Designer Revenue'),
+                    Tab(icon: const Icon(Icons.receipt_long_rounded, size: 14), text: 'Transactions (${repo.transactions.length})'),
+                    const Tab(icon: Icon(Icons.history_edu_rounded, size: 14), text: 'Reports & Audit'),
                   ],
                 ),
               ),
@@ -126,13 +103,14 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
           LayoutBuilder(
             builder: (context, constraints) {
               final crossAxisCount = constraints.maxWidth > 1100 ? 4 : (constraints.maxWidth > 650 ? 2 : 1);
+              final aspectRatio = crossAxisCount == 4 ? 2.3 : (crossAxisCount == 2 ? 2.6 : 3.6);
               return GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
-                childAspectRatio: 2.3,
+                childAspectRatio: aspectRatio,
                 children: [
                   AiMetricCard(title: 'TOTAL AI REVENUE', value: '₹${repo.totalGrossRevenue.toInt()}', icon: Icons.payments_rounded, accentColor: const Color(0xFF10B981), trend: '+28.4%'),
                   AiMetricCard(title: 'HOMIO PLATFORM SHARE', value: '₹${repo.platformNetShare.toInt()}', icon: Icons.account_balance_rounded, accentColor: const Color(0xFF7C3AED), trend: 'Net Profit'),
@@ -212,21 +190,38 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
   // TAB 3: REVENUE
   // ==========================================================================
   Widget _buildRevenueTab(BuildContext context, bool isDark, AiSuiteRepository repo) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Commercial Revenue Streams', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _buildRevenueCard('Credit Pack Sales', '₹${(repo.creditsSold * 3.5).toInt()}', const Color(0xFF10B981))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildRevenueCard('Video Consultations', '₹${repo.consultations.length * 300}', const Color(0xFFEC4899))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildRevenueCard('Paid Doubt Queries', '₹350', const Color(0xFFF59E0B))),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 650;
+              if (isWide) {
+                return Row(
+                  children: [
+                    Expanded(child: _buildRevenueCard('Credit Pack Sales', '₹${(repo.creditsSold * 3.5).toInt()}', const Color(0xFF10B981))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildRevenueCard('Video Consultations', '₹${repo.consultations.length * 300}', const Color(0xFFEC4899))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildRevenueCard('Paid Doubt Queries', '₹350', const Color(0xFFF59E0B))),
+                  ],
+                );
+              }
+
+              return Column(
+                children: [
+                  _buildRevenueCard('Credit Pack Sales', '₹${(repo.creditsSold * 3.5).toInt()}', const Color(0xFF10B981)),
+                  const SizedBox(height: 8),
+                  _buildRevenueCard('Video Consultations', '₹${repo.consultations.length * 300}', const Color(0xFFEC4899)),
+                  const SizedBox(height: 8),
+                  _buildRevenueCard('Paid Doubt Queries', '₹350', const Color(0xFFF59E0B)),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -235,6 +230,7 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
 
   Widget _buildRevenueCard(String title, String amount, Color color) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10), border: Border.all(color: color.withValues(alpha: 0.3))),
       child: Column(
@@ -305,14 +301,19 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(job.title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold)),
+                    Expanded(
+                      child: Text(job.title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 8),
                     Text('${job.creditsCharged} Credits Charged', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent)),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text('User: ${job.user} • Failure: ${job.failureReason ?? 'Tensor memory overflow'}', style: const TextStyle(fontSize: 11, color: Colors.redAccent)),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     ElevatedButton.icon(
                       onPressed: () => repo.retryJob(job.id),
@@ -324,7 +325,6 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
                         textStyle: const TextStyle(fontSize: 11),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => JobRefundModal.show(context, job),
                       icon: const Icon(Icons.undo_rounded, size: 12),
@@ -420,8 +420,11 @@ class _AiUsageRevenuePageState extends State<AiUsageRevenuePage> with SingleTick
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               Text('Audit Trail & Commercial Rules', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
               ElevatedButton.icon(

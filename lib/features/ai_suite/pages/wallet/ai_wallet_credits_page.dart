@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
 import '../../widgets/credit_purchase_modal.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 
 class AiWalletCreditsPage extends StatefulWidget {
   const AiWalletCreditsPage({super.key});
@@ -40,47 +40,24 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
         builder: (context, _) {
           return Column(
             children: [
-              // Sleek 46px top header bar
-              Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'AI Wallet / Credits',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const VerticalDivider(width: 16, indent: 12, endIndent: 12),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFF10B981),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFF10B981),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 15), text: 'Overview'),
-                          const Tab(icon: Icon(Icons.add_shopping_cart_rounded, size: 15), text: 'Buy Credits'),
-                          Tab(icon: const Icon(Icons.receipt_long_outlined, size: 15), text: 'Transactions (${repo.transactions.length})'),
-                          const Tab(icon: Icon(Icons.donut_large_outlined, size: 15), text: 'Usage Breakdown'),
-                          const Tab(icon: Icon(Icons.request_quote_outlined, size: 15), text: 'Payment History & Invoices'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'AI Wallet / Credits',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFF10B981),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFF10B981),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 15), text: 'Overview'),
+                    const Tab(icon: Icon(Icons.add_shopping_cart_rounded, size: 15), text: 'Buy Credits'),
+                    Tab(icon: const Icon(Icons.receipt_long_outlined, size: 15), text: 'Transactions (${repo.transactions.length})'),
+                    const Tab(icon: Icon(Icons.donut_large_outlined, size: 15), text: 'Usage Breakdown'),
+                    const Tab(icon: Icon(Icons.request_quote_outlined, size: 15), text: 'Payment History & Invoices'),
                   ],
                 ),
               ),
@@ -113,7 +90,7 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Compact Balance Card
+          // Compact Adaptive Balance Card
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -124,10 +101,11 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 480;
+
+                final balanceInfo = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('AVAILABLE AI CREDITS', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
@@ -135,8 +113,9 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
                     Text('${repo.totalCredits}', style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white)),
                     Text('≈ ₹${(repo.totalCredits * 5.0).toInt()} Value • Rollover Active', style: const TextStyle(fontSize: 11, color: Colors.white70)),
                   ],
-                ),
-                ElevatedButton.icon(
+                );
+
+                final topUpButton = ElevatedButton.icon(
                   onPressed: () => CreditPurchaseModal.show(context),
                   icon: const Icon(Icons.add_circle_outline, size: 14),
                   label: const Text('Top Up Credits'),
@@ -146,23 +125,64 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
+                );
+
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      balanceInfo,
+                      const SizedBox(height: 12),
+                      SizedBox(width: double.infinity, child: topUpButton),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    balanceInfo,
+                    topUpButton,
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(height: 12),
 
-          // 4 Metric Breakdown Cards
-          Row(
-            children: [
-              Expanded(child: _buildMetricTile('Credits Purchased', '${repo.creditsSold}', const Color(0xFF7C3AED))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildMetricTile('Credits Consumed', '${repo.creditsConsumed}', const Color(0xFF3B82F6))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildMetricTile('Credits Refunded', '10', const Color(0xFF10B981))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildMetricTile('Credits Expiring', '0', const Color(0xFF64748B))),
-            ],
+          // Adaptive Metric Breakdown Cards (4 -> 2 -> 1 columns)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 720) {
+                return Row(
+                  children: [
+                    Expanded(child: _buildMetricTile('Credits Purchased', '${repo.creditsSold}', const Color(0xFF7C3AED))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildMetricTile('Credits Consumed', '${repo.creditsConsumed}', const Color(0xFF3B82F6))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildMetricTile('Credits Refunded', '10', const Color(0xFF10B981))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildMetricTile('Credits Expiring', '0', const Color(0xFF64748B))),
+                  ],
+                );
+              }
+
+              final crossAxisCount = constraints.maxWidth > 380 ? 2 : 1;
+              return GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: crossAxisCount == 2 ? 2.5 : 3.8,
+                children: [
+                  _buildMetricTile('Credits Purchased', '${repo.creditsSold}', const Color(0xFF7C3AED)),
+                  _buildMetricTile('Credits Consumed', '${repo.creditsConsumed}', const Color(0xFF3B82F6)),
+                  _buildMetricTile('Credits Refunded', '10', const Color(0xFF10B981)),
+                  _buildMetricTile('Credits Expiring', '0', const Color(0xFF64748B)),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -333,25 +353,65 @@ class _AiWalletCreditsPageState extends State<AiWalletCreditsPage> with SingleTi
       itemBuilder: (context, index) {
         final p = purchases[index];
         return Card(
-          child: ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: const Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF10B981)),
-            title: Text('${p.title} - Invoice #INV-${p.id}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            subtitle: Text('Paid ₹${p.rupeeAmount.toInt()} (Incl. 18% GST) • Ref: ${p.referenceId}', style: const TextStyle(fontSize: 10)),
-            trailing: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('GST Tax Invoice #INV-${p.id} downloaded successfully!'), backgroundColor: const Color(0xFF10B981)),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 480;
+                final invoiceBtn = ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('GST Tax Invoice #INV-${p.id} downloaded successfully!'), backgroundColor: const Color(0xFF10B981)),
+                    );
+                  },
+                  icon: const Icon(Icons.download_rounded, size: 12),
+                  label: const Text('Invoice'),
+                  style: ElevatedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    textStyle: const TextStyle(fontSize: 10),
+                  ),
+                );
+
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF10B981)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text('${p.title} - Invoice #INV-${p.id}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Paid ₹${p.rupeeAmount.toInt()} (Incl. 18% GST) • Ref: ${p.referenceId}', style: const TextStyle(fontSize: 10)),
+                      const SizedBox(height: 8),
+                      invoiceBtn,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    const Icon(Icons.receipt_long_rounded, size: 18, color: Color(0xFF10B981)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${p.title} - Invoice #INV-${p.id}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text('Paid ₹${p.rupeeAmount.toInt()} (Incl. 18% GST) • Ref: ${p.referenceId}', style: const TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    invoiceBtn,
+                  ],
                 );
               },
-              icon: const Icon(Icons.download_rounded, size: 12),
-              label: const Text('Invoice'),
-              style: ElevatedButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                textStyle: const TextStyle(fontSize: 10),
-              ),
             ),
           ),
         );

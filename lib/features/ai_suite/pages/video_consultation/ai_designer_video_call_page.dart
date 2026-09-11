@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 import '../../widgets/video_consultation_room.dart';
 
 class AiDesignerVideoCallPage extends StatefulWidget {
@@ -42,47 +42,24 @@ class _AiDesignerVideoCallPageState extends State<AiDesignerVideoCallPage> with 
         builder: (context, _) {
           return Column(
             children: [
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Designer Video Calls',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20, child: VerticalDivider(width: 1, thickness: 1)),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFFEC4899),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFFEC4899),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          Tab(icon: const Icon(Icons.people_outline_rounded, size: 15), text: 'Find Designer (${repo.designers.length})'),
-                          const Tab(icon: Icon(Icons.calendar_month_outlined, size: 15), text: 'Availability'),
-                          Tab(icon: const Icon(Icons.video_call_outlined, size: 15), text: 'Upcoming Calls (${repo.consultations.where((c) => c.meetingStatus == 'Scheduled').length})'),
-                          Tab(icon: const Icon(Icons.history_outlined, size: 15), text: 'Past Calls (${repo.consultations.where((c) => c.meetingStatus == 'Completed').length})'),
-                          const Tab(icon: Icon(Icons.currency_rupee_rounded, size: 15), text: 'History & 50/50 Splits'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'Designer Video Calls',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFFEC4899),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFFEC4899),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    Tab(icon: const Icon(Icons.people_outline_rounded, size: 15), text: 'Find Designer (${repo.designers.length})'),
+                    const Tab(icon: Icon(Icons.calendar_month_outlined, size: 15), text: 'Availability'),
+                    Tab(icon: const Icon(Icons.video_call_outlined, size: 15), text: 'Upcoming Calls (${repo.consultations.where((c) => c.meetingStatus == 'Scheduled').length})'),
+                    Tab(icon: const Icon(Icons.history_outlined, size: 15), text: 'Past Calls (${repo.consultations.where((c) => c.meetingStatus == 'Completed').length})'),
+                    const Tab(icon: Icon(Icons.currency_rupee_rounded, size: 15), text: 'History & 50/50 Splits'),
                   ],
                 ),
               ),
@@ -229,98 +206,113 @@ class _AiDesignerVideoCallPageState extends State<AiDesignerVideoCallPage> with 
     showDialog(
       context: context,
       builder: (ctx) {
+        final screenHeight = MediaQuery.sizeOf(ctx).height;
         return AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           title: Text('Book 30-Min Call with ${designer.name}', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Consultation Type', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF94A3B8))),
-                const SizedBox(height: 4),
-                DropdownButtonFormField<String>(
-                  isDense: true,
-                  initialValue: type,
-                  decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'Interior Design', child: Text('Interior Design Review', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Vastu', child: Text('Vastu Energy Review', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Material Selection', child: Text('Material & Hardware Review', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Budget Review', child: Text('Budget & Quotation Audit', style: TextStyle(fontSize: 12))),
-                  ],
-                  onChanged: (v) => type = v!,
-                ),
-                const SizedBox(height: 10),
-                Text('Select Available Time Slot', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF94A3B8))),
-                const SizedBox(height: 4),
-                DropdownButtonFormField<String>(
-                  isDense: true,
-                  initialValue: timeSlot,
-                  decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
-                  items: designer.availableSlots.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 12)))).toList(),
-                  onChanged: (v) => timeSlot = v!,
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: topicCtrl,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(labelText: 'Meeting Topic', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: descCtrl,
-                  maxLines: 2,
-                  style: const TextStyle(fontSize: 12),
-                  decoration: const InputDecoration(labelText: 'Description / Questions', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Payable Fee (30 Mins):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                      Text('₹${designer.consultationFee.toInt()} (Incl. GST)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.green)),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: screenHeight * 0.85,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Consultation Type', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF94A3B8))),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    isDense: true,
+                    initialValue: type,
+                    decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: 'Interior Design', child: Text('Interior Design Review', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'Vastu', child: Text('Vastu Energy Review', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'Material Selection', child: Text('Material & Hardware Review', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'Budget Review', child: Text('Budget & Quotation Audit', style: TextStyle(fontSize: 12))),
                     ],
+                    onChanged: (v) => type = v!,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text('Select Available Time Slot', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF94A3B8))),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    isDense: true,
+                    initialValue: timeSlot,
+                    decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                    items: designer.availableSlots.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 12)))).toList(),
+                    onChanged: (v) => timeSlot = v!,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: topicCtrl,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(labelText: 'Meeting Topic', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: descCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(labelText: 'Description / Questions', isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Payable Fee (30 Mins):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        Text('₹${designer.consultationFee.toInt()} (Incl. GST)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.green)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(fontSize: 12)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                repo.bookConsultation(
-                  designer: designer,
-                  clientName: 'Rahul Sharma',
-                  clientPhone: '+91 98765 43210',
-                  clientEmail: 'rahul.sharma@gmail.com',
-                  projectName: 'DLF Phase 5 Penthouse',
-                  consultationType: type,
-                  scheduledDate: DateTime.now().add(const Duration(hours: 4)),
-                  timeSlot: timeSlot,
-                  topic: topicCtrl.text,
-                  description: descCtrl.text,
-                  fee: designer.consultationFee,
-                );
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Video Consultation with ${designer.name} booked successfully!'), backgroundColor: const Color(0xFF10B981)),
-                );
-                _tabController.animateTo(2); // Jump to Upcoming Calls
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEC4899),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-              child: const Text('Confirm & Pay ₹300'),
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(fontSize: 12)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    repo.bookConsultation(
+                      designer: designer,
+                      clientName: 'Rahul Sharma',
+                      clientPhone: '+91 98765 43210',
+                      clientEmail: 'rahul.sharma@gmail.com',
+                      projectName: 'DLF Phase 5 Penthouse',
+                      consultationType: type,
+                      scheduledDate: DateTime.now().add(const Duration(hours: 4)),
+                      timeSlot: timeSlot,
+                      topic: topicCtrl.text,
+                      description: descCtrl.text,
+                      fee: designer.consultationFee,
+                    );
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Video Consultation with ${designer.name} booked successfully!'), backgroundColor: const Color(0xFF10B981)),
+                    );
+                    _tabController.animateTo(2); // Jump to Upcoming Calls
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEC4899),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  child: const Text('Confirm & Pay ₹300'),
+                ),
+              ],
             ),
           ],
         );
@@ -385,45 +377,91 @@ class _AiDesignerVideoCallPageState extends State<AiDesignerVideoCallPage> with 
       itemBuilder: (context, index) {
         final c = upcoming[index];
         return Card(
-          child: ListTile(
-            dense: true,
-            leading: CircleAvatar(radius: 18, backgroundImage: NetworkImage(c.designer.avatarUrl)),
-            title: Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: Text('Designer: ${c.designer.name} • ${c.timeSlot} • Status: ${c.meetingStatus}', style: const TextStyle(fontSize: 11)),
-            trailing: Wrap(
-              spacing: 6,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => VideoConsultationRoom(
-                          designerName: c.designer.name,
-                          consultationTopic: c.topic,
-                          clientName: c.clientName,
-                          onEndCall: () {
-                            repo.submitConsultationFeedback(bookingId: c.id, rating: 5, feedback: 'Great call!');
-                          },
-                        ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 560;
+                final actions = Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideoConsultationRoom(
+                              designerName: c.designer.name,
+                              consultationTopic: c.topic,
+                              clientName: c.clientName,
+                              onEndCall: () {
+                                repo.submitConsultationFeedback(bookingId: c.id, rating: 5, feedback: 'Great call!');
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.video_call_rounded, size: 14),
+                      label: const Text('Join Video Room'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        visualDensity: VisualDensity.compact,
+                        textStyle: const TextStyle(fontSize: 11),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.video_call_rounded, size: 14),
-                  label: const Text('Join Video Room'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    visualDensity: VisualDensity.compact,
-                    textStyle: const TextStyle(fontSize: 11),
-                  ),
-                ),
-                OutlinedButton(
-                  onPressed: () => repo.cancelConsultation(bookingId: c.id, reason: 'Client requested cancellation'),
-                  style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: const TextStyle(fontSize: 11)),
-                  child: const Text('Cancel'),
-                ),
-              ],
+                    ),
+                    OutlinedButton(
+                      onPressed: () => repo.cancelConsultation(bookingId: c.id, reason: 'Client requested cancellation'),
+                      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: const TextStyle(fontSize: 11)),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                );
+
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(radius: 18, backgroundImage: NetworkImage(c.designer.avatarUrl)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                Text('Designer: ${c.designer.name} • ${c.timeSlot}', style: const TextStyle(fontSize: 11)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      actions,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    CircleAvatar(radius: 18, backgroundImage: NetworkImage(c.designer.avatarUrl)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                          Text('Designer: ${c.designer.name} • ${c.timeSlot} • Status: ${c.meetingStatus}', style: const TextStyle(fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    actions,
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -444,15 +482,56 @@ class _AiDesignerVideoCallPageState extends State<AiDesignerVideoCallPage> with 
       itemBuilder: (context, index) {
         final c = past[index];
         return Card(
-          child: ListTile(
-            dense: true,
-            leading: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
-            title: Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: Text('Designer: ${c.designer.name} • Rating: ${c.ratingGiven ?? 5} ★ • Feedback: "${c.feedbackText ?? 'Great guidance'}"', style: const TextStyle(fontSize: 11)),
-            trailing: ElevatedButton(
-              onPressed: () => _openBookingModal(context, c.designer, repo),
-              style: ElevatedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: const TextStyle(fontSize: 11)),
-              child: const Text('Book Again'),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 500;
+                final bookAgainBtn = ElevatedButton(
+                  onPressed: () => _openBookingModal(context, c.designer, repo),
+                  style: ElevatedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: const TextStyle(fontSize: 11)),
+                  child: const Text('Book Again'),
+                );
+
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Designer: ${c.designer.name} • Rating: ${c.ratingGiven ?? 5} ★ • Feedback: "${c.feedbackText ?? 'Great guidance'}"', style: const TextStyle(fontSize: 11)),
+                      const SizedBox(height: 8),
+                      bookAgainBtn,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981), size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(c.topic, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold)),
+                          Text('Designer: ${c.designer.name} • Rating: ${c.ratingGiven ?? 5} ★ • Feedback: "${c.feedbackText ?? 'Great guidance'}"', style: const TextStyle(fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    bookAgainBtn,
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -471,15 +550,63 @@ class _AiDesignerVideoCallPageState extends State<AiDesignerVideoCallPage> with 
       itemBuilder: (context, index) {
         final c = repo.consultations[index];
         return Card(
-          child: ListTile(
-            dense: true,
-            leading: const Icon(Icons.handshake_outlined, color: Color(0xFF8B5CF6), size: 18),
-            title: Text('${c.topic} (${c.designer.name})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            subtitle: Text('Total: ₹${c.fee.toInt()} • Platform (50%): ₹${c.platformShare.toInt()} • Designer (50%): ₹${c.designerShare.toInt()}', style: const TextStyle(fontSize: 11)),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
-              child: const Text('Settled (50/50)', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 500;
+                final badge = Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
+                  child: const Text('Settled (50/50)', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10)),
+                );
+
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.handshake_outlined, color: Color(0xFF8B5CF6), size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text('${c.topic} (${c.designer.name})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          badge,
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text('Total: ₹${c.fee.toInt()} • Platform (50%): ₹${c.platformShare.toInt()} • Designer (50%): ₹${c.designerShare.toInt()}', style: const TextStyle(fontSize: 11)),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    const Icon(Icons.handshake_outlined, color: Color(0xFF8B5CF6), size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${c.topic} (${c.designer.name})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text('Total: ₹${c.fee.toInt()} • Platform (50%): ₹${c.platformShare.toInt()} • Designer (50%): ₹${c.designerShare.toInt()}', style: const TextStyle(fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    badge,
+                  ],
+                );
+              },
             ),
           ),
         );

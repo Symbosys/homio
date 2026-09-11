@@ -117,6 +117,9 @@ abstract class AppRouter {
                   }
 
                   // Reports & Analytics Submenus
+                  if (sub.routeName == RouteNames.reportsExecutive) {
+                    return const ReportsExecutiveOverviewPage();
+                  }
                   if (sub.routeName == RouteNames.reportsMarketing) {
                     return const ReportsMarketingPage();
                   }
@@ -126,14 +129,26 @@ abstract class AppRouter {
                   if (sub.routeName == RouteNames.reportsDesign) {
                     return const ReportsDesignPage();
                   }
-                  if (sub.routeName == RouteNames.reportsExecution) {
+                  if (sub.routeName == RouteNames.reportsExecution || sub.routeName == RouteNames.reportsProjects) {
                     return const ReportsExecutionPage();
                   }
                   if (sub.routeName == RouteNames.reportsVendorRatings) {
                     return const ReportsVendorRatingsPage();
                   }
-                  if (sub.routeName == RouteNames.reportsFinances) {
+                  if (sub.routeName == RouteNames.reportsFinances || sub.routeName == RouteNames.reportsFinance) {
                     return const ReportsFinancesPage();
+                  }
+                  if (sub.routeName == RouteNames.reportsHr) {
+                    return const ReportsHrPage();
+                  }
+                  if (sub.routeName == RouteNames.reportsService) {
+                    return const ReportsServicePage();
+                  }
+                  if (sub.routeName == RouteNames.reportsFeedback) {
+                    return const ReportsFeedbackPage();
+                  }
+                  if (sub.routeName == RouteNames.reportsGoals) {
+                    return const ReportsGoalsPage();
                   }
 
                   // Sales & CRM Submenus
@@ -649,13 +664,30 @@ abstract class AppRouter {
                   }
 
                   // Organization & Roles Submenus
-                  if (sub.routeName == RouteNames.orgDepartments) {
+                  if (sub.routeName == RouteNames.orgDepartments ||
+                      sub.routePath == RouteNames.orgDepartmentsPath) {
                     return const OrgDepartmentsPage();
                   }
-                  if (sub.routeName == RouteNames.orgRoleLevels) {
-                    return const OrgRoleLevelsPage();
+                  if (sub.routeName == RouteNames.orgTeams ||
+                      sub.routePath == RouteNames.orgTeamsPath) {
+                    return const OrgTeamsPage();
                   }
-                  if (sub.routeName == RouteNames.orgAccessScope) {
+                  if (sub.routeName == RouteNames.orgEmployees ||
+                      sub.routePath == RouteNames.orgEmployeesPath) {
+                    return const OrgEmployeesPage();
+                  }
+                  if (sub.routeName == RouteNames.orgRoles ||
+                      sub.routePath == RouteNames.orgRolesPath ||
+                      sub.routeName == RouteNames.orgRoleLevels ||
+                      sub.routePath == RouteNames.orgRoleLevelsPath) {
+                    return const OrgRolesPage();
+                  }
+                  if (sub.routeName == RouteNames.orgPermissions ||
+                      sub.routePath == RouteNames.orgPermissionsPath) {
+                    return const OrgPermissionsPage();
+                  }
+                  if (sub.routeName == RouteNames.orgAccessScope ||
+                      sub.routePath == RouteNames.orgAccessScopePath) {
                     return const OrgAccessScopePage();
                   }
 
@@ -1311,24 +1343,77 @@ abstract class AppRouter {
 
       // 15. Reports & Analytics
       case 'reports_executive':
+      case '/reports/executive':
+        return const ReportsExecutiveOverviewPage();
+      case 'reports_marketing':
+      case '/reports/marketing':
         return const ReportsMarketingPage();
       case 'reports_sales':
+      case '/reports/sales':
         return const ReportsSalesPage();
-      case 'reports_design':
-        return const ReportsDesignPage();
+      case 'reports_projects':
+      case '/reports/projects':
       case 'reports_execution':
+      case '/reports/execution':
         return const ReportsExecutionPage();
-      case 'reports_service':
-        return const ReportsVendorRatingsPage();
+      case 'reports_design':
+      case '/reports/design':
+        return const ReportsDesignPage();
       case 'reports_finance':
+      case '/reports/finance':
+      case 'reports_finances':
+      case '/reports/finances':
         return const ReportsFinancesPage();
+      case 'reports_hr':
+      case '/reports/hr':
+        return const ReportsHrPage();
+      case 'reports_service':
+      case '/reports/service':
+      case 'reports_service_labour':
+      case '/reports/service-labour':
+        return const ReportsServicePage();
+      case 'reports_vendor_ratings':
+      case '/reports/vendor-ratings':
+        return const ReportsVendorRatingsPage();
+      case 'reports_feedback':
+      case '/reports/feedback':
+      case 'reports_customer_feedback':
+      case '/reports/customer-feedback':
+        return const ReportsFeedbackPage();
+      case 'reports_goals':
+      case '/reports/goals':
+      case 'reports_goals_productivity':
+      case '/reports/goals-productivity':
+        return const ReportsGoalsPage();
+
 
       // 16. Organization
       case 'org_departments':
+      case 'orgDepartments':
+      case '/organization/departments':
         return const OrgDepartmentsPage();
+      case 'org_teams':
+      case 'orgTeams':
+      case '/organization/teams':
+        return const OrgTeamsPage();
+      case 'org_employees':
+      case 'orgEmployees':
+      case '/organization/employees':
+        return const OrgEmployeesPage();
       case 'org_roles':
-        return const OrgRoleLevelsPage();
+      case 'orgRoles':
+      case '/organization/roles':
+      case 'org_role_levels':
+      case 'orgRoleLevels':
+      case '/organization/role-levels':
+        return const OrgRolesPage();
+      case 'org_permissions':
+      case 'orgPermissions':
+      case '/organization/permissions':
+        return const OrgPermissionsPage();
       case 'org_access_scope':
+      case 'orgAccessScope':
+      case '/organization/access-scope':
         return const OrgAccessScopePage();
 
       // 17. Administration

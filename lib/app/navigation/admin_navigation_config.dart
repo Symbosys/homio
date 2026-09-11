@@ -1028,7 +1028,6 @@ class AdminNavigationConfig {
       ],
     ),
 
-/*
     // 15. Reports & Analytics
     NavigationGroup(
       id: 'reports',
@@ -1066,6 +1065,7 @@ class AdminNavigationConfig {
           route: '/reports/projects',
           icon: Icons.speed_outlined,
           permission: 'reports.projects',
+          legacyAliases: ['/reports/execution'],
           keywords: ['on time delivery', 'delays', 'snag rate'],
         ),
         NavigationItem(
@@ -1082,15 +1082,16 @@ class AdminNavigationConfig {
           route: '/reports/finance',
           icon: Icons.savings_outlined,
           permission: 'reports.finance',
-          keywords: ['gross margin', 'cash collection'],
+          legacyAliases: ['/reports/finances'],
+          keywords: ['gross margin', 'cash collection', 'revenue', 'expenses', 'p&l'],
         ),
         NavigationItem(
           id: 'reports_hr',
           label: 'HR',
           route: '/reports/hr',
-          icon: Icons.groups_outlined,
+          icon: Icons.people_alt_outlined,
           permission: 'reports.hr',
-          keywords: ['headcount', 'attrition', 'travel costs'],
+          keywords: ['headcount', 'attendance', 'attrition', 'recruitment', 'payroll'],
         ),
         NavigationItem(
           id: 'reports_service_labour',
@@ -1098,15 +1099,17 @@ class AdminNavigationConfig {
           route: '/reports/service',
           icon: Icons.construction_outlined,
           permission: 'reports.labour',
-          keywords: ['work quality', 'dispute rate'],
+          legacyAliases: ['/reports/service-labour', '/reports/vendor-ratings'],
+          keywords: ['work quality', 'sla', 'labour productivity', 'tickets'],
         ),
         NavigationItem(
           id: 'reports_feedback',
           label: 'Customer Feedback',
           route: '/reports/feedback',
-          icon: Icons.rate_review_outlined,
+          icon: Icons.sentiment_very_satisfied_outlined,
           permission: 'reports.feedback',
-          keywords: ['nps ratings', 'escalations'],
+          legacyAliases: ['/reports/customer-feedback'],
+          keywords: ['csat', 'nps', 'reviews', 'complaints', 'sentiment'],
         ),
         NavigationItem(
           id: 'reports_goals',
@@ -1114,7 +1117,8 @@ class AdminNavigationConfig {
           route: '/reports/goals',
           icon: Icons.track_changes_outlined,
           permission: 'reports.goals',
-          keywords: ['targets', 'okr', 'achievement'],
+          legacyAliases: ['/reports/goals-productivity'],
+          keywords: ['okr', 'targets', 'achievement', 'kpi', 'throughput'],
         ),
       ],
     ),
@@ -1156,6 +1160,7 @@ class AdminNavigationConfig {
           route: '/organization/roles',
           icon: Icons.admin_panel_settings_outlined,
           permission: 'org.roles',
+          legacyAliases: ['/organization/role-levels'],
           keywords: ['job titles', 'role definitions'],
         ),
         NavigationItem(
@@ -1177,6 +1182,7 @@ class AdminNavigationConfig {
       ],
     ),
 
+/*
     // 17. Administration
     NavigationGroup(
       id: 'administration',

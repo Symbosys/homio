@@ -27,7 +27,8 @@ abstract class RouteNames {
   static const String dashboardWalletPath = '/dashboard/wallet';
 
   // 2. Reports & Analytics Submenu Routes
-  static const String reportsExecutive = '/reports/executive';
+  static const String reportsExecutive = 'reportsExecutive';
+  static const String reportsExecutivePath = '/reports/executive';
   static const String reportsMarketing = 'reportsMarketing';
   static const String reportsMarketingPath = '/reports/marketing';
 
@@ -39,17 +40,32 @@ abstract class RouteNames {
 
   static const String reportsExecution = 'reportsExecution';
   static const String reportsExecutionPath = '/reports/execution';
+  static const String reportsProjects = 'reportsProjects';
+  static const String reportsProjectsPath = '/reports/projects';
+
 
   static const String reportsVendorRatings = 'reportsVendorRatings';
   static const String reportsVendorRatingsPath = '/reports/vendor-ratings';
 
   static const String reportsFinances = 'reportsFinances';
   static const String reportsFinancesPath = '/reports/finances';
+  static const String reportsFinance = 'reportsFinance';
+  static const String reportsFinancePath = '/reports/finance';
 
-  static const String reportsHr = '/reports/hr';
-  static const String reportsService = '/reports/service';
-  static const String reportsFeedback = '/reports/feedback';
-  static const String reportsGoals = '/reports/goals';
+  static const String reportsHr = 'reportsHr';
+  static const String reportsHrPath = '/reports/hr';
+
+  static const String reportsService = 'reportsService';
+  static const String reportsServicePath = '/reports/service';
+  static const String reportsServiceLabourPath = '/reports/service-labour';
+
+  static const String reportsFeedback = 'reportsFeedback';
+  static const String reportsFeedbackPath = '/reports/feedback';
+  static const String reportsCustomerFeedbackPath = '/reports/customer-feedback';
+
+  static const String reportsGoals = 'reportsGoals';
+  static const String reportsGoalsPath = '/reports/goals';
+  static const String reportsGoalsProductivityPath = '/reports/goals-productivity';
 
   // Marketing Submenu Routes
   static const String marketingOverview = 'marketingOverview';
@@ -437,10 +453,17 @@ abstract class RouteNames {
   static const String orgDepartments = 'orgDepartments';
   static const String orgDepartmentsPath = '/organization/departments';
 
-  static const String orgTeams = '/organization/teams';
-  static const String orgEmployees = '/organization/employees';
-  static const String orgRoles = '/organization/roles';
-  static const String orgPermissions = '/organization/permissions';
+  static const String orgTeams = 'orgTeams';
+  static const String orgTeamsPath = '/organization/teams';
+
+  static const String orgEmployees = 'orgEmployees';
+  static const String orgEmployeesPath = '/organization/employees';
+
+  static const String orgRoles = 'orgRoles';
+  static const String orgRolesPath = '/organization/roles';
+
+  static const String orgPermissions = 'orgPermissions';
+  static const String orgPermissionsPath = '/organization/permissions';
 
   static const String orgRoleLevels = 'orgRoleLevels';
   static const String orgRoleLevelsPath = '/organization/role-levels';

@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/router/route_names.dart';
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 import '../../widgets/vastu_chakra_dial.dart';
 import '../../widgets/credit_confirmation_dialog.dart';
 
@@ -68,45 +68,22 @@ class _AiVastuConsultantPageState extends State<AiVastuConsultantPage> with Sing
         builder: (context, _) {
           return Column(
             children: [
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Vastu Consultant',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20, child: VerticalDivider(width: 1, thickness: 1)),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFF0284C7),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFF0284C7),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.add_chart_rounded, size: 15), text: 'New Analysis'),
-                          Tab(icon: const Icon(Icons.assessment_outlined, size: 15), text: 'My Reports (${repo.vastuReports.length})'),
-                          Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Analysis History (${repo.jobs.where((j) => j.productType == 'Vastu Consultant').length})'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'Vastu Consultant',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFF0284C7),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFF0284C7),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.add_chart_rounded, size: 15), text: 'New Analysis'),
+                    Tab(icon: const Icon(Icons.assessment_outlined, size: 15), text: 'My Reports (${repo.vastuReports.length})'),
+                    Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Analysis History (${repo.jobs.where((j) => j.productType == 'Vastu Consultant').length})'),
                   ],
                 ),
               ),
@@ -262,57 +239,113 @@ class _AiVastuConsultantPageState extends State<AiVastuConsultantPage> with Sing
                   ],
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    SizedBox(
-                      width: 260,
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _propertyType,
-                        decoration: const InputDecoration(labelText: 'Property Type', border: OutlineInputBorder()),
-                        items: const [
-                          DropdownMenuItem(value: 'Residential Apartment (3BHK)', child: Text('Residential Apartment (3BHK)')),
-                          DropdownMenuItem(value: 'Independent Villa / Bungalow', child: Text('Independent Villa')),
-                          DropdownMenuItem(value: 'Builder Floor Flat', child: Text('Builder Floor')),
-                          DropdownMenuItem(value: 'Commercial Office Space', child: Text('Commercial Office')),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 640;
+                    if (isCompact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DropdownButtonFormField<String>(
+                            initialValue: _propertyType,
+                            decoration: const InputDecoration(labelText: 'Property Type', border: OutlineInputBorder()),
+                            items: const [
+                              DropdownMenuItem(value: 'Residential Apartment (3BHK)', child: Text('Residential Apartment (3BHK)')),
+                              DropdownMenuItem(value: 'Independent Villa / Bungalow', child: Text('Independent Villa')),
+                              DropdownMenuItem(value: 'Builder Floor Flat', child: Text('Builder Floor')),
+                              DropdownMenuItem(value: 'Commercial Office Space', child: Text('Commercial Office')),
+                            ],
+                            onChanged: (v) => setState(() => _propertyType = v!),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _plotAreaCtrl,
+                                  decoration: const InputDecoration(labelText: 'Plot Area (Sq.Ft.)', border: OutlineInputBorder()),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _builtUpCtrl,
+                                  decoration: const InputDecoration(labelText: 'Built-up (Sq.Ft.)', border: OutlineInputBorder()),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<VastuDirection>(
+                            initialValue: _entranceDirection,
+                            decoration: const InputDecoration(labelText: 'Main Entrance Facing', border: OutlineInputBorder()),
+                            items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
+                            onChanged: (v) => setState(() => _entranceDirection = v!),
+                          ),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<VastuDirection>(
+                            initialValue: _kitchenDirection,
+                            decoration: const InputDecoration(labelText: 'Kitchen Zone', border: OutlineInputBorder()),
+                            items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
+                            onChanged: (v) => setState(() => _kitchenDirection = v!),
+                          ),
                         ],
-                        onChanged: (v) => setState(() => _propertyType = v!),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 140,
-                      child: TextFormField(
-                        controller: _plotAreaCtrl,
-                        decoration: const InputDecoration(labelText: 'Plot Area (Sq.Ft.)', border: OutlineInputBorder()),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 140,
-                      child: TextFormField(
-                        controller: _builtUpCtrl,
-                        decoration: const InputDecoration(labelText: 'Built-up (Sq.Ft.)', border: OutlineInputBorder()),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 220,
-                      child: DropdownButtonFormField<VastuDirection>(
-                        initialValue: _entranceDirection,
-                        decoration: const InputDecoration(labelText: 'Main Entrance Facing', border: OutlineInputBorder()),
-                        items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
-                        onChanged: (v) => setState(() => _entranceDirection = v!),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 220,
-                      child: DropdownButtonFormField<VastuDirection>(
-                        initialValue: _kitchenDirection,
-                        decoration: const InputDecoration(labelText: 'Kitchen Zone', border: OutlineInputBorder()),
-                        items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
-                        onChanged: (v) => setState(() => _kitchenDirection = v!),
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        SizedBox(
+                          width: 260,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _propertyType,
+                            decoration: const InputDecoration(labelText: 'Property Type', border: OutlineInputBorder()),
+                            items: const [
+                              DropdownMenuItem(value: 'Residential Apartment (3BHK)', child: Text('Residential Apartment (3BHK)')),
+                              DropdownMenuItem(value: 'Independent Villa / Bungalow', child: Text('Independent Villa')),
+                              DropdownMenuItem(value: 'Builder Floor Flat', child: Text('Builder Floor')),
+                              DropdownMenuItem(value: 'Commercial Office Space', child: Text('Commercial Office')),
+                            ],
+                            onChanged: (v) => setState(() => _propertyType = v!),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 140,
+                          child: TextFormField(
+                            controller: _plotAreaCtrl,
+                            decoration: const InputDecoration(labelText: 'Plot Area (Sq.Ft.)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 140,
+                          child: TextFormField(
+                            controller: _builtUpCtrl,
+                            decoration: const InputDecoration(labelText: 'Built-up (Sq.Ft.)', border: OutlineInputBorder()),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 220,
+                          child: DropdownButtonFormField<VastuDirection>(
+                            initialValue: _entranceDirection,
+                            decoration: const InputDecoration(labelText: 'Main Entrance Facing', border: OutlineInputBorder()),
+                            items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
+                            onChanged: (v) => setState(() => _entranceDirection = v!),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 220,
+                          child: DropdownButtonFormField<VastuDirection>(
+                            initialValue: _kitchenDirection,
+                            decoration: const InputDecoration(labelText: 'Kitchen Zone', border: OutlineInputBorder()),
+                            items: VastuDirection.values.map((d) => DropdownMenuItem(value: d, child: Text(d.label))).toList(),
+                            onChanged: (v) => setState(() => _kitchenDirection = v!),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -336,15 +369,21 @@ class _AiVastuConsultantPageState extends State<AiVastuConsultantPage> with Sing
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Cost: $cost Credits • Remaining Balance: ${repo.totalCredits} Credits', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, color: const Color(0xFF0284C7))),
-                    const Text('Generates full 16-zone Chakra report with non-demolition architectural remedies.', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  ],
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Cost: $cost Credits • Remaining Balance: ${repo.totalCredits} Credits', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, color: const Color(0xFF0284C7))),
+                      const Text('Generates full 16-zone Chakra report with non-demolition architectural remedies.', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    ],
+                  ),
                 ),
                 ElevatedButton.icon(
                   onPressed: () async {
@@ -476,16 +515,22 @@ class _AiVastuConsultantPageState extends State<AiVastuConsultantPage> with Sing
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(report.projectName, style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 4),
-                    Text('${report.propertyType} • Calibrated North: ${report.northCalibratedDegrees.toStringAsFixed(1)}°', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                  ],
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(report.projectName, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      Text('${report.propertyType} • Calibrated North: ${report.northCalibratedDegrees.toStringAsFixed(1)}°', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    ],
+                  ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -509,99 +554,106 @@ class _AiVastuConsultantPageState extends State<AiVastuConsultantPage> with Sing
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 900;
-              return Flex(
-                direction: isWide ? Axis.horizontal : Axis.vertical,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              final dialWidget = Container(
+                height: 380,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF111827) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0)),
+                ),
+                child: Center(
+                  child: VastuChakraDial(calibratedDegrees: report.northCalibratedDegrees),
+                ),
+              );
+
+              final observationsWidget = Column(
                 children: [
-                  Expanded(
-                    flex: isWide ? 5 : 0,
-                    child: Container(
-                      height: 380,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF111827) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Center(
-                        child: VastuChakraDial(calibratedDegrees: report.northCalibratedDegrees),
-                      ),
+                  // Positive Observations
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF111827) : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
                     ),
-                  ),
-                  if (isWide) const SizedBox(width: 20) else const SizedBox(height: 20),
-                  Expanded(
-                    flex: isWide ? 6 : 0,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Positive Observations
-                        Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF111827) : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 18),
+                            const SizedBox(width: 8),
+                            Text('Positive Observations', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF10B981))),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ...report.positiveObservations.map((obs) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 18),
-                                  const SizedBox(width: 8),
-                                  Text('Positive Observations', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF10B981))),
+                                  const Text('• ', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                                  Expanded(child: Text(obs, style: const TextStyle(fontSize: 12))),
                                 ],
                               ),
-                              const SizedBox(height: 10),
-                              ...report.positiveObservations.map((obs) => Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('• ', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                                        Expanded(child: Text(obs, style: const TextStyle(fontSize: 12))),
-                                      ],
-                                    ),
-                                  )),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Areas Requiring Attention & Non-Demolition Remedies
-                        Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF111827) : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 18),
-                                  const SizedBox(width: 8),
-                                  Text('Areas Requiring Attention & Remedies', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFFF59E0B))),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              ...report.remedies.map((rem) => Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Issue: ${rem.issue}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        Text('Remedy: ${rem.recommendedRemedy}', style: const TextStyle(fontSize: 12, color: Color(0xFF0284C7))),
-                                        Text('Note: ${rem.implementationNote}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                                      ],
-                                    ),
-                                  )),
-                            ],
-                          ),
-                        ),
+                            )),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  // Areas Requiring Attention & Non-Demolition Remedies
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF111827) : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 18),
+                            const SizedBox(width: 8),
+                            Text('Areas Requiring Attention & Remedies', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFFF59E0B))),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ...report.remedies.map((rem) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Issue: ${rem.issue}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Text('Remedy: ${rem.recommendedRemedy}', style: const TextStyle(fontSize: 12, color: Color(0xFF0284C7))),
+                                  Text('Note: ${rem.implementationNote}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+
+              if (isWide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 5, child: dialWidget),
+                    const SizedBox(width: 20),
+                    Expanded(flex: 6, child: observationsWidget),
+                  ],
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  dialWidget,
+                  const SizedBox(height: 20),
+                  observationsWidget,
                 ],
               );
             },

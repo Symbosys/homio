@@ -89,14 +89,16 @@ class _AiCommercialConfigDialogState extends State<AiCommercialConfigDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
+        constraints: BoxConstraints(maxWidth: 620, maxHeight: screenHeight * 0.88),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -118,17 +120,20 @@ class _AiCommercialConfigDialogState extends State<AiCommercialConfigDialog> {
                         Text(
                           'Commercial Rules & Pricing Engine',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Configure platform vs designer revenue splits, credit costs & free allowances',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
                       ],
                     ),
@@ -332,20 +337,21 @@ class _AiCommercialConfigDialogState extends State<AiCommercialConfigDialog> {
               const SizedBox(height: 16),
 
               // Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 10,
+                runSpacing: 8,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text('Cancel', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                   ),
-                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: _saveConfig,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7C3AED),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       elevation: 0,
                     ),
@@ -372,6 +378,7 @@ class _AiCommercialConfigDialogState extends State<AiCommercialConfigDialog> {
         Text(
           label,
           style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
         TextFormField(

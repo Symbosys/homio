@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/ai_suite_models.dart';
 import '../../data/ai_suite_repository.dart';
-import '../../widgets/compact_ai_suite_actions.dart';
+import '../../widgets/ai_suite_tool_header.dart';
 import '../../widgets/credit_confirmation_dialog.dart';
 
 class AiBudgetCalculatorPage extends StatefulWidget {
@@ -85,45 +85,22 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
         builder: (context, _) {
           return Column(
             children: [
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF111827) : Colors.white,
-                  border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'Budget Calculator',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20, child: VerticalDivider(width: 1, thickness: 1)),
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        labelColor: const Color(0xFF10B981),
-                        unselectedLabelColor: const Color(0xFF64748B),
-                        indicatorColor: const Color(0xFF10B981),
-                        indicatorWeight: 2,
-                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
-                        tabs: [
-                          const Tab(icon: Icon(Icons.calculate_outlined, size: 15), text: 'New Estimate'),
-                          Tab(icon: const Icon(Icons.save_outlined, size: 15), text: 'Saved Estimates (${repo.budgetEstimates.length})'),
-                          Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Estimate History (${repo.jobs.where((j) => j.productType == 'Budget Calculator').length})'),
-                        ],
-                      ),
-                    ),
-                    const CompactAiSuiteActions(),
+              AiSuiteToolHeader(
+                title: 'Budget Calculator',
+                tabBar: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: const Color(0xFF10B981),
+                  unselectedLabelColor: const Color(0xFF64748B),
+                  indicatorColor: const Color(0xFF10B981),
+                  indicatorWeight: 2,
+                  labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                  tabs: [
+                    const Tab(icon: Icon(Icons.calculate_outlined, size: 15), text: 'New Estimate'),
+                    Tab(icon: const Icon(Icons.save_outlined, size: 15), text: 'Saved Estimates (${repo.budgetEstimates.length})'),
+                    Tab(icon: const Icon(Icons.history_rounded, size: 15), text: 'Estimate History (${repo.jobs.where((j) => j.productType == 'Budget Calculator').length})'),
                   ],
                 ),
               ),
@@ -410,40 +387,87 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
         children: [
           Text('Enter Dimensions & Measurement Units', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              SizedBox(
-                width: 110,
-                child: TextFormField(controller: _widthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Width (Ft)', border: OutlineInputBorder())),
-              ),
-              SizedBox(
-                width: 110,
-                child: TextFormField(controller: _heightCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Height (Ft)', border: OutlineInputBorder())),
-              ),
-              SizedBox(
-                width: 110,
-                child: TextFormField(controller: _depthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Depth (Ft)', border: OutlineInputBorder())),
-              ),
-              SizedBox(
-                width: 90,
-                child: TextFormField(controller: _quantityCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Quantity', border: OutlineInputBorder())),
-              ),
-              SizedBox(
-                width: 130,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _unit,
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Unit', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'Sq.Ft.', child: Text('Sq.Ft.', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Running Ft.', child: Text('Running Ft.', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Piece/Nos', child: Text('Piece/Nos', style: TextStyle(fontSize: 12))),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 560;
+
+              if (isCompact) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(controller: _widthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Width (Ft)', border: OutlineInputBorder())),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(controller: _heightCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Height (Ft)', border: OutlineInputBorder())),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(controller: _depthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Depth (Ft)', border: OutlineInputBorder())),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(controller: _quantityCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Quantity', border: OutlineInputBorder())),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _unit,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Unit', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Sq.Ft.', child: Text('Sq.Ft.', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Running Ft.', child: Text('Running Ft.', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Piece/Nos', child: Text('Piece/Nos', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _unit = v!),
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _unit = v!),
-                ),
-              ),
-            ],
+                );
+              }
+
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    child: TextFormField(controller: _widthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Width (Ft)', border: OutlineInputBorder())),
+                  ),
+                  SizedBox(
+                    width: 110,
+                    child: TextFormField(controller: _heightCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Height (Ft)', border: OutlineInputBorder())),
+                  ),
+                  SizedBox(
+                    width: 110,
+                    child: TextFormField(controller: _depthCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Depth (Ft)', border: OutlineInputBorder())),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    child: TextFormField(controller: _quantityCtrl, style: const TextStyle(fontSize: 12), decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Quantity', border: OutlineInputBorder())),
+                  ),
+                  SizedBox(
+                    width: 130,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _unit,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Unit', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Sq.Ft.', child: Text('Sq.Ft.', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Running Ft.', child: Text('Running Ft.', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Piece/Nos', child: Text('Piece/Nos', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _unit = v!),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -460,55 +484,105 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
         children: [
           Text('Core Materials, Grade & Hardware Specifications', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              SizedBox(
-                width: 200,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _coreMaterial,
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Core Material', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'Plywood', child: Text('Plywood (BWP / BWR)', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'HDHMR', child: Text('HDHMR (High Moisture Resistance)', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'MDF', child: Text('MDF', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Particle Board', child: Text('Particle Board', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Solid Wood', child: Text('Solid Wood (Teak/Sheesham)', style: TextStyle(fontSize: 12))),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 620;
+
+              if (isCompact) {
+                return Column(
+                  children: [
+                    DropdownButtonFormField<String>(
+                      initialValue: _coreMaterial,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Core Material', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Plywood', child: Text('Plywood (BWP / BWR)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'HDHMR', child: Text('HDHMR (High Moisture Resistance)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'MDF', child: Text('MDF', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Particle Board', child: Text('Particle Board', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Solid Wood', child: Text('Solid Wood (Teak/Sheesham)', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _coreMaterial = v!),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _finish,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'External Finish', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Laminate', child: Text('Laminate (1mm Matte/Gloss)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Acrylic', child: Text('Acrylic (Anti-scratch)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Veneer', child: Text('Natural Wood Veneer + PU', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'PU', child: Text('PU Polish / Deco Paint', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Membrane', child: Text('Membrane', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _finish = v!),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _hardware,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Hardware Fitting', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Standard', child: Text('Standard', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Premium', child: Text('Premium', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Soft-close', child: Text('Soft-close (Hafele/Blum)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Custom', child: Text('Custom Luxury', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _hardware = v!),
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _coreMaterial = v!),
-                ),
-              ),
-              SizedBox(
-                width: 180,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _finish,
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'External Finish', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'Laminate', child: Text('Laminate (1mm Matte/Gloss)', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Acrylic', child: Text('Acrylic (Anti-scratch)', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Veneer', child: Text('Natural Wood Veneer + PU', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'PU', child: Text('PU Polish / Deco Paint', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Membrane', child: Text('Membrane', style: TextStyle(fontSize: 12))),
-                  ],
-                  onChanged: (v) => setState(() => _finish = v!),
-                ),
-              ),
-              SizedBox(
-                width: 180,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _hardware,
-                  decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Hardware Fitting', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'Standard', child: Text('Standard', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Premium', child: Text('Premium', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Soft-close', child: Text('Soft-close (Hafele/Blum)', style: TextStyle(fontSize: 12))),
-                    DropdownMenuItem(value: 'Custom', child: Text('Custom Luxury', style: TextStyle(fontSize: 12))),
-                  ],
-                  onChanged: (v) => setState(() => _hardware = v!),
-                ),
-              ),
-            ],
+                );
+              }
+
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _coreMaterial,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Core Material', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Plywood', child: Text('Plywood (BWP / BWR)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'HDHMR', child: Text('HDHMR (High Moisture Resistance)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'MDF', child: Text('MDF', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Particle Board', child: Text('Particle Board', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Solid Wood', child: Text('Solid Wood (Teak/Sheesham)', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _coreMaterial = v!),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 180,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _finish,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'External Finish', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Laminate', child: Text('Laminate (1mm Matte/Gloss)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Acrylic', child: Text('Acrylic (Anti-scratch)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Veneer', child: Text('Natural Wood Veneer + PU', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'PU', child: Text('PU Polish / Deco Paint', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Membrane', child: Text('Membrane', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _finish = v!),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 180,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _hardware,
+                      decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8), labelText: 'Hardware Fitting', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'Standard', child: Text('Standard', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Premium', child: Text('Premium', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Soft-close', child: Text('Soft-close (Hafele/Blum)', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'Custom', child: Text('Custom Luxury', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _hardware = v!),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -562,17 +636,23 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
             gradient: const LinearGradient(colors: [Color(0xFF065F46), Color(0xFF047857), Color(0xFF059669)]),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10,
+            runSpacing: 8,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('TOTAL ESTIMATED INTERIOR COST', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
-                  const SizedBox(height: 2),
-                  Text('₹${est.totalEstimate.toInt()}', style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
-                  Text('${est.furnitureType} • ${est.width.toInt()}x${est.height.toInt()} ft (${est.unit})', style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                ],
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 450),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('TOTAL ESTIMATED INTERIOR COST', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
+                    const SizedBox(height: 2),
+                    Text('₹${est.totalEstimate.toInt()}', style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+                    Text('${est.furnitureType} • ${est.width.toInt()}x${est.height.toInt()} ft (${est.unit})', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -608,31 +688,35 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
         Text('Itemized Bill of Quantities (BOQ)', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Container(
+          width: double.infinity,
           decoration: BoxDecoration(color: isDark ? const Color(0xFF111827) : Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0))),
-          child: DataTable(
-            headingRowHeight: 34,
-            dataRowMinHeight: 30,
-            dataRowMaxHeight: 34,
-            columns: const [
-              DataColumn(label: Text('Item', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Specification', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Qty', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Rate (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-              DataColumn(label: Text('Amount (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-            ],
-            rows: est.boqItems.map((b) {
-              return DataRow(
-                cells: [
-                  DataCell(Text(b.item, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                  DataCell(Text(b.specification, style: const TextStyle(fontSize: 11))),
-                  DataCell(Text(b.quantity.toInt().toString(), style: const TextStyle(fontSize: 11))),
-                  DataCell(Text(b.unit, style: const TextStyle(fontSize: 11))),
-                  DataCell(Text('₹${b.estimatedRate.toInt()}', style: const TextStyle(fontSize: 11))),
-                  DataCell(Text('₹${b.estimatedAmount.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 11))),
-                ],
-              );
-            }).toList(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowHeight: 34,
+              dataRowMinHeight: 30,
+              dataRowMaxHeight: 34,
+              columns: const [
+                DataColumn(label: Text('Item', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('Specification', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('Qty', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('Rate (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                DataColumn(label: Text('Amount (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              ],
+              rows: est.boqItems.map((b) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(b.item, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                    DataCell(Text(b.specification, style: const TextStyle(fontSize: 11))),
+                    DataCell(Text(b.quantity.toInt().toString(), style: const TextStyle(fontSize: 11))),
+                    DataCell(Text(b.unit, style: const TextStyle(fontSize: 11))),
+                    DataCell(Text('₹${b.estimatedRate.toInt()}', style: const TextStyle(fontSize: 11))),
+                    DataCell(Text('₹${b.estimatedAmount.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 11))),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -701,17 +785,24 @@ class _AiBudgetCalculatorPageState extends State<AiBudgetCalculatorPage> with Si
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(est.title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
-                    Text('${est.projectName} • ${est.coreMaterial} • ${est.finish}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  ],
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 340),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(est.title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
+                      Text('${est.projectName} • ${est.coreMaterial} • ${est.finish}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    ],
+                  ),
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('₹${est.totalEstimate.toInt()}', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF10B981))),
                     const SizedBox(width: 8),

@@ -52,149 +52,167 @@ class _VastuChakraDialState extends State<VastuChakraDial> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Dial Canvas & Stack
-        SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Outer Glow Ring
-              Container(
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF6366F1).withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dialSize = math.min(widget.size, math.max(200.0, constraints.maxWidth - 24));
 
-              // Rotating Vastu Compass Canvas
-              GestureDetector(
-                onPanUpdate: (details) {
-                  final renderBox = context.findRenderObject() as RenderBox?;
-                  if (renderBox == null) return;
-                  final center = renderBox.size.center(Offset.zero);
-                  final touch = details.localPosition;
-                  final angle = math.atan2(touch.dy - center.dy, touch.dx - center.dx);
-                  double degrees = angle * (180 / math.pi) + 90;
-                  if (degrees < 0) degrees += 360;
-                  widget.onNorthDegreesChanged?.call(degrees % 360);
-                },
-                child: CustomPaint(
-                  size: Size(widget.size, widget.size),
-                  painter: _VastuDialPainter(
-                    northAngle: widget.northDegrees * (math.pi / 180),
-                    zones: widget.zones,
-                    selectedZone: widget.selectedZone,
-                    isDark: isDark,
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Dial Canvas & Stack
+            SizedBox(
+              width: dialSize,
+              height: dialSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Outer Glow Ring
+                  Container(
+                    width: dialSize,
+                    height: dialSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF6366F1).withValues(alpha: 0.15),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
 
-              // Center Hub with North Indicator
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                  border: Border.all(
-                    color: const Color(0xFF8B5CF6),
-                    width: 2.5,
+                  // Rotating Vastu Compass Canvas
+                  GestureDetector(
+                    onPanUpdate: (details) {
+                      final renderBox = context.findRenderObject() as RenderBox?;
+                      if (renderBox == null) return;
+                      final center = renderBox.size.center(Offset.zero);
+                      final touch = details.localPosition;
+                      final angle = math.atan2(touch.dy - center.dy, touch.dx - center.dx);
+                      double degrees = angle * (180 / math.pi) + 90;
+                      if (degrees < 0) degrees += 360;
+                      widget.onNorthDegreesChanged?.call(degrees % 360);
+                    },
+                    child: CustomPaint(
+                      size: Size(dialSize, dialSize),
+                      painter: _VastuDialPainter(
+                        northAngle: widget.northDegrees * (math.pi / 180),
+                        zones: widget.zones,
+                        selectedZone: widget.selectedZone,
+                        isDark: isDark,
+                      ),
+                    ),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+
+                  // Center Hub with North Indicator
+                  Container(
+                    width: dialSize < 240 ? 60 : 76,
+                    height: dialSize < 240 ? 60 : 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6),
+                        width: 2.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.explore_rounded,
+                            size: dialSize < 240 ? 16 : 22,
+                            color: const Color(0xFFEF4444),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${widget.northDegrees.toInt()}° N',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: dialSize < 240 ? 9.5 : 11,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Slider for Fine Angle Tuning with Wrap to prevent overflow
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.rotate_right_rounded, size: 18, color: Color(0xFF8B5CF6)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Align North Compass:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.explore_rounded,
-                        size: 22,
-                        color: Color(0xFFEF4444),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 140,
+                      child: Slider(
+                        value: widget.northDegrees,
+                        min: 0,
+                        max: 360,
+                        divisions: 72,
+                        activeColor: const Color(0xFF7C3AED),
+                        inactiveColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        onChanged: widget.onNorthDegreesChanged ?? (_) {},
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${widget.northDegrees.toInt()}° N',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
                         ),
                       ),
-                    ],
-                  ),
+                      child: Text(
+                        '${widget.northDegrees.toStringAsFixed(1)}°',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF7C3AED),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Slider for Fine Angle Tuning
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.rotate_right_rounded, size: 18, color: Color(0xFF8B5CF6)),
-            const SizedBox(width: 8),
-            Text(
-              'Align North Compass:',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-              ),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 180,
-              child: Slider(
-                value: widget.northDegrees,
-                min: 0,
-                max: 360,
-                divisions: 72,
-                activeColor: const Color(0xFF7C3AED),
-                inactiveColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                onChanged: widget.onNorthDegreesChanged ?? (_) {},
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                ),
-              ),
-              child: Text(
-                '${widget.northDegrees.toStringAsFixed(1)}°',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF7C3AED),
-                ),
-              ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }

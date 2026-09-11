@@ -115,48 +115,56 @@ class AiStudioOverviewPage extends StatelessWidget {
                 child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Homio AI Studio',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: isMobile ? 15 : 17,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.3,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          'ENTERPRISE v3.0',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF10B981),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isMobile ? 240 : 500),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Homio AI Studio',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: isMobile ? 15 : 17,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.3,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Intelligent interior visualization, Vastu audit, cost estimation & designer marketplace.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      color: const Color(0xFF64748B),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                          ),
+                          child: Text(
+                            'ENTERPRISE v3.0',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF10B981),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      'Intelligent interior visualization, Vastu audit, cost estimation & designer marketplace.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -405,10 +413,14 @@ class AiStudioOverviewPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF10B981), size: 16),
                   const SizedBox(width: 6),
@@ -763,12 +775,15 @@ class AiStudioOverviewPage extends StatelessWidget {
                 ),
                 title: Row(
                   children: [
-                    Text(
-                      job.title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    Flexible(
+                      child: Text(
+                        job.title,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),

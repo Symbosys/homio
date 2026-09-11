@@ -1,20 +1,19 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
-import '../../dashboard/widgets/compact_data_table.dart';
 import '../models/reports_mock_data.dart';
 import '../models/reports_models.dart';
 import '../widgets/reports_charts.dart';
-import '../widgets/reports_header.dart';
-import '../widgets/reports_metric_card.dart';
+import '../widgets/reports_common_widgets.dart';
+import '../widgets/reports_controls_bar.dart';
+import '../widgets/reports_drilldown_modal.dart';
+import '../widgets/reports_export_dialog.dart';
+import '../widgets/reports_filter_drawer.dart';
 
-/// Financial Summary Executive Screen.
-/// Provides cash outflow allocations across Material procurement, Labour disbursements,
-/// Design fees, Consulting retainers, and project-level transaction ledgers.
+/// Screen 6: Finance Analytics Screen.
+/// Enterprise-grade financial intelligence layer for Homio CRM.
 class ReportsFinancesPage extends StatefulWidget {
   const ReportsFinancesPage({super.key});
 
@@ -23,13 +22,42 @@ class ReportsFinancesPage extends StatefulWidget {
 }
 
 class _ReportsFinancesPageState extends State<ReportsFinancesPage> {
-  ReportDateFilter _dateFilter = ReportDateFilter.thisMonth;
-  final List<FinancialOutflowLedgerItem> _outflows = List.from(ReportsMockData.financialOutflows);
+  ReportFilterState _filterState = const ReportFilterState();
+  String _trendGranularity = 'Monthly';
+  String _revenueDimension = 'Project';
+
+  void _onDrillDown(String title, String category, String metricValue, List<Map<String, dynamic>> records) {
+    ReportsDrilldownModal.show(
+      context,
+      title: title,
+      category: category,
+      metricValue: metricValue,
+      records: records,
+    );
+  }
+
+  void _openExportDialog() {
+    ReportsExportDialog.show(
+      context,
+      reportTitle: 'Finance Analytics Report',
+      dateRangeLabel: _filterState.dateFilter.label,
+    );
+  }
+
+  void _openFilterDrawer() {
+    ReportsFilterDrawer.show(
+      context,
+      initialFilter: _filterState,
+      onApply: (newFilter) {
+        setState(() => _filterState = newFilter);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     final isMobile = width < 768;
     final isTablet = width >= 768 && width < 1100;
 
@@ -44,40 +72,98 @@ class _ReportsFinancesPageState extends State<ReportsFinancesPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              ReportHeader(
-                title: 'Financial Summary & Disbursements',
-                subtitle: 'Cash outflows across material supply, contractor disbursements, architectural fees & consulting retainers',
-                icon: Icons.payments_rounded,
-                activeFilter: _dateFilter,
-                onFilterChanged: (val) => setState(() => _dateFilter = val),
-                primaryAction: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.file_download_outlined, size: 14),
-                  label: Text(
-                    'Export Financials',
-                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                    shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
-                  ),
-                ),
+              // 1. Controls Bar
+              ReportsControlsBar(
+                title: 'Finance Analytics',
+                subtitle: 'Monitor revenue, expenses, profitability, receivables, payables, collections, and cash flow',
+                icon: Icons.savings_rounded,
+                filterState: _filterState,
+                onFilterChanged: (newFilter) => setState(() => _filterState = newFilter),
+                onOpenFilterDrawer: _openFilterDrawer,
+                onExport: _openExportDialog,
+                onRefresh: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Financial ledgers and bank disbursements refreshed', style: GoogleFonts.inter(fontSize: 12)),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                onSaveView: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Saved current financial view preset'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
               ),
 
-              // 4 Financial KPIs
-              _buildKpis(isMobile, isTablet),
-              const SizedBox(height: 18),
+              // 2. Priority Financial KPIs
+              _buildFinancialKpis(isMobile, isTablet),
+              const SizedBox(height: 16),
 
-              // Outflow Donut & Budget Utilization Summary Row
-              _buildOutflowAndBudgetRow(isDark, isMobile, isTablet),
-              const SizedBox(height: 18),
+              // 3. Revenue vs Expense Trend Chart
+              ReportFinanceRevExpTrendChart(
+                points: ReportsMockData.financeTrendPoints,
+                granularity: _trendGranularity,
+                onGranularityChanged: (g) => setState(() => _trendGranularity = g),
+              ),
+              const SizedBox(height: 16),
 
-              // Full-Width Project-Level Outflows Ledger Table
-              _buildOutflowsTable(isDark),
+              // 4. Revenue Breakdown & Expense Analysis (Split Grid)
+              if (isMobile || isTablet) ...[
+                _buildRevenueBreakdownSection(isDark),
+                const SizedBox(height: 16),
+                _buildExpenseAnalysisSection(isDark),
+              ] else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: _buildRevenueBreakdownSection(isDark),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 5,
+                      child: _buildExpenseAnalysisSection(isDark),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              // 5. Receivables Aging & Customer Collections
+              if (isMobile || isTablet) ...[
+                _buildReceivablesAgingCard(isDark),
+                const SizedBox(height: 16),
+                _buildCustomerCollectionsSection(isDark, isMobile),
+              ] else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: _buildReceivablesAgingCard(isDark),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 7,
+                      child: _buildCustomerCollectionsSection(isDark, isMobile),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              // 6. Vendor & Labour Payables Table
+              _buildPayablesSection(isDark, isMobile),
+              const SizedBox(height: 16),
+
+              // 7. Master Financial Performance Ledger Table
+              _buildMasterFinancialTable(isDark, isMobile),
               const SizedBox(height: 24),
             ],
           ),
@@ -86,337 +172,612 @@ class _ReportsFinancesPageState extends State<ReportsFinancesPage> {
     );
   }
 
-  Widget _buildKpis(bool isMobile, bool isTablet) {
-    final kpis = ReportsMockData.financialKpis;
-    final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 4);
+  // ==========================================================================
+  // SECTION 1: FINANCIAL KPIS
+  // ==========================================================================
+  Widget _buildFinancialKpis(bool isMobile, bool isTablet) {
+    final kpis = ReportsMockData.financeDetailedKpis;
+    final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : (MediaQuery.sizeOf(context).width > 1500 ? 6 : 3));
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        mainAxisExtent: 118,
+        mainAxisExtent: 135,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
       itemCount: kpis.length,
       itemBuilder: (context, index) {
-        return ReportMetricCard(metric: kpis[index]);
+        final kpi = kpis[index];
+        return EnterpriseKpiCard(
+          title: kpi.title,
+          value: kpi.value,
+          previousValue: kpi.previousValue,
+          growthPercent: kpi.growthPercent,
+          isPositive: kpi.isPositive,
+          targetText: kpi.target,
+          targetProgress: kpi.targetAchievementPercent / 100,
+          icon: kpi.icon,
+          color: kpi.color,
+          onTap: () {
+            _onDrillDown(
+              kpi.title,
+              kpi.category,
+              kpi.value,
+              [
+                {
+                  'title': 'DLF Camellias Phase 2 Escrow Disbursement',
+                  'subtitle': 'Client: Rajiv Singhania • ICICI Bank Escrow',
+                  'status': 'Settled',
+                  'statusColor': const Color(0xFF10B981),
+                  'metric': '₹14,50,000',
+                  'date': 'Sep 06, 2026',
+                  'badge': 'Milestone 2',
+                },
+                {
+                  'title': 'Indiranagar Villa Material Advance',
+                  'subtitle': 'Client: Dr. Ananya Reddy • Direct RTGS',
+                  'status': 'Cleared',
+                  'statusColor': const Color(0xFF3B82F6),
+                  'metric': '₹8,20,000',
+                  'date': 'Sep 04, 2026',
+                  'badge': 'Plywood & Hardware',
+                },
+                {
+                  'title': 'Bandra Duplex Designer Retainer',
+                  'subtitle': 'Client: Vikram Merchant • GST Invoice',
+                  'status': 'Audited',
+                  'statusColor': const Color(0xFF6366F1),
+                  'metric': '₹3,50,000',
+                  'date': 'Sep 02, 2026',
+                  'badge': 'Design Fee',
+                },
+              ],
+            );
+          },
+        );
       },
     );
   }
 
-  Widget _buildOutflowAndBudgetRow(bool isDark, bool isMobile, bool isTablet) {
-    if (isMobile || isTablet) {
-      return Column(
-        children: [
-          const ReportFinancialOutflowDonutChart(),
-          const SizedBox(height: 16),
-          _buildBudgetHealthCard(isDark),
-        ],
-      );
-    }
+  // ==========================================================================
+  // SECTION 2: REVENUE BREAKDOWN BY DIMENSION
+  // ==========================================================================
+  Widget _buildRevenueBreakdownSection(bool isDark) {
+    final items = ReportsMockData.financeRevenueBreakdown;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Expanded(
-          flex: 5,
-          child: ReportFinancialOutflowDonutChart(),
+    return ReportSectionContainer(
+      title: 'Revenue & Gross Margin Breakdown',
+      subtitle: 'Analyze gross earnings, direct costs, and contribution margins',
+      icon: Icons.pie_chart_outline_rounded,
+      iconColor: const Color(0xFF10B981),
+      trailing: Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          borderRadius: AppRadius.sm,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 5,
-          child: _buildBudgetHealthCard(isDark),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBudgetHealthCard(bool isDark) {
-    return Container(
-      height: 260,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: AppRadius.md,
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: ['Project', 'Customer', 'Branch'].map((d) {
+            final isSelected = _revenueDimension == d;
+            return InkWell(
+              onTap: () => setState(() => _revenueDimension = d),
+              borderRadius: AppRadius.xs,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isSelected ? (isDark ? AppColors.primary : Colors.white) : Colors.transparent,
+                  borderRadius: AppRadius.xs,
+                  boxShadow: isSelected && !isDark ? [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 2, offset: const Offset(0, 1))
+                  ] : null,
+                ),
+                child: Text(
+                  d,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? (isDark ? Colors.white : AppColors.primary)
+                        : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.account_balance_rounded, size: 16, color: Color(0xFF3B82F6)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Project Budget Variance & Health',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                  ),
+        children: items.map((item) {
+          return InkWell(
+            onTap: () {
+              _onDrillDown(
+                item.title,
+                'Project Scope',
+                '₹${(item.revenue / 100000).toStringAsFixed(2)}L',
+                [
+                  {
+                    'title': 'Gross Invoiced Contract',
+                    'subtitle': 'Client: ${item.customerOrClient}',
+                    'status': item.projectStatus,
+                    'statusColor': const Color(0xFF10B981),
+                    'metric': '₹${(item.revenue / 100000).toStringAsFixed(2)}L',
+                    'date': 'Current Period',
+                    'badge': 'Direct Margin ${item.marginPercent}%',
+                  },
+                ],
+              );
+            },
+            borderRadius: AppRadius.sm,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : const Color(0xFFF8FAFC),
+                borderRadius: AppRadius.sm,
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  width: 0.8,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: AppRadius.full,
-                ),
-                child: Text(
-                  'Within 3.2% Target',
-                  style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFF10B981)),
-                ),
-              ),
-            ],
-          ),
-          _budgetRow('Material Price Fluctuation (Hafele/Plywood)', '₹42.8L / ₹44.0L', 0.97, const Color(0xFF3B82F6), isDark),
-          _budgetRow('Labour & Contractor Daily Wages', '₹18.4L / ₹19.0L', 0.96, const Color(0xFF10B981), isDark),
-          _budgetRow('Design Milestone Commissions', '₹6.2L / ₹6.5L', 0.95, const Color(0xFF8B5CF6), isDark),
-          _budgetRow('Engineering & Vastu Retainers', '₹3.1L / ₹3.2L', 0.96, const Color(0xFFF59E0B), isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _budgetRow(String title, String ratio, double pct, Color color, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white : AppColors.lightTextPrimary),
-            ),
-            Text(
-              ratio,
-              style: GoogleFonts.jetBrainsMono(fontSize: 10.5, fontWeight: FontWeight.w700, color: color),
-            ),
-          ],
-        ),
-        const SizedBox(height: 3),
-        LinearProgressIndicator(
-          value: pct,
-          minHeight: 4,
-          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOutflowsTable(bool isDark) {
-    return CompactTableCard(
-      title: 'Project Cash Outflows & Settlement Ledger',
-      subtitle: 'Verified bank transfers, escrow releases, and vendor payment vouchers with invoice references',
-      trailing: OutlinedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.file_download_outlined, size: 13),
-        label: Text('Tax Statement', style: GoogleFonts.inter(fontSize: 11)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          visualDensity: VisualDensity.compact,
-          side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-        ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final tableWidth = math.max(constraints.maxWidth, 960.0);
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: tableWidth,
-              child: Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(1.4), // TXN ID
-                  1: FlexColumnWidth(2.8), // PROJECT & CLIENT
-                  2: FlexColumnWidth(2.2), // CATEGORY
-                  3: FlexColumnWidth(2.6), // RECIPIENT
-                  4: FlexColumnWidth(1.6), // AMOUNT (₹)
-                  5: FlexColumnWidth(1.4), // DATE
-                  6: FlexColumnWidth(1.4), // METHOD
-                  7: FlexColumnWidth(1.3), // STATUS
-                  8: FlexColumnWidth(0.9), // INVOICE
-                },
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              child: Row(
                 children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    children: [
-                      _buildHeaderCell('TXN ID', isDark),
-                      _buildHeaderCell('PROJECT / CLIENT', isDark),
-                      _buildHeaderCell('CATEGORY', isDark),
-                      _buildHeaderCell('RECIPIENT VENDOR', isDark),
-                      _buildHeaderCell('AMOUNT (₹)', isDark),
-                      _buildHeaderCell('DATE', isDark),
-                      _buildHeaderCell('METHOD', isDark),
-                      _buildHeaderCell('STATUS', isDark),
-                      _buildHeaderCell('INVOICE', isDark, align: TextAlign.center),
-                    ],
-                  ),
-                  ..._outflows.map((tx) {
-                    return TableRow(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark ? AppColors.darkBorder.withValues(alpha: 0.5) : AppColors.lightBorder.withValues(alpha: 0.8),
-                            width: 0.8,
-                          ),
-                        ),
-                      ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // TXN ID
-                        _buildDataCell(
-                          Text(
-                            tx.txnId,
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
-                            ),
+                        Text(
+                          item.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppColors.lightTextPrimary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        // PROJECT / CLIENT
-                        _buildDataCell(
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                tx.clientName,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                tx.projectId,
-                                style: GoogleFonts.inter(
-                                  fontSize: 10.5,
-                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '${item.customerOrClient} • ${item.projectStatus}',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                           ),
-                        ),
-                        // CATEGORY
-                        _buildDataCell(
-                          Text(
-                            tx.category,
-                            style: GoogleFonts.inter(fontSize: 11.5, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                          ),
-                        ),
-                        // RECIPIENT VENDOR
-                        _buildDataCell(
-                          Text(
-                            tx.recipientName,
-                            style: GoogleFonts.inter(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        // AMOUNT (₹)
-                        _buildDataCell(
-                          Text(
-                            '₹${tx.amount.toStringAsFixed(0)}',
-                            style: GoogleFonts.jetBrainsMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF3B82F6),
-                            ),
-                          ),
-                        ),
-                        // DATE
-                        _buildDataCell(
-                          Text(
-                            tx.date,
-                            style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                          ),
-                        ),
-                        // METHOD
-                        _buildDataCell(
-                          Text(
-                            tx.paymentMethod,
-                            style: GoogleFonts.inter(fontSize: 11, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                          ),
-                        ),
-                        // STATUS
-                        _buildDataCell(
-                          DashboardBadge(label: tx.status.toUpperCase(), color: tx.statusColor),
-                        ),
-                        // INVOICE
-                        _buildDataCell(
-                          Center(
-                            child: IconButton(
-                              icon: const Icon(Icons.download_for_offline_outlined, size: 16),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Downloading voucher for ${tx.invoiceRef}'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              tooltip: 'Download Voucher',
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                         ),
                       ],
-                    );
-                  }),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₹${(item.revenue / 100000).toStringAsFixed(2)}L',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                      Text(
+                        'Margin: ${item.marginPercent}% (₹${(item.grossProfit / 100000).toStringAsFixed(1)}L)',
+                        style: GoogleFonts.inter(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // SECTION 3: EXPENSE ANALYSIS BY CATEGORY
+  // ==========================================================================
+  Widget _buildExpenseAnalysisSection(bool isDark) {
+    final categories = ReportsMockData.financeExpenseCategories;
+
+    return ReportSectionContainer(
+      title: 'Expense Breakdown by Category',
+      subtitle: 'Operational spend across procurement, site labor, logistics & overheads',
+      icon: Icons.account_balance_wallet_rounded,
+      iconColor: const Color(0xFFEF4444),
+      child: Column(
+        children: categories.map((cat) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(cat.icon, size: 14, color: cat.color),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        cat.category,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        '₹${(cat.actual / 100000).toStringAsFixed(1)}L (${cat.percentageOfTotal.toStringAsFixed(1)}%)',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: cat.color,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: (cat.percentageOfTotal / 100).clamp(0.02, 1.0),
+                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation<Color>(cat.color),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Budget: ₹${(cat.budget / 100000).toStringAsFixed(1)}L',
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        cat.isOverBudget
+                            ? '+₹${(cat.variance.abs() / 1000).toStringAsFixed(0)}k Over'
+                            : '-₹${(cat.variance.abs() / 1000).toStringAsFixed(0)}k Under',
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: cat.isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // SECTION 4: RECEIVABLES AGING BUCKETS
+  // ==========================================================================
+  Widget _buildReceivablesAgingCard(bool isDark) {
+    return ReportSectionContainer(
+      title: 'Receivables Aging Buckets',
+      subtitle: 'Outstanding client invoices grouped by payment overdue threshold',
+      icon: Icons.history_toggle_off_rounded,
+      iconColor: const Color(0xFFF59E0B),
+      child: ReportReceivablesAgingBarChart(
+        buckets: ReportsMockData.financeAgingBuckets,
+        onBucketTap: (bucket) {
+          _onDrillDown(
+            'Receivables: ${bucket.label}',
+            'Overdue Invoices',
+            '₹${(bucket.amount / 100000).toStringAsFixed(1)}L',
+            [
+              {
+                'title': 'Gaurav Khandelwal (Gurgaon Res)',
+                'subtitle': 'Stage 3 Joinery Milestone',
+                'status': bucket.label,
+                'statusColor': bucket.color,
+                'metric': '₹4,50,000 Overdue',
+                'date': 'Due: Aug 10, 2026',
+                'badge': '31 Days Overdue',
+              },
+              {
+                'title': 'Prestige Palms Villa Milestone 2',
+                'subtitle': 'Client: Sandeep Bansal',
+                'status': bucket.label,
+                'statusColor': bucket.color,
+                'metric': '₹3,70,000 Overdue',
+                'date': 'Due: Aug 24, 2026',
+                'badge': '17 Days Overdue',
+              },
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildHeaderCell(String text, bool isDark, {TextAlign align = TextAlign.start}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Text(
-        text,
-        textAlign: align,
-        style: GoogleFonts.inter(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
-          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+  // ==========================================================================
+  // SECTION 5: CUSTOMER COLLECTION PERFORMANCE
+  // ==========================================================================
+  Widget _buildCustomerCollectionsSection(bool isDark, bool isMobile) {
+    final collections = ReportsMockData.financeCustomerCollections;
+
+    return ReportSectionContainer(
+      title: 'Customer Collection Performance',
+      subtitle: 'Track recovery rates, overdue amounts, and collection cycles',
+      icon: Icons.supervised_user_circle_rounded,
+      iconColor: const Color(0xFF3B82F6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowHeight: 38,
+          dataRowMinHeight: 46,
+          dataRowMaxHeight: 52,
+          horizontalMargin: 8,
+          columnSpacing: 18,
+          columns: [
+            DataColumn(label: Text('Customer', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Invoiced', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Collected', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Outstanding', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Recovery %', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Oldest Due', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Action', style: _headerStyle(isDark))),
+          ],
+          rows: collections.map((c) {
+            return DataRow(
+              cells: [
+                DataCell(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        c.customerName,
+                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? Colors.white : AppColors.lightTextPrimary),
+                      ),
+                      Text(
+                        '${c.customerId} • ${c.invoiceCount} invoices',
+                        style: GoogleFonts.inter(fontSize: 9.5, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                DataCell(Text('₹${(c.invoicedAmount / 100000).toStringAsFixed(1)}L', style: _monoStyle(isDark))),
+                DataCell(Text('₹${(c.paidAmount / 100000).toStringAsFixed(1)}L', style: _monoStyle(isDark, color: const Color(0xFF10B981)))),
+                DataCell(
+                  Text(
+                    '₹${(c.outstandingAmount / 100000).toStringAsFixed(1)}L',
+                    style: _monoStyle(isDark, color: c.overdueAmount > 0 ? const Color(0xFFEF4444) : (isDark ? Colors.white : AppColors.lightTextPrimary)),
+                  ),
+                ),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: (c.collectionRate > 80 ? const Color(0xFF10B981) : const Color(0xFFF59E0B)).withValues(alpha: 0.15),
+                      borderRadius: AppRadius.xs,
+                    ),
+                    child: Text(
+                      '${c.collectionRate}%',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: c.collectionRate > 80 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(c.oldestDueDate, style: GoogleFonts.inter(fontSize: 10, color: isDark ? Colors.white : AppColors.lightTextPrimary)),
+                      if (c.daysOverdue > 0)
+                        Text('${c.daysOverdue}d overdue', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFFEF4444))),
+                    ],
+                  ),
+                ),
+                DataCell(
+                  OutlinedButton(
+                    onPressed: () {
+                      _onDrillDown(
+                        'Client Ledger: ${c.customerName}',
+                        'Invoices & Payments',
+                        '₹${(c.paidAmount / 100000).toStringAsFixed(1)}L Paid',
+                        [
+                          {
+                            'title': 'Civil & Flooring Progress Settlement',
+                            'subtitle': 'Approved by Site Architect',
+                            'status': 'Settled',
+                            'statusColor': const Color(0xFF10B981),
+                            'metric': '₹12,40,000',
+                            'date': c.lastPaymentDate,
+                            'badge': 'NEFT-59281',
+                          },
+                        ],
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: const Size(60, 26),
+                      side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                      shape: RoundedRectangleBorder(borderRadius: AppRadius.xs),
+                    ),
+                    child: Text('View Ledger', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildDataCell(Widget content, {EdgeInsetsGeometry? padding}) {
-    return Padding(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      child: content,
+  // ==========================================================================
+  // SECTION 6: VENDOR & LABOUR PAYABLES
+  // ==========================================================================
+  Widget _buildPayablesSection(bool isDark, bool isMobile) {
+    final payables = ReportsMockData.financePayables;
+
+    return ReportSectionContainer(
+      title: 'Vendor & Contractor Labour Payables',
+      subtitle: 'Pending vendor supply invoices, weekly labour allocations & settlement dates',
+      icon: Icons.receipt_long_rounded,
+      iconColor: const Color(0xFF8B5CF6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowHeight: 38,
+          dataRowMinHeight: 44,
+          dataRowMaxHeight: 50,
+          horizontalMargin: 8,
+          columnSpacing: 18,
+          columns: [
+            DataColumn(label: Text('Payable Ref', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Recipient / Contractor', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Category', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Due Date', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Total Amount', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Outstanding', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Status', style: _headerStyle(isDark))),
+          ],
+          rows: payables.map((p) {
+            return DataRow(
+              cells: [
+                DataCell(Text(p.invoiceRef, style: _monoStyle(isDark))),
+                DataCell(Text(p.recipientName, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white : AppColors.lightTextPrimary))),
+                DataCell(Text(p.category, style: GoogleFonts.inter(fontSize: 10.5, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary))),
+                DataCell(Text(p.dueDate, style: GoogleFonts.inter(fontSize: 10.5, color: isDark ? Colors.white : AppColors.lightTextPrimary))),
+                DataCell(Text('₹${(p.amount / 100000).toStringAsFixed(2)}L', style: _monoStyle(isDark))),
+                DataCell(Text('₹${(p.outstandingAmount / 100000).toStringAsFixed(2)}L', style: _monoStyle(isDark, color: p.outstandingAmount > 0 ? const Color(0xFFEF4444) : const Color(0xFF10B981)))),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: p.statusColor.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.xs,
+                    ),
+                    child: Text(
+                      p.status,
+                      style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: p.statusColor),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // SECTION 7: MASTER FINANCIAL PERFORMANCE TABLE
+  // ==========================================================================
+  Widget _buildMasterFinancialTable(bool isDark, bool isMobile) {
+    final ledger = ReportsMockData.financePerformanceLedger;
+
+    return ReportSectionContainer(
+      title: 'Financial Performance Statement',
+      subtitle: 'Consolidated revenue, operating costs, gross margins, collections & net cash position',
+      icon: Icons.table_chart_rounded,
+      iconColor: const Color(0xFF6366F1),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowHeight: 40,
+          dataRowMinHeight: 46,
+          dataRowMaxHeight: 52,
+          horizontalMargin: 10,
+          columnSpacing: 18,
+          columns: [
+            DataColumn(label: Text('Period', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Revenue', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Expenses', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Gross Profit', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Gross Margin', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Collections', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Payables', style: _headerStyle(isDark))),
+            DataColumn(label: Text('Net Position', style: _headerStyle(isDark))),
+          ],
+          rows: ledger.map((row) {
+            return DataRow(
+              cells: [
+                DataCell(Text(row.period, style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: isDark ? Colors.white : AppColors.lightTextPrimary))),
+                DataCell(Text('₹${(row.revenue / 10000000).toStringAsFixed(2)} Cr', style: _monoStyle(isDark, color: const Color(0xFF10B981)))),
+                DataCell(Text('₹${(row.expenses / 10000000).toStringAsFixed(2)} Cr', style: _monoStyle(isDark, color: const Color(0xFFEF4444)))),
+                DataCell(Text('₹${(row.grossProfit / 100000).toStringAsFixed(1)}L', style: _monoStyle(isDark, color: const Color(0xFF6366F1)))),
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      borderRadius: AppRadius.xs,
+                    ),
+                    child: Text(
+                      '${row.grossMargin}%',
+                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF10B981)),
+                    ),
+                  ),
+                ),
+                DataCell(Text('₹${(row.collections / 100000).toStringAsFixed(1)}L', style: _monoStyle(isDark))),
+                DataCell(Text('₹${(row.payables / 100000).toStringAsFixed(1)}L', style: _monoStyle(isDark))),
+                DataCell(
+                  Text(
+                    '₹${(row.netPosition / 100000).toStringAsFixed(1)}L',
+                    style: _monoStyle(isDark, color: row.netPosition >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  TextStyle _headerStyle(bool isDark) {
+    return GoogleFonts.inter(
+      fontSize: 10.5,
+      fontWeight: FontWeight.w700,
+      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+      letterSpacing: 0.3,
+    );
+  }
+
+  TextStyle _monoStyle(bool isDark, {Color? color}) {
+    return GoogleFonts.jetBrainsMono(
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      color: color ?? (isDark ? Colors.white : AppColors.lightTextPrimary),
     );
   }
 }

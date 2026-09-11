@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/organization_models.dart';
 import '../models/organization_mock_data.dart';
+import '../widgets/org_navigation_header.dart';
+import '../widgets/org_toolbar.dart';
+import '../widgets/org_status_badge.dart';
+import '../widgets/org_detail_drawer.dart';
+import '../widgets/org_confirmation_dialog.dart';
+import '../widgets/org_create_access_scope_dialog.dart';
 
 class OrgAccessScopePage extends StatefulWidget {
   const OrgAccessScopePage({super.key});
@@ -12,157 +17,129 @@ class OrgAccessScopePage extends StatefulWidget {
 }
 
 class _OrgAccessScopePageState extends State<OrgAccessScopePage> {
-  late RoleDefinition _selectedRole;
-  final List<RoleDefinition> _roles = OrganizationMockData.roles;
-  late Map<String, List<ModulePermission>> _rolePermissionsMap;
+  final List<OrganizationAccessScope> _scopes = List.from(OrganizationMockData.accessScopes);
   String _searchQuery = '';
-  bool _seniorOverrideEnabled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedRole = _roles.firstWhere(
-      (r) => r.id == 'ROLE-SALES-04', // Default to Junior Telecaller to showcase Field Isolation
-      orElse: () => _roles.first,
-    );
-
-    // Initialize deep clone of permissions for each role
-    _rolePermissionsMap = {};
-    for (final role in _roles) {
-      _rolePermissionsMap[role.id] = OrganizationMockData.permissions.map((p) {
-        // Adjust permissions based on role hierarchy
-        final isJunior = role.hierarchyLevel == HierarchyLevel.junior;
-        final isSpecialist = role.hierarchyLevel == HierarchyLevel.specialist;
-        final isManager = role.hierarchyLevel == HierarchyLevel.manager;
-        final isLead = role.hierarchyLevel == HierarchyLevel.lead;
-
-        // Customise initial state based on module and role
-        bool matchesDept = false;
-        if (role.departmentType == DepartmentType.sales && p.moduleCode == 'MOD-SALES') matchesDept = true;
-        if (role.departmentType == DepartmentType.design && p.moduleCode == 'MOD-DESIGN') matchesDept = true;
-        if (role.departmentType == DepartmentType.execution && p.moduleCode == 'MOD-EXEC') matchesDept = true;
-        if (role.departmentType == DepartmentType.afterSales && p.moduleCode == 'MOD-AFTER-SALES') matchesDept = true;
-        if (role.departmentType == DepartmentType.sales && p.moduleCode == 'MOD-QUOTATION') matchesDept = true;
-
-        final canView = isLead || isManager || matchesDept || p.moduleCode == 'MOD-HRMS';
-        final canCreate = (isLead || isManager || matchesDept) && p.moduleCode != 'MOD-HRMS';
-        final canEdit = (isLead || isManager || matchesDept) && p.moduleCode != 'MOD-HRMS';
-        final canDelete = isLead;
-        final canExport = isLead || isManager;
-        final canApprove = isLead || (isManager && matchesDept);
-        final fieldIsolated = isJunior || (isSpecialist && p.moduleCode != 'MOD-HRMS');
-
-        return p.copyWith(
-          canView: canView,
-          canCreate: canCreate,
-          canEdit: canEdit,
-          canDelete: canDelete,
-          canExport: canExport,
-          canApprove: canApprove,
-          isFieldIsolated: fieldIsolated,
-        );
-      }).toList();
-    }
-  }
-
-  List<ModulePermission> get _currentPermissions {
-    final list = _rolePermissionsMap[_selectedRole.id] ?? [];
-    if (_searchQuery.isEmpty) return list;
-    final query = _searchQuery.toLowerCase();
-    return list.where((p) =>
-      p.moduleName.toLowerCase().contains(query) ||
-      p.moduleCode.toLowerCase().contains(query) ||
-      p.description.toLowerCase().contains(query),
-    ).toList();
-  }
-
-  void _togglePermission(int index, String field) {
-    setState(() {
-      final currentList = _rolePermissionsMap[_selectedRole.id]!;
-      final perm = currentList[index];
-      ModulePermission updated;
-
-      switch (field) {
-        case 'view':
-          updated = perm.copyWith(canView: !perm.canView);
-          break;
-        case 'create':
-          updated = perm.copyWith(canCreate: !perm.canCreate);
-          break;
-        case 'edit':
-          updated = perm.copyWith(canEdit: !perm.canEdit);
-          break;
-        case 'delete':
-          updated = perm.copyWith(canDelete: !perm.canDelete);
-          break;
-        case 'export':
-          updated = perm.copyWith(canExport: !perm.canExport);
-          break;
-        case 'approve':
-          updated = perm.copyWith(canApprove: !perm.canApprove);
-          break;
-        case 'fieldIsolation':
-          updated = perm.copyWith(isFieldIsolated: !perm.isFieldIsolated);
-          break;
-        default:
-          return;
-      }
-
-      currentList[index] = updated;
-    });
-  }
-
-  void _savePolicy() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.verified_user_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'RBAC Access Policy updated for ${_selectedRole.roleTitle}. Changes propagated to active session tokens.',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF0F9D58),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  }
+  OrgViewMode _viewMode = OrgViewMode.table;
+  AccessScopeLevel? _filterLevel;
+  OrgStatus? _filterStatus;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= Breakpoints.medium;
+    final isCompact = width < 768;
+
+    final filtered = _scopes.where((s) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          s.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          s.code.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          s.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          s.scopeLevel.displayName.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesLevel = _filterLevel == null || s.scopeLevel == _filterLevel;
+      final matchesStatus = _filterStatus == null || s.status == _filterStatus;
+
+      return matchesSearch && matchesLevel && matchesStatus;
+    }).toList();
+
+    // Summary KPI metrics
+    final totalScopes = _scopes.length;
+    final totalUsersCovered = _scopes.fold<int>(0, (sum, s) => sum + s.userCount);
+    final isolatedScopes = _scopes.where((s) => s.scopeLevel == AccessScopeLevel.ownRecords || s.scopeLevel == AccessScopeLevel.assignedRecords).length;
+    final orgGlobalScopes = _scopes.where((s) => s.scopeLevel == AccessScopeLevel.organization).length;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isDesktop ? 24 : 16),
+        padding: EdgeInsets.all(isCompact ? 14 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(isDark, isDesktop),
-            const SizedBox(height: 20),
-            _buildSecuritySummaryCards(isDark, width),
-            const SizedBox(height: 24),
-            _buildRoleSelectorCard(isDark, isDesktop),
-            const SizedBox(height: 24),
-            _buildScopeBanner(isDark, isDesktop),
-            const SizedBox(height: 24),
-            _buildSearchAndActionsBar(isDark, isDesktop),
+            // 1. Navigation Header
+            OrgNavigationHeader(
+              activeTab: OrgNavTab.accessScope,
+              title: 'Data Access Scope & Isolation Boundaries',
+              subtitle: 'Defines which records, branches, squads, and customer pipelines each role is permitted to see and operate on',
+              trailing: !isCompact
+                  ? ElevatedButton.icon(
+                      onPressed: _openCreateScope,
+                      icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                      label: const Text('New Scope'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    )
+                  : null,
+            ),
             const SizedBox(height: 16),
-            isDesktop
-                ? _buildPermissionsTable(isDark)
-                : _buildPermissionsMobileCards(isDark),
-            const SizedBox(height: 32),
-            _buildSeniorOverrideCard(isDark, isDesktop),
+
+            // Conceptual Principle Banner (Section 13 & 15)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0C4A6E).withValues(alpha: 0.25) : const Color(0xFFE0F2FE),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline_rounded, color: Color(0xFF0284C7), size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: isDark ? AppColors.darkTextPrimary : const Color(0xFF0F172A),
+                          height: 1.4,
+                        ),
+                        children: const [
+                          TextSpan(text: 'Core Distinction: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'A '),
+                          TextSpan(text: 'Permission', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                          TextSpan(text: ' answers: "What can the user do?" whereas an '),
+                          TextSpan(text: 'Access Scope', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                          TextSpan(text: ' answers: "Which data can the user do it to?"'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 2. High-Level Summary Metrics Row
+            _buildKpiMetrics(isDark, totalScopes, orgGlobalScopes, isolatedScopes, totalUsersCovered, width),
+            const SizedBox(height: 20),
+
+            // 3. Toolbar
+            OrgToolbar(
+              searchHint: 'Search scopes by title, code or boundary rules...',
+              searchQuery: _searchQuery,
+              onSearchChanged: (v) => setState(() => _searchQuery = v),
+              currentViewMode: _viewMode,
+              supportedViewModes: const [OrgViewMode.table, OrgViewMode.cards],
+              onViewModeChanged: (m) => setState(() => _viewMode = m),
+              primaryActionLabel: isCompact ? 'New Scope' : null,
+              onPrimaryAction: _openCreateScope,
+              activeFilterCount: (_filterLevel != null ? 1 : 0) + (_filterStatus != null ? 1 : 0),
+              onFilterPressed: _showFilterDialog,
+              onExportPressed: _exportData,
+              onRefresh: () => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+
+            // 4. Content Area
+            if (filtered.isEmpty)
+              _buildEmptyState(isDark)
+            else if (_viewMode == OrgViewMode.cards || isCompact)
+              _buildCardsView(isDark, filtered)
+            else
+              _buildTableView(isDark, filtered),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -170,352 +147,82 @@ class _OrgAccessScopePageState extends State<OrgAccessScopePage> {
     );
   }
 
-  Widget _buildHeader(bool isDark, bool isDesktop) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-                  ),
-                  child: const Icon(Icons.shield_outlined, color: AppColors.gold, size: 22),
-                ),
-                const SizedBox(width: 14),
-                Text(
-                  'Scoped Access & Field Isolation Controls',
-                  style: TextStyle(
-                    fontSize: isDesktop ? 24 : 20,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'PRD Section 3.1 & 6.3: Strict field isolation (My Leads/Tasks) for Junior Staff vs Organization-Wide Access for PMs.',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-              ),
-            ),
-          ],
-        ),
-        ElevatedButton.icon(
-          onPressed: _savePolicy,
-          icon: const Icon(Icons.save_rounded, size: 16),
-          label: const Text('Apply RBAC Policy'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.gold,
-            foregroundColor: AppColors.deepNavy,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSecuritySummaryCards(bool isDark, double width) {
-    final isDesktop = width >= Breakpoints.medium;
-
+  // ---------------------------------------------------------------------------
+  // KPI Metrics
+  // ---------------------------------------------------------------------------
+  Widget _buildKpiMetrics(bool isDark, int total, int global, int isolated, int users, double width) {
     final cards = [
-      _buildMetricCard(
-        title: 'Selected Role',
-        value: _selectedRole.roleTitle,
-        subtitle: 'Hierarchy: ${_selectedRole.hierarchyLevel.name.toUpperCase()}',
-        icon: Icons.badge_outlined,
-        accentColor: AppColors.gold,
-        isDark: isDark,
-      ),
-      _buildMetricCard(
-        title: 'Isolation Scope',
-        value: _selectedRole.defaultScope == AccessScope.myLeadsTasks ? 'Strict Field Isolation' : 'Organization-Wide',
-        subtitle: _selectedRole.defaultScope == AccessScope.myLeadsTasks
-            ? 'MY_LEADS_TASKS (Enforced)'
-            : 'ORG_LEADS_TASKS (Executive)',
-        icon: _selectedRole.defaultScope == AccessScope.myLeadsTasks
-            ? Icons.lock_outline_rounded
-            : Icons.public_rounded,
-        accentColor: _selectedRole.defaultScope == AccessScope.myLeadsTasks
-            ? const Color(0xFFEF4444)
-            : const Color(0xFF10B981),
-        isDark: isDark,
-      ),
-      _buildMetricCard(
-        title: 'Active Modules',
-        value: '${_currentPermissions.where((p) => p.canView).length} of ${_currentPermissions.length}',
-        subtitle: 'Accessible with active session token',
-        icon: Icons.apps_rounded,
-        accentColor: const Color(0xFF3B82F6),
-        isDark: isDark,
-      ),
-      _buildMetricCard(
-        title: 'Lead Override',
-        value: _seniorOverrideEnabled ? 'ACTIVE' : 'STANDBY',
-        subtitle: 'Supervisor permission elevation',
-        icon: Icons.supervisor_account_rounded,
-        accentColor: const Color(0xFFF59E0B),
-        isDark: isDark,
-      ),
+      _buildKpiCard(isDark, 'TOTAL DATA BOUNDARIES', '$total Scopes', 'Configured security levels', Icons.security_rounded, AppColors.primary),
+      _buildKpiCard(isDark, 'GLOBAL SCOPES', '$global Organization', 'Executive & super admin', Icons.public_rounded, const Color(0xFF7C3AED)),
+      _buildKpiCard(isDark, 'FIELD ISOLATED', '$isolated Scopes', 'Assigned & own leads only', Icons.lock_person_rounded, const Color(0xFFD97706)),
+      _buildKpiCard(isDark, 'GOVERNED STAFF', '$users Users', 'Across all active scopes', Icons.people_outline_rounded, const Color(0xFF10B981)),
     ];
 
-    if (isDesktop) {
-      return Row(
-        children: cards.map((c) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: c))).toList(),
+    if (width < 600) {
+      return Column(
+        children: cards.map((c) => Padding(padding: const EdgeInsets.only(bottom: 10), child: c)).toList(),
+      );
+    } else if (width < 1100) {
+      return GridView.count(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 2.3,
+        children: cards,
       );
     } else {
-      return Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: cards.map((c) => SizedBox(width: (width - 44) / 2, child: c)).toList(),
+      return Row(
+        children: cards.map((c) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: c))).toList(),
       );
     }
   }
 
-  Widget _buildMetricCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color accentColor,
-    required bool isDark,
-  }) {
+  Widget _buildKpiCard(bool isDark, String label, String val, String sub, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: accentColor, size: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleSelectorCard(bool isDark, bool isDesktop) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.manage_accounts_rounded, color: AppColors.gold, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                'Configure Permissions by Role Profile',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Select a team role to inspect and tune its granular view, edit, delete, export, and field-isolation constraints.',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _roles.map((role) {
-                final isSelected = role.id == _selectedRole.id;
-                final isJunior = role.hierarchyLevel == HierarchyLevel.junior;
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    selected: isSelected,
-                    showCheckmark: false,
-                    avatar: Icon(
-                      isJunior ? Icons.person_pin_circle_outlined : Icons.verified_user_outlined,
-                      size: 16,
-                      color: isSelected
-                          ? AppColors.deepNavy
-                          : (isJunior ? const Color(0xFFEF4444) : AppColors.gold),
-                    ),
-                    label: Text('${role.roleTitle} (${role.departmentType.name.toUpperCase()})'),
-                    labelStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected
-                          ? AppColors.deepNavy
-                          : (isDark ? AppColors.pureWhite : AppColors.deepNavy),
-                    ),
-                    backgroundColor: isDark ? AppColors.darkCardBg : const Color(0xFFF1F5F9),
-                    selectedColor: AppColors.gold,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.gold
-                            : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      ),
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() {
-                          _selectedRole = role;
-                        });
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScopeBanner(bool isDark, bool isDesktop) {
-    final isFieldIsolated = _selectedRole.defaultScope == AccessScope.myLeadsTasks;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isFieldIsolated
-            ? const Color(0xFFEF4444).withValues(alpha: isDark ? 0.12 : 0.08)
-            : const Color(0xFF10B981).withValues(alpha: isDark ? 0.12 : 0.08),
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isFieldIsolated
-              ? const Color(0xFFEF4444).withValues(alpha: 0.3)
-              : const Color(0xFF10B981).withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isFieldIsolated ? const Color(0xFFEF4444) : const Color(0xFF10B981))
-                  .withValues(alpha: 0.15),
-              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              isFieldIsolated ? Icons.security_rounded : Icons.domain_verification_rounded,
-              color: isFieldIsolated ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-              size: 22,
-            ),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      isFieldIsolated
-                          ? 'STRICT FIELD ISOLATION ACTIVE: MY_LEADS_TASKS'
-                          : 'ORGANIZATION-WIDE ACCESS: ORG_LEADS_TASKS',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: isFieldIsolated ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: (isFieldIsolated ? const Color(0xFFEF4444) : const Color(0xFF10B981))
-                            .withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        _selectedRole.hierarchyLevel.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: isFieldIsolated ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
                 Text(
-                  isFieldIsolated
-                      ? 'Users assigned to "${_selectedRole.roleTitle}" can ONLY view and edit records where assignedUserId == currentUserId. Cross-team client records, budgets, and unassigned leads are hidden by row-level database filters.'
-                      : 'Users assigned to "${_selectedRole.roleTitle}" have full organization-wide visibility across all projects, client accounts, contractor BOQs, and departmental performance ledgers.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
+                  label,
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? AppColors.darkSubtext : AppColors.lightTextSecondary, letterSpacing: 0.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    val,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
                   ),
+                ),
+                Text(
+                  sub,
+                  style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -525,276 +232,128 @@ class _OrgAccessScopePageState extends State<OrgAccessScopePage> {
     );
   }
 
-  Widget _buildSearchAndActionsBar(bool isDark, bool isDesktop) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-            ),
-            child: TextField(
-              onChanged: (val) => setState(() => _searchQuery = val),
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search modules by name or code...',
-                hintStyle: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  size: 18,
-                  color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: () {
-            // Reset to defaults
-            setState(() {
-              _searchQuery = '';
-            });
-          },
-          icon: const Icon(Icons.refresh_rounded, size: 16),
-          label: const Text('Reset Defaults'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-            side: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPermissionsTable(bool isDark) {
-    final permissions = _currentPermissions;
-
+  // ---------------------------------------------------------------------------
+  // Table View
+  // ---------------------------------------------------------------------------
+  Widget _buildTableView(bool isDark, List<OrganizationAccessScope> items) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
       ),
-      child: Column(
-        children: [
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-              border: Border(
-                bottom: BorderSide(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'MODULE / DOMAIN',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                    ),
-                  ),
-                ),
-                _buildColumnHeader('VIEW', isDark),
-                _buildColumnHeader('CREATE', isDark),
-                _buildColumnHeader('EDIT', isDark),
-                _buildColumnHeader('DELETE', isDark),
-                _buildColumnHeader('EXPORT', isDark),
-                _buildColumnHeader('APPROVE', isDark),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'FIELD ISOLATION',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Table Rows
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: permissions.length,
-            separatorBuilder: (_, _) => Divider(
-              height: 1,
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-            ),
-            itemBuilder: (context, index) {
-              final perm = permissions[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                child: Row(
-                  children: [
-                    // Module description
-                    Expanded(
-                      flex: 3,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.all(isDark ? AppColors.darkBackground : AppColors.lightBackground),
+            horizontalMargin: 16,
+            columnSpacing: 22,
+            columns: const [
+              DataColumn(label: Text('SCOPE NAME & CODE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('VISIBILITY LEVEL', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('BOUNDARY DESCRIPTION', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('APPLICABLE MODULES', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('GOVERNED USERS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+              DataColumn(label: Text('ACTIONS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+            ],
+            rows: items.map((s) {
+              return DataRow(
+                cells: [
+                  DataCell(
+                    InkWell(
+                      onTap: () => _openScopeDetail(s),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                perm.moduleName,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.gold.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  perm.moduleCode,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.gold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
                           Text(
-                            perm.description,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-                            ),
+                            s.name,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                          ),
+                          Text(
+                            s.code,
+                            style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted, fontFamily: 'monospace'),
                           ),
                         ],
                       ),
                     ),
-
-                    // Checkbox actions
-                    _buildPermissionToggle(perm.canView, () => _togglePermission(index, 'view'), isDark),
-                    _buildPermissionToggle(perm.canCreate, () => _togglePermission(index, 'create'), isDark),
-                    _buildPermissionToggle(perm.canEdit, () => _togglePermission(index, 'edit'), isDark),
-                    _buildPermissionToggle(perm.canDelete, () => _togglePermission(index, 'delete'), isDark, activeColor: const Color(0xFFEF4444)),
-                    _buildPermissionToggle(perm.canExport, () => _togglePermission(index, 'export'), isDark),
-                    _buildPermissionToggle(perm.canApprove, () => _togglePermission(index, 'approve'), isDark, activeColor: const Color(0xFF10B981)),
-
-                    // Field Isolation switch
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Switch(
-                          value: perm.isFieldIsolated,
-                          activeThumbColor: const Color(0xFFEF4444),
-                          activeTrackColor: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                          onChanged: (_) => _togglePermission(index, 'fieldIsolation'),
-                        ),
+                  ),
+                  DataCell(OrgStatusBadge.forScope(s.scopeLevel, isDark)),
+                  DataCell(
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 240),
+                      child: Text(
+                        s.description,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  DataCell(
+                    Text(
+                      s.applicableModules.length == PermissionModule.values.length
+                          ? 'All Modules'
+                          : '${s.applicableModules.length} Modules',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  DataCell(
+                    Text('${s.userCount} Users', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                  DataCell(OrgStatusBadge.forOrgStatus(s.status, isDark)),
+                  DataCell(
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.visibility_outlined, size: 17),
+                          tooltip: 'Inspect Scope Details',
+                          onPressed: () => _openScopeDetail(s),
+                          color: isDark ? AppColors.darkSubtext : AppColors.lightTextSecondary,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 17),
+                          tooltip: 'Edit Boundary Rules',
+                          onPressed: () => _openEditScope(s),
+                          color: isDark ? AppColors.darkSubtext : AppColors.lightTextSecondary,
+                        ),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert_rounded, size: 17),
+                          onSelected: (action) => _handleScopeAction(action, s),
+                          itemBuilder: (ctx) => [
+                            const PopupMenuItem(value: 'duplicate', child: Text('Duplicate Scope')),
+                            const PopupMenuItem(value: 'toggle_status', child: Text('Toggle Status')),
+                            const PopupMenuItem(value: 'delete', child: Text('Delete Scope', style: TextStyle(color: AppColors.error))),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildColumnHeader(String title, bool isDark) {
-    return Expanded(
-      flex: 1,
-      child: Text(
-        title,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPermissionToggle(bool isActive, VoidCallback onToggle, bool isDark, {Color activeColor = AppColors.gold}) {
-    return Expanded(
-      flex: 1,
-      child: Center(
-        child: InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: isActive ? activeColor.withValues(alpha: 0.15) : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isActive ? activeColor : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                width: 1.5,
-              ),
-            ),
-            child: isActive
-                ? Icon(Icons.check_rounded, size: 18, color: activeColor)
-                : null,
+            }).toList(),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPermissionsMobileCards(bool isDark) {
-    final permissions = _currentPermissions;
-
+  // ---------------------------------------------------------------------------
+  // Cards View (Mobile & Tablet)
+  // ---------------------------------------------------------------------------
+  Widget _buildCardsView(bool isDark, List<OrganizationAccessScope> items) {
     return Column(
-      children: permissions.asMap().entries.map((entry) {
-        final index = entry.key;
-        final perm = entry.value;
-
+      children: items.map((s) {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-            ),
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,70 +363,69 @@ class _OrgAccessScopePageState extends State<OrgAccessScopePage> {
                 children: [
                   Expanded(
                     child: Text(
-                      perm.moduleName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                      ),
+                      s.name,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      perm.moduleCode,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ),
+                  OrgStatusBadge.forScope(s.scopeLevel, isDark),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
-                perm.description,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
+                s.code,
+                style: TextStyle(fontSize: 11, color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                s.description,
+                style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary, height: 1.35),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.filter_alt_outlined, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        s.recordOwnershipRule,
+                        style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Field Isolation (My Leads / Tasks Only)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: perm.isFieldIsolated ? const Color(0xFFEF4444) : (isDark ? AppColors.pureWhite : AppColors.deepNavy),
-                    ),
-                  ),
-                  Switch(
-                    value: perm.isFieldIsolated,
-                    activeThumbColor: const Color(0xFFEF4444),
-                    activeTrackColor: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                    onChanged: (_) => _togglePermission(index, 'fieldIsolation'),
-                  ),
-                ],
-              ),
-              const Divider(height: 20),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
               Wrap(
+                alignment: WrapAlignment.end,
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 6,
                 children: [
-                  _buildMobilePermChip('View', perm.canView, () => _togglePermission(index, 'view'), isDark),
-                  _buildMobilePermChip('Create', perm.canCreate, () => _togglePermission(index, 'create'), isDark),
-                  _buildMobilePermChip('Edit', perm.canEdit, () => _togglePermission(index, 'edit'), isDark),
-                  _buildMobilePermChip('Delete', perm.canDelete, () => _togglePermission(index, 'delete'), isDark, color: const Color(0xFFEF4444)),
-                  _buildMobilePermChip('Export', perm.canExport, () => _togglePermission(index, 'export'), isDark),
-                  _buildMobilePermChip('Approve', perm.canApprove, () => _togglePermission(index, 'approve'), isDark, color: const Color(0xFF10B981)),
+                  TextButton(
+                    onPressed: () => _openScopeDetail(s),
+                    child: const Text('Inspect Details', style: TextStyle(fontSize: 12)),
+                  ),
+                  OutlinedButton(
+                    onPressed: () => _openEditScope(s),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Edit Rules', style: TextStyle(fontSize: 12)),
+                  ),
                 ],
               ),
             ],
@@ -877,129 +435,342 @@ class _OrgAccessScopePageState extends State<OrgAccessScopePage> {
     );
   }
 
-  Widget _buildMobilePermChip(String label, bool active, VoidCallback onTap, bool isDark, {Color color = AppColors.gold}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? color.withValues(alpha: 0.15) : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: active ? color : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+  Widget _buildEmptyState(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.shield_outlined, size: 48, color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted),
+          const SizedBox(height: 12),
+          Text(
+            'No Access Scopes Found',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              active ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              size: 14,
-              color: active ? color : (isDark ? AppColors.darkSubtext : AppColors.lightTextMuted),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: active ? color : (isDark ? AppColors.darkSubtext : AppColors.lightTextMuted),
-              ),
-            ),
-          ],
-        ),
+          const SizedBox(height: 4),
+          Text(
+            'No data boundaries match the current filter selection.',
+            style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkSubtext : AppColors.lightTextSecondary),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _searchQuery = '';
+                _filterLevel = null;
+                _filterStatus = null;
+              });
+            },
+            child: const Text('Clear All Filters'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSeniorOverrideCard(bool isDark, bool isDesktop) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCardBg : AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.gold.withValues(alpha: 0.3),
+  // ---------------------------------------------------------------------------
+  // Action Handlers & Dialog Triggers
+  // ---------------------------------------------------------------------------
+  void _openCreateScope() {
+    OrgCreateAccessScopeDialog.show(
+      context,
+      onSave: (newScope) {
+        setState(() {
+          _scopes.insert(0, newScope);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Access Scope "${newScope.name}" created successfully!')),
+        );
+      },
+    );
+  }
+
+  void _openEditScope(OrganizationAccessScope scope) {
+    OrgCreateAccessScopeDialog.show(
+      context,
+      scopeToEdit: scope,
+      onSave: (updated) {
+        setState(() {
+          final idx = _scopes.indexWhere((s) => s.id == scope.id);
+          if (idx != -1) _scopes[idx] = updated;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Access Scope "${updated.name}" updated successfully!')),
+        );
+      },
+    );
+  }
+
+  void _openScopeDetail(OrganizationAccessScope s) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final assignedRoles = OrganizationMockData.roles.where((r) => r.defaultAccessScopeId == s.id).toList();
+
+    OrgDetailDrawer.show(
+      context,
+      title: s.name,
+      subtitle: '${s.code} • ${s.scopeLevel.displayName}',
+      badge: OrgStatusBadge.forScope(s.scopeLevel, isDark),
+      tabTitles: const ['Boundary Rules', 'Modules', 'Governed Roles', 'Activity'],
+      tabViews: [
+        // Tab 1: Boundary Rules
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow('Visibility Level', s.scopeLevel.displayName),
+            _buildDetailRow('Level Description', s.scopeLevel.description),
+            _buildDetailRow('Governed Users', '${s.userCount} Employees'),
+            const SizedBox(height: 14),
+            const Text('Technical Record Ownership Filter:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              ),
+              child: Text(
+                s.recordOwnershipRule,
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              ),
+            ),
+            if (s.branches.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              const Text('Permitted Branches:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                children: s.branches.map((b) => Chip(label: Text(b, style: const TextStyle(fontSize: 11)))).toList(),
+              ),
+            ],
+          ],
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+
+        // Tab 2: Modules
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'APPLICABLE CRM MODULES (${s.applicableModules.length})',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: s.applicableModules.map((m) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_rounded, size: 14, color: AppColors.success),
+                      const SizedBox(width: 6),
+                      Text(m.displayName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+
+        // Tab 3: Governed Roles
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ROLES BOUND BY THIS SCOPE (${assignedRoles.length})',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 10),
+            if (assignedRoles.isEmpty)
+              const Text('No roles currently use this as default scope.')
+            else
+              ...assignedRoles.map((r) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.admin_panel_settings_outlined, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(r.roleTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('${r.userCount} Users assigned • ${r.departmentType.displayName}', style: const TextStyle(fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+          ],
+        ),
+
+        // Tab 4: Activity
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: OrganizationMockData.auditLogs
+              .where((a) => a.entityId == s.id || a.entityType.contains('Scope'))
+              .map((log) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.gold, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Senior Role Scope Override & Lead Reassignment',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                    ),
-                  ),
+                  Text(log.action, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  const SizedBox(height: 2),
+                  Text(log.reason, style: const TextStyle(fontSize: 11)),
                 ],
               ),
-              Switch(
-                value: _seniorOverrideEnabled,
-                activeThumbColor: AppColors.gold,
-                activeTrackColor: AppColors.gold.withValues(alpha: 0.3),
-                onChanged: (val) {
-                  setState(() {
-                    _seniorOverrideEnabled = val;
-                  });
-                },
+            );
+          }).toList(),
+        ),
+      ],
+      actions: [
+        OutlinedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            _openEditScope(s);
+          },
+          child: const Text('Edit Scope Rules'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 140, child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleScopeAction(String action, OrganizationAccessScope s) async {
+    if (action == 'duplicate') {
+      final duplicate = s.copyWith(
+        id: 'SCOPE-${DateTime.now().millisecondsSinceEpoch}',
+        code: '${s.code}_COPY',
+        name: '${s.name} (Copy)',
+        userCount: 0,
+      );
+      setState(() => _scopes.insert(0, duplicate));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Duplicated "${s.name}" to new access scope!')),
+      );
+    } else if (action == 'toggle_status') {
+      setState(() {
+        final idx = _scopes.indexWhere((item) => item.id == s.id);
+        if (idx != -1) {
+          _scopes[idx] = s.copyWith(
+            status: s.status == OrgStatus.active ? OrgStatus.inactive : OrgStatus.active,
+          );
+        }
+      });
+    } else if (action == 'delete') {
+      if (s.scopeLevel == AccessScopeLevel.organization) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Global Organization Scope cannot be deleted.')),
+        );
+        return;
+      }
+      final confirmed = await OrgConfirmationDialog.show(
+        context,
+        title: 'Delete Access Scope',
+        message: 'Are you sure you want to delete "${s.name}"?',
+        consequenceWarning: 'This will affect ${s.userCount} users currently bound by this data boundary.',
+        confirmLabel: 'Delete Scope',
+        isDestructive: true,
+      );
+      if (confirmed == true) {
+        setState(() => _scopes.removeWhere((item) => item.id == s.id));
+      }
+    }
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Filter Access Scopes'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<AccessScopeLevel?>(
+                initialValue: _filterLevel,
+                decoration: const InputDecoration(labelText: 'Visibility Level'),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('All Levels')),
+                  ...AccessScopeLevel.values.map((l) => DropdownMenuItem(value: l, child: Text(l.displayName))),
+                ],
+                onChanged: (v) => setState(() => _filterLevel = v),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<OrgStatus?>(
+                initialValue: _filterStatus,
+                decoration: const InputDecoration(labelText: 'Status'),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('All Statuses')),
+                  ...OrgStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.displayName))),
+                ],
+                onChanged: (v) => setState(() => _filterStatus = v),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            'When active, Leads and Managers (e.g. Sales Head, Project Manager, Service Manager) can temporarily bypass Junior field isolation boundaries to reassign stuck consultation leads or takeover delayed site milestones without database permission schema recompilation.',
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.darkSubtext : AppColors.lightTextMuted,
-              height: 1.5,
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _filterLevel = null;
+                  _filterStatus = null;
+                });
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Reset'),
             ),
-          ),
-          if (_seniorOverrideEnabled) ...[
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline_rounded, color: AppColors.gold, size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Override Session Audit Log: Supervisor emergency overrides are logged with SHA-256 tamper-proof timestamps.',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.pureWhite : AppColors.deepNavy,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Apply'),
             ),
           ],
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  void _exportData() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Exporting access scopes definition register...')),
     );
   }
 }

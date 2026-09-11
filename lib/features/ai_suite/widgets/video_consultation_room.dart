@@ -135,17 +135,18 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
 
   Widget _buildTopBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: const BoxDecoration(
         color: Color(0xFF1E293B),
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         border: Border(bottom: BorderSide(color: Color(0xFF334155))),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Session Title
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 620;
+
+          final titleWidget = Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 10,
@@ -156,12 +157,15 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                'Live Consultation: $_designerName',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
+              Flexible(
+                child: Text(
+                  'Live Consultation: $_designerName',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
@@ -172,22 +176,22 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  '₹300 Session Paid',
+                  '₹300 Paid',
                   style: GoogleFonts.plusJakartaSans(
                     color: const Color(0xFFA78BFA),
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
-          ),
+          );
 
-          // Countdown Timer & End Button
-          Row(
+          final timerAndEndWidget = Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: _secondsRemaining < 300
                       ? const Color(0xFFEF4444).withValues(alpha: 0.2)
@@ -203,41 +207,73 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                   children: [
                     Icon(
                       Icons.timer_outlined,
-                      size: 16,
+                      size: 15,
                       color: _secondsRemaining < 300
                           ? const Color(0xFFEF4444)
                           : const Color(0xFF10B981),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
                       _formatTimer(_secondsRemaining),
                       style: GoogleFonts.plusJakartaSans(
                         color: _secondsRemaining < 300
                             ? const Color(0xFFEF4444)
                             : const Color(0xFF10B981),
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 onPressed: _showCallEndedDialog,
-                icon: const Icon(Icons.call_end_rounded, size: 16),
+                icon: const Icon(Icons.call_end_rounded, size: 14),
                 label: const Text('End Call'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEF4444),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  visualDensity: VisualDensity.compact,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   elevation: 0,
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
-          ),
-        ],
+          );
+
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: titleWidget),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    timerAndEndWidget,
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: titleWidget),
+              const SizedBox(width: 12),
+              timerAndEndWidget,
+            ],
+          );
+        },
       ),
     );
   }
@@ -381,67 +417,70 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
               color: Color(0xFF0F172A),
               border: Border(bottom: BorderSide(color: Color(0xFF334155))),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.draw_rounded, size: 16, color: Color(0xFF8B5CF6)),
-                const SizedBox(width: 8),
-                Text(
-                  'Live Shared Whiteboard & Drawing Canvas',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const Icon(Icons.draw_rounded, size: 16, color: Color(0xFF8B5CF6)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Shared Whiteboard Canvas',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const Spacer(),
+                  const SizedBox(width: 16),
 
-                // Color Pickers
-                _buildColorCircle(const Color(0xFFEF4444)),
-                const SizedBox(width: 6),
-                _buildColorCircle(const Color(0xFF3B82F6)),
-                const SizedBox(width: 6),
-                _buildColorCircle(const Color(0xFF10B981)),
-                const SizedBox(width: 6),
-                _buildColorCircle(const Color(0xFFF59E0B)),
-                const SizedBox(width: 6),
-                _buildColorCircle(Colors.white),
-                const SizedBox(width: 14),
+                  // Color Pickers
+                  _buildColorCircle(const Color(0xFFEF4444)),
+                  const SizedBox(width: 6),
+                  _buildColorCircle(const Color(0xFF3B82F6)),
+                  const SizedBox(width: 6),
+                  _buildColorCircle(const Color(0xFF10B981)),
+                  const SizedBox(width: 6),
+                  _buildColorCircle(const Color(0xFFF59E0B)),
+                  const SizedBox(width: 6),
+                  _buildColorCircle(Colors.white),
+                  const SizedBox(width: 12),
 
-                // Stroke Width
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _strokeWidth = _strokeWidth == 3.0 ? 6.0 : 3.0;
-                    });
-                  },
-                  icon: Icon(
-                    Icons.line_weight_rounded,
-                    size: 18,
-                    color: _strokeWidth == 6.0 ? const Color(0xFF8B5CF6) : Colors.white70,
+                  // Stroke Width
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _strokeWidth = _strokeWidth == 3.0 ? 6.0 : 3.0;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.line_weight_rounded,
+                      size: 18,
+                      color: _strokeWidth == 6.0 ? const Color(0xFF8B5CF6) : Colors.white70,
+                    ),
+                    tooltip: 'Toggle Pen Thickness',
                   ),
-                  tooltip: 'Toggle Pen Thickness',
-                ),
 
-                // Undo
-                IconButton(
-                  onPressed: () {
-                    if (_strokes.isNotEmpty) {
-                      setState(() => _strokes.removeLast());
-                    }
-                  },
-                  icon: const Icon(Icons.undo_rounded, size: 18, color: Colors.white70),
-                  tooltip: 'Undo',
-                ),
+                  // Undo
+                  IconButton(
+                    onPressed: () {
+                      if (_strokes.isNotEmpty) {
+                        setState(() => _strokes.removeLast());
+                      }
+                    },
+                    icon: const Icon(Icons.undo_rounded, size: 18, color: Colors.white70),
+                    tooltip: 'Undo',
+                  ),
 
-                // Clear
-                IconButton(
-                  onPressed: () {
-                    setState(() => _strokes.clear());
-                  },
-                  icon: const Icon(Icons.delete_sweep_rounded, size: 18, color: Color(0xFFEF4444)),
-                  tooltip: 'Clear Canvas',
-                ),
-              ],
+                  // Clear
+                  IconButton(
+                    onPressed: () {
+                      setState(() => _strokes.clear());
+                    },
+                    icon: const Icon(Icons.delete_sweep_rounded, size: 18, color: Color(0xFFEF4444)),
+                    tooltip: 'Clear Canvas',
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -613,22 +652,29 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final screenHeight = MediaQuery.sizeOf(ctx).height;
         return AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           backgroundColor: const Color(0xFF1E293B),
           title: Text(
-            'Session Consultation Notes & Action Items',
-            style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w800),
+            'Session Notes & Action Items',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15),
           ),
-          content: SizedBox(
-            width: 480,
-            child: TextField(
-              controller: _notesController,
-              maxLines: 8,
-              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13),
-              decoration: const InputDecoration(
-                hintText: 'Record design decisions, client material preferences, or next steps...',
-                hintStyle: TextStyle(color: Colors.white38),
-                border: OutlineInputBorder(),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: screenHeight * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: TextField(
+                controller: _notesController,
+                maxLines: 8,
+                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13),
+                decoration: const InputDecoration(
+                  hintText: 'Record design decisions, client material preferences, or next steps...',
+                  hintStyle: TextStyle(color: Colors.white38),
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
           ),
@@ -648,66 +694,79 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
+        final screenHeight = MediaQuery.sizeOf(ctx).height;
         return AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           backgroundColor: const Color(0xFF1E293B),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           title: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 24),
-              const SizedBox(width: 10),
-              Text(
-                '30-Min Consultation Completed',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
+              const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '30-Min Consultation Completed',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'A formal Consultation Summary Dossier has been automatically saved in your Client Portal & Project DAM Vault.',
-                style: GoogleFonts.plusJakartaSans(
-                  color: const Color(0xFFCBD5E1),
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'COMMERCIAL SETTLEMENT (50-50 SPLIT):',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFF94A3B8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: screenHeight * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'A formal Consultation Summary Dossier has been automatically saved in your Client Portal & Project DAM Vault.',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFFCBD5E1),
+                      fontSize: 12,
+                      height: 1.4,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '• Total Session Fee: ₹300.00\n• Platform Commission: ₹150.00 (50%)\n• Designer Payout: ₹150.00 (50% Credited to $_designerName)',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFFA5B4FC),
-                        fontSize: 12,
-                        height: 1.5,
-                      ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'COMMERCIAL SETTLEMENT (50-50 SPLIT):',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFF94A3B8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '• Total Session Fee: ₹300.00\n• Platform Commission: ₹150.00 (50%)\n• Designer Payout: ₹150.00 (50% Credited to $_designerName)',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFFA5B4FC),
+                            fontSize: 11,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
           actions: [
             ElevatedButton(
@@ -715,7 +774,10 @@ class _VideoConsultationRoomState extends State<VideoConsultationRoom> {
                 Navigator.pop(ctx);
                 widget.onEndCall();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                visualDensity: VisualDensity.compact,
+              ),
               child: const Text('Return to Consultation Hub'),
             ),
           ],
