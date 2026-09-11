@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/responsive/responsive_builder.dart';
@@ -59,11 +60,26 @@ class TopNavBar extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _NavLink(title: 'Overview', onTap: () => onSectionSelected(1)),
-                        _NavLink(title: 'Capabilities', onTap: () => onSectionSelected(2)),
-                        _NavLink(title: 'Outcomes', onTap: () => onSectionSelected(3)),
-                        _NavLink(title: 'How It Works', onTap: () => onSectionSelected(4)),
-                        _NavLink(title: 'Lifecycle', onTap: () => onSectionSelected(5)),
+                        _NavLink(
+                          title: 'Overview',
+                          onTap: () => onSectionSelected(1),
+                        ),
+                        _NavLink(
+                          title: 'Capabilities',
+                          onTap: () => onSectionSelected(2),
+                        ),
+                        _NavLink(
+                          title: 'Outcomes',
+                          onTap: () => onSectionSelected(3),
+                        ),
+                        _NavLink(
+                          title: 'How It Works',
+                          onTap: () => onSectionSelected(4),
+                        ),
+                        _NavLink(
+                          title: 'Lifecycle',
+                          onTap: () => onSectionSelected(5),
+                        ),
                       ],
                     ),
                   ),
@@ -96,7 +112,9 @@ class TopNavBar extends StatelessWidget {
                 icon: Icon(
                   Icons.menu_rounded,
                   size: 26,
-                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
                 onPressed: onOpenMobileMenu,
                 tooltip: 'Open navigation menu',
@@ -140,7 +158,9 @@ class _NavLinkState extends State<_NavLink> {
               fontWeight: FontWeight.w600,
               color: _isHovered
                   ? (isDark ? AppColors.primaryLight : AppColors.primary)
-                  : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                  : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
             ),
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_controller.dart';
@@ -8,10 +9,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_logo.dart';
 
 class MobileNavDrawer extends StatelessWidget {
-  const MobileNavDrawer({
-    super.key,
-    required this.onSectionSelected,
-  });
+  const MobileNavDrawer({super.key, required this.onSectionSelected});
 
   final ValueChanged<int> onSectionSelected;
 
@@ -142,7 +140,9 @@ class _MobileItem extends StatelessWidget {
         style: GoogleFonts.plusJakartaSans(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+          color: isDark
+              ? AppColors.darkTextPrimary
+              : AppColors.lightTextPrimary,
         ),
       ),
       trailing: Icon(

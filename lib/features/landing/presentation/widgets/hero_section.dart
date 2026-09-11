@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/responsive/responsive_builder.dart';
@@ -11,10 +12,7 @@ import '../../../../core/widgets/app_button.dart';
 import 'dashboard_mockup.dart';
 
 class HeroSection extends StatelessWidget {
-  const HeroSection({
-    super.key,
-    required this.onExploreTap,
-  });
+  const HeroSection({super.key, required this.onExploreTap});
 
   final VoidCallback onExploreTap;
 
@@ -41,7 +39,9 @@ class HeroSection extends StatelessWidget {
           height: 500,
           child: Container(
             decoration: BoxDecoration(
-              gradient: isDark ? AppColors.heroGlowDark : AppColors.heroGlowLight,
+              gradient: isDark
+                  ? AppColors.heroGlowDark
+                  : AppColors.heroGlowLight,
             ),
           ),
         ),
@@ -72,17 +72,28 @@ class HeroSection extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       letterSpacing: -1.5,
                       height: 1.14,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
                     ),
                     children: [
-                      const TextSpan(text: 'Run Your Business.\nManage Your Customers.\n'),
+                      const TextSpan(
+                        text: 'Run Your Business.\nManage Your Customers.\n',
+                      ),
                       TextSpan(
                         text: 'Deliver Every Project.',
                         style: TextStyle(
                           foreground: Paint()
-                            ..shader = const LinearGradient(
-                              colors: [Color(0xFF4F46E5), Color(0xFF9333EA), Color(0xFF06B6D4)],
-                            ).createShader(const Rect.fromLTWH(0.0, 0.0, 450.0, 70.0)),
+                            ..shader =
+                                const LinearGradient(
+                                  colors: [
+                                    Color(0xFF4F46E5),
+                                    Color(0xFF9333EA),
+                                    Color(0xFF06B6D4),
+                                  ],
+                                ).createShader(
+                                  const Rect.fromLTWH(0.0, 0.0, 450.0, 70.0),
+                                ),
                         ),
                       ),
                     ],
@@ -102,7 +113,9 @@ class HeroSection extends StatelessWidget {
                     fontSize: isCompact ? 15.0 : 18.0,
                     fontWeight: FontWeight.w400,
                     height: 1.6,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
               ),
@@ -163,10 +176,22 @@ class HeroSection extends StatelessWidget {
                 spacing: 20,
                 runSpacing: 8,
                 children: [
-                  _TrustItem(icon: Icons.check_circle_rounded, text: 'No credit card required'),
-                  _TrustItem(icon: Icons.bolt_rounded, text: 'Setup in 2 minutes'),
-                  _TrustItem(icon: Icons.shield_rounded, text: 'SOC 2 Type II Certified'),
-                  _TrustItem(icon: Icons.star_rounded, text: '4.9/5 from 1,200+ teams'),
+                  _TrustItem(
+                    icon: Icons.check_circle_rounded,
+                    text: 'No credit card required',
+                  ),
+                  _TrustItem(
+                    icon: Icons.bolt_rounded,
+                    text: 'Setup in 2 minutes',
+                  ),
+                  _TrustItem(
+                    icon: Icons.shield_rounded,
+                    text: 'SOC 2 Type II Certified',
+                  ),
+                  _TrustItem(
+                    icon: Icons.star_rounded,
+                    text: '4.9/5 from 1,200+ teams',
+                  ),
                 ],
               ),
               SizedBox(height: isDesktop ? 54 : 36),
@@ -200,7 +225,9 @@ class _TrustItem extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextSecondary,
+            color: isDark
+                ? AppColors.darkTextMuted
+                : AppColors.lightTextSecondary,
           ),
         ),
       ],

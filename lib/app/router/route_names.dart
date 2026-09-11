@@ -472,25 +472,53 @@ abstract class RouteNames {
   static const String orgAccessScopePath = '/organization/access-scope';
 
   // 16. System Administration Submenu Routes
-  static const String adminUsersRbac = '/admin/users-rbac';
-  static const String adminMasterData = '/admin/master-data';
-  static const String adminRateMasters = '/admin/rate-masters';
-  static const String adminTemplates = '/admin/message-templates';
-  static const String adminIntegrations = '/admin/integrations';
-  static const String adminNotifications = '/admin/notifications';
-  static const String adminAutomations = '/admin/automations';
-  static const String adminAuditLogs = '/admin/audit-logs';
-  static const String adminBackup = '/admin/backup-recovery';
-  static const String adminSettings = '/admin/settings';
+  static const String adminUsersRbac = 'adminUsersRbac';
+  static const String adminUsersRbacPath = '/admin/users-rbac';
+
+  static const String adminMasterData = 'adminMasterData';
+  static const String adminMasterDataPath = '/admin/master-data';
+
+  static const String adminRateMasters = 'adminRateMasters';
+  static const String adminRateMastersPath = '/admin/rate-masters';
+
+  static const String adminMessageTemplates = 'adminMessageTemplates';
+  static const String adminMessageTemplatesPath = '/admin/message-templates';
+  static const String adminTemplates = adminMessageTemplatesPath;
+
+  static const String adminAiTraining = 'adminAiTraining';
+  static const String adminAiTrainingPath = '/admin/ai-training';
+
+  static const String adminIntegrations = 'adminIntegrations';
+  static const String adminIntegrationsPath = '/admin/integrations';
+
+  // Phase 2: Operations & Platform Control Submenu Routes
+  static const String adminNotifications = 'adminNotifications';
+  static const String adminNotificationsPath = '/admin/notifications';
+
+  static const String adminAutomations = 'adminAutomations';
+  static const String adminAutomationsPath = '/admin/automations';
+
+  static const String adminAuditLogs = 'adminAuditLogs';
+  static const String adminAuditLogsPath = '/admin/audit-logs';
+
+  static const String adminBackup = 'adminBackup';
+  static const String adminBackupPath = '/admin/backup-recovery';
+  static const String adminBackupRecovery = adminBackup;
+  static const String adminBackupRecoveryPath = adminBackupPath;
+
+  static const String adminSettings = 'adminSettings';
+  static const String adminSettingsPath = '/admin/settings';
+  static const String adminSystemSettings = adminSettings;
+  static const String adminSystemSettingsPath = '/admin/system-settings';
 
   static const String admRbacMatrix = 'admRbacMatrix';
   static const String admRbacMatrixPath = '/admin/rbac-matrix';
 
-  static const String admRateMasters = 'admRateMasters';
-  static const String admRateMastersPath = '/admin/rate-masters';
+  static const String admRateMasters = adminRateMasters;
+  static const String admRateMastersPath = adminRateMastersPath;
 
-  static const String admAiTraining = 'admAiTraining';
-  static const String admAiTrainingPath = '/admin/ai-training';
+  static const String admAiTraining = adminAiTraining;
+  static const String admAiTrainingPath = adminAiTrainingPath;
 
   static const String admDisasterBackup = 'admDisasterBackup';
   static const String admDisasterBackupPath = '/admin/disaster-backup';

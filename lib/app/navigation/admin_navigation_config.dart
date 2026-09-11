@@ -1182,7 +1182,6 @@ class AdminNavigationConfig {
       ],
     ),
 
-/*
     // 17. Administration
     NavigationGroup(
       id: 'administration',
@@ -1280,7 +1279,7 @@ class AdminNavigationConfig {
         ),
       ],
     ),
-    */
+
   ];
 
   /// Filters navigation groups and children based on user permissions.

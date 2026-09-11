@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/theme/theme_controller.dart';
 
@@ -29,7 +30,9 @@ class ValueStrip extends StatelessWidget {
                 fontSize: 11.5,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.2,
-                color: isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5),
+                color: isDark
+                    ? const Color(0xFF818CF8)
+                    : const Color(0xFF4F46E5),
               ),
             ),
 
@@ -54,7 +57,9 @@ class ValueStrip extends StatelessWidget {
                   TextSpan(
                     text: 'high-velocity',
                     style: TextStyle(
-                      color: isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5),
+                      color: isDark
+                          ? const Color(0xFF818CF8)
+                          : const Color(0xFF4F46E5),
                     ),
                   ),
                   TextSpan(
@@ -94,7 +99,8 @@ class ValueStrip extends StatelessWidget {
           Container(
             width: 70,
             height: 1.2,
-            color: (isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5)).withValues(alpha: 0.25),
+            color: (isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5))
+                .withValues(alpha: 0.25),
           ),
           Container(
             width: 6,
@@ -180,11 +186,8 @@ class ValueStrip extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     for (int i = 0; i < topRowItems.length; i++) ...[
-                      Expanded(
-                        child: _buildPillarCard(topRowItems[i], isDark),
-                      ),
-                      if (i < topRowItems.length - 1)
-                        const SizedBox(width: 20),
+                      Expanded(child: _buildPillarCard(topRowItems[i], isDark)),
+                      if (i < topRowItems.length - 1) const SizedBox(width: 20),
                     ],
                   ],
                 ),
@@ -292,7 +295,8 @@ class ValueStrip extends StatelessWidget {
                           : const Color(0xFFEEF2FF),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: const Color(0xFF4F46E5).withValues(alpha: isDark ? 0.4 : 0.2),
+                        color: const Color(0xFF4F46E5)
+                            .withValues(alpha: isDark ? 0.4 : 0.2),
                         width: 1.0,
                       ),
                     ),
@@ -300,7 +304,9 @@ class ValueStrip extends StatelessWidget {
                       child: Icon(
                         data.icon,
                         size: 22,
-                        color: isDark ? const Color(0xFFC7D2FE) : const Color(0xFF4F46E5),
+                        color: isDark
+                            ? const Color(0xFFC7D2FE)
+                            : const Color(0xFF4F46E5),
                       ),
                     ),
                   ),
@@ -341,7 +347,9 @@ class ValueStrip extends StatelessWidget {
                       fontSize: 13.0,
                       height: 1.55,
                       fontWeight: FontWeight.w400,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -382,7 +390,9 @@ class _CardWatermarkPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final baseColor = isDark ? const Color(0xFF4F46E5) : const Color(0xFF818CF8);
+    final baseColor = isDark
+        ? const Color(0xFF4F46E5)
+        : const Color(0xFF818CF8);
 
     switch (type) {
       case _WatermarkType.waves:
@@ -430,7 +440,10 @@ class _CardWatermarkPainter extends CustomPainter {
         for (int col = 0; col < 5; col++) {
           for (int row = 0; row < 6; row++) {
             canvas.drawCircle(
-              Offset(size.width - 45 + (col * 8), size.height * 0.45 + (row * 8)),
+              Offset(
+                size.width - 45 + (col * 8),
+                size.height * 0.45 + (row * 8),
+              ),
               1.2,
               paint,
             );
@@ -444,9 +457,21 @@ class _CardWatermarkPainter extends CustomPainter {
           ..color = baseColor.withValues(alpha: isDark ? 0.06 : 0.04)
           ..style = PaintingStyle.fill;
 
-        canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.88), 18, paint);
-        canvas.drawCircle(Offset(size.width * 0.88, size.height * 0.86), 22, paint);
-        canvas.drawCircle(Offset(size.width * 0.96, size.height * 0.90), 16, paint);
+        canvas.drawCircle(
+          Offset(size.width * 0.78, size.height * 0.88),
+          18,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(size.width * 0.88, size.height * 0.86),
+          22,
+          paint,
+        );
+        canvas.drawCircle(
+          Offset(size.width * 0.96, size.height * 0.90),
+          16,
+          paint,
+        );
         break;
 
       case _WatermarkType.bars:

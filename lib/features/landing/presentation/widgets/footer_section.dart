@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/responsive/responsive_builder.dart';
@@ -9,10 +10,7 @@ import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/widgets/app_logo.dart';
 
 class FooterSection extends StatelessWidget {
-  const FooterSection({
-    super.key,
-    required this.onSectionSelected,
-  });
+  const FooterSection({super.key, required this.onSectionSelected});
 
   final ValueChanged<int> onSectionSelected;
 
@@ -22,10 +20,7 @@ class FooterSection extends StatelessWidget {
     final isCompact = context.isCompact;
 
     return Container(
-      padding: EdgeInsets.only(
-        top: isCompact ? 48 : 72,
-        bottom: 36,
-      ),
+      padding: EdgeInsets.only(top: isCompact ? 48 : 72, bottom: 36),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF070A10) : const Color(0xFFF1F5F9),
         border: Border(
@@ -57,10 +52,22 @@ class FooterSection extends StatelessWidget {
                             child: _LinkColumn(
                               title: 'Platform',
                               links: [
-                                _FooterLink('Overview', () => onSectionSelected(1)),
-                                _FooterLink('Capabilities', () => onSectionSelected(2)),
-                                _FooterLink('Outcomes', () => onSectionSelected(3)),
-                                _FooterLink('Workflow', () => onSectionSelected(4)),
+                                _FooterLink(
+                                  'Overview',
+                                  () => onSectionSelected(1),
+                                ),
+                                _FooterLink(
+                                  'Capabilities',
+                                  () => onSectionSelected(2),
+                                ),
+                                _FooterLink(
+                                  'Outcomes',
+                                  () => onSectionSelected(3),
+                                ),
+                                _FooterLink(
+                                  'Workflow',
+                                  () => onSectionSelected(4),
+                                ),
                               ],
                             ),
                           ),
@@ -68,8 +75,14 @@ class FooterSection extends StatelessWidget {
                             child: _LinkColumn(
                               title: 'Account',
                               links: [
-                                _FooterLink('Sign In', () => context.goNamed(RouteNames.login)),
-                                _FooterLink('Free Trial', () => context.goNamed(RouteNames.login)),
+                                _FooterLink(
+                                  'Sign In',
+                                  () => context.goNamed(RouteNames.login),
+                                ),
+                                _FooterLink(
+                                  'Free Trial',
+                                  () => context.goNamed(RouteNames.login),
+                                ),
                               ],
                             ),
                           ),
@@ -90,10 +103,19 @@ class FooterSection extends StatelessWidget {
                         title: 'Platform',
                         links: [
                           _FooterLink('Overview', () => onSectionSelected(1)),
-                          _FooterLink('Capabilities', () => onSectionSelected(2)),
+                          _FooterLink(
+                            'Capabilities',
+                            () => onSectionSelected(2),
+                          ),
                           _FooterLink('Outcomes', () => onSectionSelected(3)),
-                          _FooterLink('How It Works', () => onSectionSelected(4)),
-                          _FooterLink('Lifecycle Flow', () => onSectionSelected(5)),
+                          _FooterLink(
+                            'How It Works',
+                            () => onSectionSelected(4),
+                          ),
+                          _FooterLink(
+                            'Lifecycle Flow',
+                            () => onSectionSelected(5),
+                          ),
                         ],
                       ),
                     ),
@@ -114,8 +136,14 @@ class FooterSection extends StatelessWidget {
                       child: _LinkColumn(
                         title: 'Account',
                         links: [
-                          _FooterLink('Sign In', () => context.goNamed(RouteNames.login)),
-                          _FooterLink('Start Free Trial', () => context.goNamed(RouteNames.login)),
+                          _FooterLink(
+                            'Sign In',
+                            () => context.goNamed(RouteNames.login),
+                          ),
+                          _FooterLink(
+                            'Start Free Trial',
+                            () => context.goNamed(RouteNames.login),
+                          ),
                           _FooterLink('Enterprise Contact', () {}),
                         ],
                       ),
@@ -137,7 +165,9 @@ class FooterSection extends StatelessWidget {
                     '© ${DateTime.now().year} Homio Workspace Inc. All rights reserved.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted,
                     ),
                   ),
                 ),
@@ -177,7 +207,9 @@ class _BrandColumn extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               height: 1.6,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
             ),
           ),
         ),
@@ -211,7 +243,9 @@ class _LinkColumn extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.4,
-            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+            color: isDark
+                ? AppColors.darkTextPrimary
+                : AppColors.lightTextPrimary,
           ),
         ),
         const SizedBox(height: 14),
@@ -224,7 +258,9 @@ class _LinkColumn extends StatelessWidget {
                 l.label,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
-                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
               ),
             ),

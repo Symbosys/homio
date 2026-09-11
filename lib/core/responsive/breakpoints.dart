@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 /// Semantic breakpoint constants for multi-platform responsiveness.
 abstract class Breakpoints {
   /// Handheld mobile devices and narrow windows (< 600px).
@@ -14,6 +16,15 @@ abstract class Breakpoints {
 
   /// Form card constraint for authentication and dialogs.
   static const double maxFormWidth = 460.0;
+
+  /// Convenience helpers for widget layout checks
+  static bool isMobile(BuildContext context) => MediaQuery.of(context).size.width < medium;
+  static bool isCompact(BuildContext context) => MediaQuery.of(context).size.width < compact;
+  static bool isTablet(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    return w >= compact && w < medium;
+  }
+  static bool isDesktop(BuildContext context) => MediaQuery.of(context).size.width >= medium;
 }
 
 enum ScreenType {

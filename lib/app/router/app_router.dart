@@ -691,17 +691,50 @@ abstract class AppRouter {
                     return const OrgAccessScopePage();
                   }
 
-                  // System Administration Submenus
-                  if (sub.routeName == RouteNames.admRbacMatrix) {
+                  // Administration Submenus (Phase 1: Core Platform Configuration)
+                  if (sub.routeName == RouteNames.adminUsersRbac || sub.routePath == RouteNames.adminUsersRbacPath) {
+                    return const UsersRbacPage();
+                  }
+                  if (sub.routeName == RouteNames.adminMasterData || sub.routePath == RouteNames.adminMasterDataPath) {
+                    return const MasterDataPage();
+                  }
+                  if (sub.routeName == RouteNames.adminRateMasters || sub.routePath == RouteNames.adminRateMastersPath) {
+                    return const ItemRateMastersPage();
+                  }
+                  if (sub.routeName == RouteNames.adminMessageTemplates || sub.routePath == RouteNames.adminMessageTemplatesPath) {
+                    return const MessageTemplatesPage();
+                  }
+                  if (sub.routeName == RouteNames.adminAiTraining || sub.routePath == RouteNames.adminAiTrainingPath) {
+                    return const AiTrainingPage();
+                  }
+                  if (sub.routeName == RouteNames.adminIntegrations || sub.routePath == RouteNames.adminIntegrationsPath) {
+                    return const IntegrationsPage();
+                  }
+
+                  // Administration Submenus (Phase 2: Operations & Platform Control)
+                  if (sub.routeName == RouteNames.adminNotifications || sub.routePath == RouteNames.adminNotificationsPath) {
+                    return const NotificationsPage();
+                  }
+                  if (sub.routeName == RouteNames.adminAutomations || sub.routePath == RouteNames.adminAutomationsPath) {
+                    return const AutomationsPage();
+                  }
+                  if (sub.routeName == RouteNames.adminAuditLogs || sub.routePath == RouteNames.adminAuditLogsPath) {
+                    return const AuditLogsPage();
+                  }
+                  if (sub.routeName == RouteNames.adminBackup || sub.routePath == RouteNames.adminBackupPath ||
+                      sub.routeName == RouteNames.adminBackupRecovery || sub.routePath == RouteNames.adminBackupRecoveryPath) {
+                    return const BackupRecoveryPage();
+                  }
+                  if (sub.routeName == RouteNames.adminSettings || sub.routePath == RouteNames.adminSettingsPath ||
+                      sub.routeName == RouteNames.adminSystemSettings || sub.routePath == RouteNames.adminSystemSettingsPath) {
+                    return const SystemSettingsPage();
+                  }
+
+                  // Legacy / Specialized Admin Submenus
+                  if (sub.routeName == RouteNames.admRbacMatrix || sub.routePath == RouteNames.admRbacMatrixPath) {
                     return const RbacMatrixPage();
                   }
-                  if (sub.routeName == RouteNames.admRateMasters) {
-                    return const MasterRateCardsPage();
-                  }
-                  if (sub.routeName == RouteNames.admAiTraining) {
-                    return const AiPromptTrainingPage();
-                  }
-                  if (sub.routeName == RouteNames.admDisasterBackup) {
+                  if (sub.routeName == RouteNames.admDisasterBackup || sub.routePath == RouteNames.admDisasterBackupPath) {
                     return const DisasterBackupPage();
                   }
 
@@ -1416,14 +1449,86 @@ abstract class AppRouter {
       case '/organization/access-scope':
         return const OrgAccessScopePage();
 
-      // 17. Administration
+      // 17. Administration (Phase 1 Workspaces)
       case 'admin_users_rbac':
-        return const RbacMatrixPage();
+      case 'adm_users_rbac':
+      case 'adminUsersRbac':
+      case '/admin/users-rbac':
+        return const UsersRbacPage();
+
+      case 'admin_master_data':
+      case 'adm_master_data':
+      case 'adminMasterData':
+      case '/admin/master-data':
+        return const MasterDataPage();
+
       case 'admin_rate_masters':
-        return const MasterRateCardsPage();
+      case 'adm_rate_masters':
+      case 'adminRateMasters':
+      case '/admin/rate-masters':
+        return const ItemRateMastersPage();
+
+      case 'admin_message_templates':
+      case 'adm_message_templates':
+      case 'adminMessageTemplates':
+      case '/admin/message-templates':
+        return const MessageTemplatesPage();
+
       case 'admin_ai_training':
-        return const AiPromptTrainingPage();
+      case 'adm_ai_training':
+      case 'adminAiTraining':
+      case '/admin/ai-training':
+        return const AiTrainingPage();
+
+      case 'admin_integrations':
+      case 'adm_integrations':
+      case 'adminIntegrations':
+      case '/admin/integrations':
+        return const IntegrationsPage();
+
+      case 'admin_notifications':
+      case 'adm_notifications':
+      case 'adminNotifications':
+      case '/admin/notifications':
+        return const NotificationsPage();
+
+      case 'admin_automations':
+      case 'adm_automations':
+      case 'adminAutomations':
+      case '/admin/automations':
+        return const AutomationsPage();
+
+      case 'admin_audit_logs':
+      case 'adm_audit_logs':
+      case 'adminAuditLogs':
+      case '/admin/audit-logs':
+        return const AuditLogsPage();
+
+      case 'admin_backup':
+      case 'adm_backup':
       case 'admin_backup_recovery':
+      case 'adm_backup_recovery':
+      case 'adminBackup':
+      case 'adminBackupRecovery':
+      case '/admin/backup-recovery':
+        return const BackupRecoveryPage();
+
+      case 'admin_settings':
+      case 'adm_settings':
+      case 'admin_system_settings':
+      case 'adm_system_settings':
+      case 'adminSettings':
+      case 'adminSystemSettings':
+      case '/admin/settings':
+      case '/admin/system-settings':
+        return const SystemSettingsPage();
+
+      case 'adm_rbac_matrix':
+      case '/admin/rbac-matrix':
+        return const RbacMatrixPage();
+
+      case 'adm_disaster_backup':
+      case '/admin/disaster-backup':
         return const DisasterBackupPage();
 
       default:

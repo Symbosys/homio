@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/responsive/responsive_builder.dart';
@@ -48,16 +49,25 @@ class FinalCtaSection extends StatelessWidget {
             children: [
               // Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bolt_rounded, size: 15, color: Color(0xFFFBBF24)),
+                    const Icon(
+                      Icons.bolt_rounded,
+                      size: 15,
+                      color: Color(0xFFFBBF24),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'INSTANT WORKSPACE PROVISIONING',
