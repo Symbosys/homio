@@ -7,6 +7,7 @@ export 'data/projects_repository.dart';
 export 'widgets/project_page_header.dart';
 export 'widgets/project_kpi_card.dart';
 export 'widgets/project_shared_widgets.dart';
+export 'widgets/create_project_dialog.dart';
 
 // Screens
 export 'all_projects/all_projects_page.dart';

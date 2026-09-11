@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../data/projects_repository.dart';
 import '../domain/projects_enums.dart';
 import '../domain/projects_models.dart';
+import '../widgets/create_project_dialog.dart';
 import '../widgets/project_page_header.dart';
 import '../widgets/project_shared_widgets.dart';
 
@@ -31,6 +32,13 @@ class _AllProjectsPageState extends State<AllProjectsPage> {
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) setState(() => _isLoading = false);
     });
+  }
+
+  Future<void> _showNewProjectDialog() async {
+    final created = await CreateProjectDialog.show(context);
+    if (created != null && mounted) {
+      setState(() {});
+    }
   }
 
   List<Project> get _filteredProjects {
@@ -66,7 +74,7 @@ class _AllProjectsPageState extends State<AllProjectsPage> {
               icon: Icons.folder_special_outlined,
               searchHint: 'Search projects, clients, codes...',
               onSearchChanged: (v) => setState(() => _searchQuery = v),
-              onAddPressed: () {},
+              onAddPressed: _showNewProjectDialog,
               addLabel: 'New Project',
               actions: [
                 _buildViewToggle(isDark),
@@ -133,7 +141,7 @@ class _AllProjectsPageState extends State<AllProjectsPage> {
                               ? 'Try adjusting your search or filters.'
                               : 'Create your first project to get started.',
                           buttonLabel: 'New Project',
-                          onButtonPressed: () {},
+                          onButtonPressed: _showNewProjectDialog,
                         )
                       : _viewMode == ProjectViewMode.table
                           ? _buildTableView(isDark)

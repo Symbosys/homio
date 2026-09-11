@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../app/router/route_names.dart';
 import '../../../../core/responsive/adaptive_container.dart';
 import '../../../../core/responsive/responsive_builder.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_logo.dart';
 
 class TopNavBar extends StatelessWidget {
@@ -89,73 +92,21 @@ class TopNavBar extends StatelessWidget {
                 ),
               ),
 
-            // Right Actions: Showcase Badge & Theme Switcher
+            // Right Actions: Get Started Button
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Product Showcase Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFCBD5E1),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'PRODUCT SHOWCASE',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Theme Toggle
-                ListenableBuilder(
-                  listenable: ThemeController.instance,
-                  builder: (context, _) {
-                    final dark = ThemeController.instance.isDarkMode(context);
-                    return IconButton(
-                      icon: Icon(
-                        dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                        size: 20,
-                        color: dark ? const Color(0xFFF1F5F9) : const Color(0xFF334155),
-                      ),
-                      tooltip: dark ? 'Switch to Light Theme' : 'Switch to Dark Theme',
-                      onPressed: () => ThemeController.instance.toggleTheme(),
-                    );
-                  },
+                AppButton(
+                  text: 'Get Started',
+                  variant: AppButtonVariant.primary,
+                  size: AppButtonSize.small,
+                  suffixIcon: Icons.arrow_forward_rounded,
+                  onPressed: () => context.goNamed(RouteNames.login),
                 ),
 
                 // Mobile Hamburger Menu Button
-                if (!isDesktop)
+                if (!isDesktop) ...[
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(
                       Icons.menu_rounded,
@@ -167,6 +118,7 @@ class TopNavBar extends StatelessWidget {
                     onPressed: onOpenMobileMenu,
                     tooltip: 'Open navigation menu',
                   ),
+                ],
               ],
             ),
           ],
