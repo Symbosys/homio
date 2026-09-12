@@ -526,9 +526,21 @@ abstract class RouteNames {
   // =========================================================================
   // CLIENT / CUSTOMER PORTAL DIRECT ROUTES (Single-level Flat Navigation)
   // =========================================================================
-  // 1. Project Dashboard
+  // 1. Customer Command Center / Dashboard
   static const String clientOverview = 'clientOverview';
   static const String clientOverviewPath = '/client/overview';
+
+  // 2. My Projects Workspace
+  static const String clientProjects = 'clientProjects';
+  static const String clientProjectsPath = '/client/projects';
+
+  // 3. My Enquiry Journey
+  static const String clientEnquiries = 'clientEnquiries';
+  static const String clientEnquiriesPath = '/client/enquiries';
+
+  // 4. My Quotation & Proposals
+  static const String clientQuotations = 'clientQuotations';
+  static const String clientQuotationsPath = '/client/quotations';
 
   // 2. Assigned Team Dossier
   static const String clientTeam = 'clientTeam';
@@ -545,6 +557,10 @@ abstract class RouteNames {
   // 5. Designs & 3D Visualizer (Gallery, Revisions & Documents)
   static const String clientDesigns = 'clientDesigns';
   static const String clientDesignsPath = '/client/designs';
+
+  // Materials Workspace
+  static const String clientMaterials = 'clientMaterials';
+  static const String clientMaterialsPath = '/client/materials';
 
   // 6. Project Chat & Meetings (WhatsApp Thread & Scheduler)
   static const String clientChat = 'clientChat';
@@ -597,6 +613,18 @@ abstract class RouteNames {
   static const String clientAiDoubtSolverPath = '/client/ai-doubt-solver';
   static const String clientDesignerCall = 'clientDesignerCall';
   static const String clientDesignerCallPath = '/client/designer-call';
+  static const String clientAiImageGenerator = 'clientAiImageGenerator';
+  static const String clientAiImageGeneratorPath = '/client/ai-image-generator';
+  static const String clientAiVideoGenerator = 'clientAiVideoGenerator';
+  static const String clientAiVideoGeneratorPath = '/client/ai-video-generator';
+  static const String clientAiMaterialSpecs = 'clientAiMaterialSpecs';
+  static const String clientAiMaterialSpecsPath = '/client/ai-material-specs';
+  static const String clientAiSavedDesigns = 'clientAiSavedDesigns';
+  static const String clientAiSavedDesignsPath = '/client/ai-saved-designs';
+  static const String clientAiHistory = 'clientAiHistory';
+  static const String clientAiHistoryPath = '/client/ai-history';
+  static const String clientAiCredits = 'clientAiCredits';
+  static const String clientAiCreditsPath = '/client/ai-credits';
   static const String clientDigitalStore = 'clientDigitalStore';
   static const String clientDigitalStorePath = '/client/digital-store';
   static const String clientDecorStore = 'clientDecorStore';
@@ -605,6 +633,22 @@ abstract class RouteNames {
   static const String clientPropertiesPath = '/client/properties';
   static const String clientHireLabour = 'clientHireLabour';
   static const String clientHireLabourPath = '/client/hire-labour';
+
+  // 12. My Services / Labour Booking
+  static const String clientServices = 'clientServices';
+  static const String clientServicesPath = '/client/services';
+
+  // 13. Customer Notification Center
+  static const String clientNotifications = 'clientNotifications';
+  static const String clientNotificationsPath = '/client/notifications';
+
+  // 14. Customer Profile & Account Center
+  static const String clientProfile = 'clientProfile';
+  static const String clientProfilePath = '/client/profile';
+
+  // Feedback Alias Route
+  static const String clientFeedback = 'clientFeedback';
+  static const String clientFeedbackPath = '/client/feedback';
 
   /// Legacy Route Map preserving old URLs and redirecting to canonical routes
   static const Map<String, String> legacyRouteAliases = {

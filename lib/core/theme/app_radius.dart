@@ -18,3 +18,16 @@ class AppRadius {
   static const BorderRadius xl = BorderRadius.all(Radius.circular(xlVal));
   static const BorderRadius full = BorderRadius.all(Radius.circular(fullVal));
 }
+
+/// Convenience OutlinedBorder shapes corresponding to AppRadius tokens.
+class RoundedAppRadius {
+  RoundedAppRadius._();
+
+  static const RoundedRectangleBorder xs = RoundedRectangleBorder(borderRadius: AppRadius.xs);
+  static const RoundedRectangleBorder sm = RoundedRectangleBorder(borderRadius: AppRadius.sm);
+  static const RoundedRectangleBorder md = RoundedRectangleBorder(borderRadius: AppRadius.md);
+  static const RoundedRectangleBorder lg = RoundedRectangleBorder(borderRadius: AppRadius.lg);
+  static const RoundedRectangleBorder xl = RoundedRectangleBorder(borderRadius: AppRadius.xl);
+  static const RoundedRectangleBorder full = RoundedRectangleBorder(borderRadius: AppRadius.full);
+}
+

@@ -58,7 +58,7 @@ class ClientMenuItem {
 /// Items 1 to 9 are direct single-level items; Items 10 and 11 feature dedicated submenus.
 abstract class ClientNavigationRegistry {
   static const List<ClientMenuItem> items = [
-    // 1. Project Dashboard
+    // 1. Project Dashboard / Home
     ClientMenuItem(
       id: 'client_overview',
       title: 'Project Dashboard',
@@ -67,10 +67,62 @@ abstract class ClientNavigationRegistry {
       routePath: RouteNames.clientOverviewPath,
       description: 'Overall progress, active stage milestone & live health metrics',
       subFeatures: [
-        'Live 72% Milestone Progress & Health',
-        'Active Stage: Carpentry & Polish',
+        'Live 68% Milestone Progress & Health',
+        'Active Stage: Electrical & False Ceiling',
         'Budget Spent & Timeline Tracking',
-        'Recent Activity & Quick Action Center',
+        'High-Priority Action Center & Timeline',
+      ],
+    ),
+
+    // 2. My Projects Workspace
+    ClientMenuItem(
+      id: 'client_projects',
+      title: 'My Projects',
+      icon: Icons.home_work_rounded,
+      routeName: RouteNames.clientProjects,
+      routePath: RouteNames.clientProjectsPath,
+      description: 'Workspace, stage steppers, milestones, team dossier & activity logs',
+      subFeatures: [
+        'Active 3BHK Turnkey Interior Residence',
+        '8-Stage Visual Progress Stepper',
+        'Milestone Sign-Offs & Deliverables',
+        'Assigned PM, Designer & Site Lead Dossier',
+      ],
+    ),
+
+    // 3. My Enquiry Journey
+    ClientMenuItem(
+      id: 'client_enquiries',
+      title: 'My Enquiry',
+      icon: Icons.assignment_outlined,
+      routeName: RouteNames.clientEnquiries,
+      routePath: RouteNames.clientEnquiriesPath,
+      badgeCount: 1,
+      badgeColor: Color(0xFF3B82F6),
+      description: 'Customer journey, property requirements, meetings & follow-ups',
+      subFeatures: [
+        'Active Enquiry #ENQ-2026-0148 (Qualified)',
+        'Customer & Property Specification Details',
+        'Consultation Meeting Links & Rescheduling',
+        'Connected Quotation & Follow-Up Tracker',
+      ],
+    ),
+
+    // 4. My Quotation & Proposals
+    ClientMenuItem(
+      id: 'client_quotations',
+      title: 'My Quotation',
+      icon: Icons.receipt_long_rounded,
+      routeName: RouteNames.clientQuotations,
+      routePath: RouteNames.clientQuotationsPath,
+      badgeCount: 1,
+      badgeColor: Color(0xFFF59E0B),
+      description: 'Room-wise costing, BOQ specifications, payment terms & acceptance',
+      subFeatures: [
+        'Official Proposal #HOM-2026-0184 (₹12,80,000)',
+        'Room-Wise Breakdown & Bill of Quantities',
+        'Payment Milestones & 10-Year Warranty Terms',
+        '1-Click Acceptance Flow & Change Requests',
       ],
     ),
 
@@ -140,6 +192,24 @@ abstract class ClientNavigationRegistry {
         'Interactive AR & Full-Screen Render Lightbox',
         'Color & Material Finish Revision Requests',
         'Approved CAD Floor Plans, BOQs & Legal Agreements Vault',
+      ],
+    ),
+
+    // Materials Workspace
+    ClientMenuItem(
+      id: 'client_materials',
+      title: 'Materials Workspace',
+      icon: Icons.inventory_2_rounded,
+      routeName: RouteNames.clientMaterials,
+      routePath: RouteNames.clientMaterialsPath,
+      badgeCount: 1,
+      badgeColor: Color(0xFFF59E0B),
+      description: 'Material specifications, samples sign-off & site procurement tracking',
+      subFeatures: [
+        'Approved Brand Specifications & Quantities',
+        'Physical Samples & Finish Approvals',
+        'Direct Factory Dispatch & Site Delivery Status',
+        'Custom Material Request Submission',
       ],
     ),
 
@@ -231,11 +301,35 @@ abstract class ClientNavigationRegistry {
       subItems: [
         ClientSubMenuItem(
           id: 'client_ai_room_gen',
-          title: 'AI Room 3D Generator (50/50)',
-          icon: Icons.auto_awesome_rounded,
+          title: '3D Room Designer (50/50)',
+          icon: Icons.meeting_room_rounded,
           routeName: RouteNames.clientAiRoomGen,
           routePath: RouteNames.clientAiRoomGenPath,
-          description: '50/50 dual view photo-to-3D styling',
+          description: '5-step 3D photo & spatial styling',
+        ),
+        ClientSubMenuItem(
+          id: 'client_ai_image_gen',
+          title: 'Visual Asset Generator',
+          icon: Icons.image_rounded,
+          routeName: RouteNames.clientAiImageGenerator,
+          routePath: RouteNames.clientAiImageGeneratorPath,
+          description: '8K renders & material moodboards',
+        ),
+        ClientSubMenuItem(
+          id: 'client_ai_video_gen',
+          title: 'Cinematic Video Flythrough',
+          icon: Icons.videocam_rounded,
+          routeName: RouteNames.clientAiVideoGenerator,
+          routePath: RouteNames.clientAiVideoGeneratorPath,
+          description: '360° architectural camera animation',
+        ),
+        ClientSubMenuItem(
+          id: 'client_ai_material_specs',
+          title: 'Material Intelligence',
+          icon: Icons.texture_rounded,
+          routeName: RouteNames.clientAiMaterialSpecs,
+          routePath: RouteNames.clientAiMaterialSpecsPath,
+          description: 'Indian IS standards & live BOQ sync',
         ),
         ClientSubMenuItem(
           id: 'client_ai_vastu',
@@ -243,31 +337,47 @@ abstract class ClientNavigationRegistry {
           icon: Icons.compass_calibration_rounded,
           routeName: RouteNames.clientAiVastu,
           routePath: RouteNames.clientAiVastuPath,
-          description: 'Floor plan chakra score & Vedic remedies',
+          description: '8-direction energy mandala audit',
         ),
         ClientSubMenuItem(
           id: 'client_ai_budget',
-          title: 'AI Furniture Budget Estimator',
+          title: 'Budget & Scope Estimator',
           icon: Icons.calculate_rounded,
           routeName: RouteNames.clientAiBudget,
           routePath: RouteNames.clientAiBudgetPath,
-          description: 'Compare Commercial vs HDHMR vs Acrylic',
+          description: 'Tiered package cost comparisons',
         ),
         ClientSubMenuItem(
           id: 'client_ai_doubt_solver',
-          title: 'AI Technical Doubt Solver',
+          title: 'Civil & Tech Doubt Solver',
           icon: Icons.psychology_rounded,
           routeName: RouteNames.clientAiDoubtSolver,
           routePath: RouteNames.clientAiDoubtSolverPath,
-          description: 'Instant technical advice at Rs. 50/query',
+          description: 'Instant engineering IS code advice',
         ),
         ClientSubMenuItem(
           id: 'client_designer_call',
-          title: '30-Min Expert Consultation',
+          title: '1-on-1 Designer Consultation',
           icon: Icons.video_call_rounded,
           routeName: RouteNames.clientDesignerCall,
           routePath: RouteNames.clientDesignerCallPath,
-          description: '1-on-1 video call & live sketch whiteboard',
+          description: 'Live video call & sketch whiteboard',
+        ),
+        ClientSubMenuItem(
+          id: 'client_ai_saved_designs',
+          title: 'Saved Studio Vault',
+          icon: Icons.bookmark_border_rounded,
+          routeName: RouteNames.clientAiSavedDesigns,
+          routePath: RouteNames.clientAiSavedDesignsPath,
+          description: 'Bookmarked moodboards & palettes',
+        ),
+        ClientSubMenuItem(
+          id: 'client_ai_credits',
+          title: 'AI Wallet & Credits',
+          icon: Icons.account_balance_wallet_rounded,
+          routeName: RouteNames.clientAiCredits,
+          routePath: RouteNames.clientAiCreditsPath,
+          description: 'Credit ledger & top-up packs',
         ),
       ],
     ),
@@ -325,6 +435,58 @@ abstract class ClientNavigationRegistry {
       ],
     ),
     */
+
+    // 12. My Services / Labour Booking
+    ClientMenuItem(
+      id: 'client_services',
+      title: 'My Services & Labour',
+      icon: Icons.home_repair_service_rounded,
+      routeName: RouteNames.clientServices,
+      routePath: RouteNames.clientServicesPath,
+      badgeCount: 2,
+      badgeColor: Color(0xFF0EA5E9),
+      description: 'Book verified master carpenters, electricians, plumbers & track service bookings',
+      subFeatures: [
+        'On-Demand Vetted Tradesmen (Carpenters, Electricians, Plumbers)',
+        '10-Step Service Execution Lifecycle Stepper',
+        'Daily Supervisor Photo Verification & Check-Ins',
+        'Direct Settlement & Connected Workmanship Rating',
+      ],
+    ),
+
+    // 13. Customer Notification Center
+    ClientMenuItem(
+      id: 'client_notifications',
+      title: 'Notifications',
+      icon: Icons.notifications_active_rounded,
+      routeName: RouteNames.clientNotifications,
+      routePath: RouteNames.clientNotificationsPath,
+      badgeCount: 3,
+      badgeColor: Color(0xFFEF4444),
+      description: 'Centralized alerts for milestones, design approvals, payments & site progress',
+      subFeatures: [
+        'Milestone Sign-Off & Stage Approval Alerts',
+        'Billing & Tranche Payment Due Reminders',
+        'Live Site Photo Upload Notifications',
+        'Customizable WhatsApp, Push & SMS Channel Preferences',
+      ],
+    ),
+
+    // 14. Customer Profile & Account Center
+    ClientMenuItem(
+      id: 'client_profile',
+      title: 'Profile & Account',
+      icon: Icons.account_circle_rounded,
+      routeName: RouteNames.clientProfile,
+      routePath: RouteNames.clientProfilePath,
+      description: 'Personal details, multi-site address book, security & communication settings',
+      subFeatures: [
+        'Homeowner Identity & Verified Contact Dossier',
+        'Multiple Property & Project Site Addresses',
+        'Security Credentials & Dynamic Password Management',
+        'Multi-Channel Communication & Consent Preferences',
+      ],
+    ),
   ];
 
   /// Resolves the title, description, icon, and sub-features for any client route path.
@@ -361,6 +523,8 @@ abstract class ClientNavigationRegistry {
     if (path == '/client/meetings') normalized = RouteNames.clientChatPath;
     if (path == '/client/cost-summary' || path == '/client/invoices') normalized = RouteNames.clientPaymentsPath;
     if (path == '/client/warranty') normalized = RouteNames.clientComplaintsPath;
+    if (path == '/client/feedback') normalized = RouteNames.clientRatingsPath;
+    if (path == '/client/hire-labour' || path == '/client/services/bookings' || path == '/client/services/request') normalized = RouteNames.clientServicesPath;
 
     for (final item in items) {
       if (item.routePath == normalized) {

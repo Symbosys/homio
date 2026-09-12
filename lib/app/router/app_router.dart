@@ -12,10 +12,17 @@ import '../../features/client/ai_studio/index.dart';
 import '../../features/client/assigned_team/index.dart';
 import '../../features/client/billing_invoices/index.dart';
 import '../../features/client/dashboard/index.dart';
+import '../../features/client/enquiries/index.dart';
+import '../../features/client/projects/index.dart';
+import '../../features/client/quotations/index.dart';
 import '../../features/client/designs_vault/index.dart';
 import '../../features/client/feedback_ratings/index.dart';
 import '../../features/client/marketplace/index.dart';
+import '../../features/client/materials/index.dart';
+import '../../features/client/notifications/index.dart';
+import '../../features/client/profile/index.dart';
 import '../../features/client/project_chat_meetings/index.dart';
+import '../../features/client/services_labour/index.dart';
 import '../../features/client/site_progress/index.dart';
 import '../../features/client/snags_complaints/index.dart';
 import '../../features/client/stage_work_approvals/index.dart';
@@ -1552,6 +1559,15 @@ abstract class AppRouter {
               if (item.routeName == RouteNames.clientOverview) {
                 return const ClientDashboardPage();
               }
+              if (item.routeName == RouteNames.clientProjects) {
+                return const ClientProjectsPage();
+              }
+              if (item.routeName == RouteNames.clientEnquiries) {
+                return const ClientEnquiriesPage();
+              }
+              if (item.routeName == RouteNames.clientQuotations) {
+                return const ClientQuotationsPage();
+              }
               if (item.routeName == RouteNames.clientTeam) {
                 return const ClientAssignedTeamPage();
               }
@@ -1564,6 +1580,9 @@ abstract class AppRouter {
               if (item.routeName == RouteNames.clientDesigns) {
                 return const ClientDesignsVaultPage();
               }
+              if (item.routeName == RouteNames.clientMaterials) {
+                return const ClientMaterialsPage();
+              }
               if (item.routeName == RouteNames.clientChat) {
                 return const ClientProjectChatMeetingsPage();
               }
@@ -1575,6 +1594,15 @@ abstract class AppRouter {
               }
               if (item.routeName == RouteNames.clientRatings) {
                 return const ClientFeedbackRatingsPage();
+              }
+              if (item.routeName == RouteNames.clientServices) {
+                return const ClientServicesLabourPage();
+              }
+              if (item.routeName == RouteNames.clientNotifications) {
+                return const ClientNotificationsPage();
+              }
+              if (item.routeName == RouteNames.clientProfile) {
+                return const ClientProfilePage();
               }
               if (item.routeName == RouteNames.clientAiSuite) {
                 return const ClientAiStudioHubPage();
@@ -1604,10 +1632,21 @@ abstract class AppRouter {
       (RouteNames.clientAiBudget, RouteNames.clientAiBudgetPath),
       (RouteNames.clientAiDoubtSolver, RouteNames.clientAiDoubtSolverPath),
       (RouteNames.clientDesignerCall, RouteNames.clientDesignerCallPath),
+      (RouteNames.clientAiImageGenerator, RouteNames.clientAiImageGeneratorPath),
+      (RouteNames.clientAiVideoGenerator, RouteNames.clientAiVideoGeneratorPath),
+      (RouteNames.clientAiMaterialSpecs, RouteNames.clientAiMaterialSpecsPath),
+      (RouteNames.clientAiSavedDesigns, RouteNames.clientAiSavedDesignsPath),
+      (RouteNames.clientAiHistory, RouteNames.clientAiHistoryPath),
+      (RouteNames.clientAiCredits, RouteNames.clientAiCreditsPath),
       (RouteNames.clientDigitalStore, RouteNames.clientDigitalStorePath),
       (RouteNames.clientDecorStore, RouteNames.clientDecorStorePath),
       (RouteNames.clientProperties, RouteNames.clientPropertiesPath),
       (RouteNames.clientHireLabour, RouteNames.clientHireLabourPath),
+      (RouteNames.clientMaterials, RouteNames.clientMaterialsPath),
+      (RouteNames.clientFeedback, RouteNames.clientFeedbackPath),
+      (RouteNames.clientServices, RouteNames.clientServicesPath),
+      (RouteNames.clientNotifications, RouteNames.clientNotificationsPath),
+      (RouteNames.clientProfile, RouteNames.clientProfilePath),
     ];
 
     for (final r in legacyRoutes) {
@@ -1624,6 +1663,9 @@ abstract class AppRouter {
                   r.$1 == RouteNames.clientDocuments) {
                 return const ClientDesignsVaultPage();
               }
+              if (r.$1 == RouteNames.clientMaterials) {
+                return const ClientMaterialsPage();
+              }
               if (r.$1 == RouteNames.clientMeetings) {
                 return const ClientProjectChatMeetingsPage();
               }
@@ -1634,6 +1676,18 @@ abstract class AppRouter {
                   r.$1 == RouteNames.clientInvoices ||
                   r.$1 == RouteNames.clientMilestones) {
                 return const ClientBillingInvoicesPage();
+              }
+              if (r.$1 == RouteNames.clientFeedback) {
+                return const ClientFeedbackRatingsPage();
+              }
+              if (r.$1 == RouteNames.clientServices || r.$1 == RouteNames.clientHireLabour) {
+                return const ClientServicesLabourPage();
+              }
+              if (r.$1 == RouteNames.clientNotifications) {
+                return const ClientNotificationsPage();
+              }
+              if (r.$1 == RouteNames.clientProfile) {
+                return const ClientProfilePage();
               }
               if (r.$1 == RouteNames.clientAiRoomGen) {
                 return const ClientAiRoomGeneratorPage();
@@ -1656,11 +1710,26 @@ abstract class AppRouter {
               if (r.$1 == RouteNames.clientProperties) {
                 return const ClientPropertiesPage();
               }
-              if (r.$1 == RouteNames.clientHireLabour) {
-                return const ClientHireLabourPage();
-              }
               if (r.$1 == RouteNames.clientDesignerCall) {
                 return const ClientDesignerConsultationPage();
+              }
+              if (r.$1 == RouteNames.clientAiImageGenerator) {
+                return const ImageGeneratorPage();
+              }
+              if (r.$1 == RouteNames.clientAiVideoGenerator) {
+                return const VideoGeneratorPage();
+              }
+              if (r.$1 == RouteNames.clientAiMaterialSpecs) {
+                return const MaterialSpecificationPage();
+              }
+              if (r.$1 == RouteNames.clientAiSavedDesigns) {
+                return const SavedDesignsPage();
+              }
+              if (r.$1 == RouteNames.clientAiHistory) {
+                return const AiHistoryPage();
+              }
+              if (r.$1 == RouteNames.clientAiCredits) {
+                return const AiCreditsPage();
               }
               return PanelPageTemplate.fromPath(r.$2);
             },

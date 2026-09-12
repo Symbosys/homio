@@ -7,6 +7,8 @@ import '../navigation/client_sidebar_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 
+import '../../features/client/shared/customer_shared_widgets.dart';
+
 /// Data model representing a high-priority bottom navigation tab item for mobile & small/medium screens.
 class ClientBottomTabItem {
   final String id;
@@ -31,7 +33,7 @@ class ClientBottomTabItem {
 }
 
 /// Premium, responsive 5-tab bottom navigation bar for the Homio Client Portal on mobile/small-medium devices.
-/// Displays the 5 highest priority client workflows: Overview, Live Site, Approvals, Chat, and Billing.
+/// Displays the 5 customer workflows: Home, Projects, Enquiries, Quotations, and More.
 class ClientBottomBar extends StatefulWidget {
   const ClientBottomBar({super.key});
 
@@ -39,49 +41,47 @@ class ClientBottomBar extends StatefulWidget {
   static const List<ClientBottomTabItem> tabs = [
     ClientBottomTabItem(
       id: 'client_overview',
-      title: 'Overview',
-      icon: Icons.grid_view_outlined,
-      activeIcon: Icons.grid_view_rounded,
+      title: 'Home',
+      icon: Icons.dashboard_outlined,
+      activeIcon: Icons.dashboard_rounded,
       routeName: RouteNames.clientOverview,
       routePath: RouteNames.clientOverviewPath,
     ),
     ClientBottomTabItem(
-      id: 'client_site_progress',
-      title: 'Live Site',
-      icon: Icons.videocam_outlined,
-      activeIcon: Icons.videocam_rounded,
-      routeName: RouteNames.clientSiteProgress,
-      routePath: RouteNames.clientSiteProgressPath,
+      id: 'client_projects',
+      title: 'Projects',
+      icon: Icons.home_work_outlined,
+      activeIcon: Icons.home_work_rounded,
+      routeName: RouteNames.clientProjects,
+      routePath: RouteNames.clientProjectsPath,
     ),
     ClientBottomTabItem(
-      id: 'client_approvals',
-      title: 'Approvals',
-      icon: Icons.fact_check_outlined,
-      activeIcon: Icons.fact_check_rounded,
-      routeName: RouteNames.clientApprovals,
-      routePath: RouteNames.clientApprovalsPath,
-      badgeCount: 2,
-      badgeColor: Color(0xFFEF4444),
+      id: 'client_enquiries',
+      title: 'Enquiries',
+      icon: Icons.assignment_outlined,
+      activeIcon: Icons.assignment_rounded,
+      routeName: RouteNames.clientEnquiries,
+      routePath: RouteNames.clientEnquiriesPath,
+      badgeCount: 1,
+      badgeColor: Color(0xFF3B82F6),
     ),
     ClientBottomTabItem(
-      id: 'client_chat',
-      title: 'Chat',
-      icon: Icons.forum_outlined,
-      activeIcon: Icons.forum_rounded,
-      routeName: RouteNames.clientChat,
-      routePath: RouteNames.clientChatPath,
-      badgeCount: 3,
-      badgeColor: Color(0xFF10B981),
-    ),
-    ClientBottomTabItem(
-      id: 'client_payments',
-      title: 'Billing',
-      icon: Icons.account_balance_wallet_outlined,
-      activeIcon: Icons.account_balance_wallet_rounded,
-      routeName: RouteNames.clientPayments,
-      routePath: RouteNames.clientPaymentsPath,
+      id: 'client_quotations',
+      title: 'Quotations',
+      icon: Icons.receipt_long_outlined,
+      activeIcon: Icons.receipt_long_rounded,
+      routeName: RouteNames.clientQuotations,
+      routePath: RouteNames.clientQuotationsPath,
       badgeCount: 1,
       badgeColor: Color(0xFFF59E0B),
+    ),
+    ClientBottomTabItem(
+      id: 'client_more',
+      title: 'More',
+      icon: Icons.grid_view_outlined,
+      activeIcon: Icons.grid_view_rounded,
+      routeName: '',
+      routePath: '',
     ),
   ];
 
@@ -109,9 +109,11 @@ class _ClientBottomBarState extends State<ClientBottomBar> {
   }
 
   bool _isTabActive(ClientBottomTabItem tab) {
+    if (tab.id == 'client_more') return false;
     final currentRoute = _controller.activeRoute;
     if (currentRoute == tab.routePath) return true;
-    if (tab.routePath != RouteNames.clientOverviewPath &&
+    if (tab.routePath.isNotEmpty &&
+        tab.routePath != RouteNames.clientOverviewPath &&
         currentRoute.startsWith(tab.routePath)) {
       return true;
     }
@@ -170,6 +172,10 @@ class _ClientBottomBarState extends State<ClientBottomBar> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
+          if (tab.id == 'client_more') {
+            CustomerMoreBottomSheet.show(context);
+            return;
+          }
           _controller.setActiveRoute(tab.routePath);
           context.goNamed(tab.routeName);
         },

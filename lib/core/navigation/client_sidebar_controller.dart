@@ -19,9 +19,12 @@ class ClientSidebarController extends ChangeNotifier {
   String _activeRoute = RouteNames.clientOverviewPath;
   String get activeRoute => _activeRoute;
 
-  /// The 5 high-priority routes displayed in the mobile bottom navigation bar
+  /// The primary customer routes displayed in the mobile bottom navigation bar
   static const Set<String> bottomTabRoutes = {
     RouteNames.clientOverviewPath,
+    RouteNames.clientProjectsPath,
+    RouteNames.clientEnquiriesPath,
+    RouteNames.clientQuotationsPath,
     RouteNames.clientSiteProgressPath,
     RouteNames.clientApprovalsPath,
     RouteNames.clientChatPath,
