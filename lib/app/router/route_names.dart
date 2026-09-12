@@ -582,9 +582,23 @@ abstract class RouteNames {
   static const String clientAiSuite = 'clientAiSuite';
   static const String clientAiSuitePath = '/client/ai-suite';
 
-  // 11. Marketplace & Services (Guides, Decor, Properties & Labour)
+  // 11. Marketplace & Services (Guides, Decor, Materials, Properties, Labour & Orders)
   static const String clientMarketplace = 'clientMarketplace';
   static const String clientMarketplacePath = '/client/marketplace';
+  static const String clientMarketplaceOverview = 'clientMarketplaceOverview';
+  static const String clientMarketplaceOverviewPath = '/client/marketplace/overview';
+  static const String clientMarketplaceDigitalProducts = 'clientMarketplaceDigitalProducts';
+  static const String clientMarketplaceDigitalProductsPath = '/client/marketplace/digital-products';
+  static const String clientMarketplaceHomeDecor = 'clientMarketplaceHomeDecor';
+  static const String clientMarketplaceHomeDecorPath = '/client/marketplace/home-decor';
+  static const String clientMarketplaceMaterials = 'clientMarketplaceMaterials';
+  static const String clientMarketplaceMaterialsPath = '/client/marketplace/materials';
+  static const String clientMarketplaceProperties = 'clientMarketplaceProperties';
+  static const String clientMarketplacePropertiesPath = '/client/marketplace/properties';
+  static const String clientMarketplaceLabourServices = 'clientMarketplaceLabourServices';
+  static const String clientMarketplaceLabourServicesPath = '/client/marketplace/labour-services';
+  static const String clientMarketplaceOrders = 'clientMarketplaceOrders';
+  static const String clientMarketplaceOrdersPath = '/client/marketplace/orders';
 
   // Legacy/Alias paths for backward-compatibility
   static const String clientMilestones = 'clientMilestones';

@@ -1607,8 +1607,27 @@ abstract class AppRouter {
               if (item.routeName == RouteNames.clientAiSuite) {
                 return const ClientAiStudioHubPage();
               }
-              if (item.routeName == RouteNames.clientMarketplace) {
-                return const ClientMarketplaceHubPage();
+              if (item.routeName == RouteNames.clientMarketplace ||
+                  item.routeName == RouteNames.clientMarketplaceOverview) {
+                return const ClientMarketplaceOverviewPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceDigitalProducts) {
+                return const ClientMarketplaceDigitalProductsPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceHomeDecor) {
+                return const ClientMarketplaceHomeDecorPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceMaterials) {
+                return const ClientMarketplaceMaterialsPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceProperties) {
+                return const ClientMarketplacePropertiesPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceLabourServices) {
+                return const ClientMarketplaceLabourServicesPage();
+              }
+              if (item.routeName == RouteNames.clientMarketplaceOrders) {
+                return const ClientMarketplaceOrdersPage();
               }
               return PanelPageTemplate.fromPath(item.routePath);
             },
@@ -1638,6 +1657,13 @@ abstract class AppRouter {
       (RouteNames.clientAiSavedDesigns, RouteNames.clientAiSavedDesignsPath),
       (RouteNames.clientAiHistory, RouteNames.clientAiHistoryPath),
       (RouteNames.clientAiCredits, RouteNames.clientAiCreditsPath),
+      (RouteNames.clientMarketplaceOverview, RouteNames.clientMarketplaceOverviewPath),
+      (RouteNames.clientMarketplaceDigitalProducts, RouteNames.clientMarketplaceDigitalProductsPath),
+      (RouteNames.clientMarketplaceHomeDecor, RouteNames.clientMarketplaceHomeDecorPath),
+      (RouteNames.clientMarketplaceMaterials, RouteNames.clientMarketplaceMaterialsPath),
+      (RouteNames.clientMarketplaceProperties, RouteNames.clientMarketplacePropertiesPath),
+      (RouteNames.clientMarketplaceLabourServices, RouteNames.clientMarketplaceLabourServicesPath),
+      (RouteNames.clientMarketplaceOrders, RouteNames.clientMarketplaceOrdersPath),
       (RouteNames.clientDigitalStore, RouteNames.clientDigitalStorePath),
       (RouteNames.clientDecorStore, RouteNames.clientDecorStorePath),
       (RouteNames.clientProperties, RouteNames.clientPropertiesPath),
@@ -1680,8 +1706,33 @@ abstract class AppRouter {
               if (r.$1 == RouteNames.clientFeedback) {
                 return const ClientFeedbackRatingsPage();
               }
-              if (r.$1 == RouteNames.clientServices || r.$1 == RouteNames.clientHireLabour) {
+              if (r.$1 == RouteNames.clientServices) {
                 return const ClientServicesLabourPage();
+              }
+              if (r.$1 == RouteNames.clientMarketplaceOverview) {
+                return const ClientMarketplaceOverviewPage();
+              }
+              if (r.$1 == RouteNames.clientDigitalStore ||
+                  r.$1 == RouteNames.clientMarketplaceDigitalProducts) {
+                return const ClientMarketplaceDigitalProductsPage();
+              }
+              if (r.$1 == RouteNames.clientDecorStore ||
+                  r.$1 == RouteNames.clientMarketplaceHomeDecor) {
+                return const ClientMarketplaceHomeDecorPage();
+              }
+              if (r.$1 == RouteNames.clientMarketplaceMaterials) {
+                return const ClientMarketplaceMaterialsPage();
+              }
+              if (r.$1 == RouteNames.clientProperties ||
+                  r.$1 == RouteNames.clientMarketplaceProperties) {
+                return const ClientMarketplacePropertiesPage();
+              }
+              if (r.$1 == RouteNames.clientHireLabour ||
+                  r.$1 == RouteNames.clientMarketplaceLabourServices) {
+                return const ClientMarketplaceLabourServicesPage();
+              }
+              if (r.$1 == RouteNames.clientMarketplaceOrders) {
+                return const ClientMarketplaceOrdersPage();
               }
               if (r.$1 == RouteNames.clientNotifications) {
                 return const ClientNotificationsPage();
@@ -1700,15 +1751,6 @@ abstract class AppRouter {
               }
               if (r.$1 == RouteNames.clientAiDoubtSolver) {
                 return const ClientAiDoubtSolverPage();
-              }
-              if (r.$1 == RouteNames.clientDigitalStore) {
-                return const ClientDigitalStorePage();
-              }
-              if (r.$1 == RouteNames.clientDecorStore) {
-                return const ClientDecorStorePage();
-              }
-              if (r.$1 == RouteNames.clientProperties) {
-                return const ClientPropertiesPage();
               }
               if (r.$1 == RouteNames.clientDesignerCall) {
                 return const ClientDesignerConsultationPage();
