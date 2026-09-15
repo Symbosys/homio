@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:client/app/navigation/admin_navigation_config.dart';
-import 'package:client/app/router/route_names.dart';
+import '../../app/navigation/admin_navigation_config.dart';
+import '../../app/router/route_names.dart';
+import '../auth/auth_state_notifier.dart';
 
 class AppSidebar extends StatefulWidget {
   final String currentRoute;
@@ -547,7 +548,7 @@ class _AppSidebarState extends State<AppSidebar> with SingleTickerProviderStateM
               offset: const Offset(48, -140),
               onSelected: (val) {
                 if (val == 'logout') {
-                  _handleNavigate('/login');
+                  AuthStateNotifier.instance.logout();
                 } else if (val == 'profile') {
                   _handleNavigate('/admin/settings');
                 }
@@ -614,7 +615,7 @@ class _AppSidebarState extends State<AppSidebar> with SingleTickerProviderStateM
                   icon: const Icon(Icons.more_vert_rounded, size: 16, color: Colors.grey),
                   onSelected: (val) {
                     if (val == 'logout') {
-                      _handleNavigate('/login');
+                      AuthStateNotifier.instance.logout();
                     } else if (val == 'profile') {
                       _handleNavigate('/admin/settings');
                     }

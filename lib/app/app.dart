@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_controller.dart';
+import '../core/utils/toast_service.dart';
 import 'router/app_router.dart';
 
 export 'router/app_router.dart';
@@ -19,6 +20,7 @@ class HomioApp extends StatelessWidget {
         return MaterialApp.router(
           title: 'Homio — Unified Business OS & CRM',
           debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: ToastService.messengerKey,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeController.instance.themeMode,

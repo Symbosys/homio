@@ -3,6 +3,7 @@ import '../../../../core/auth/auth_state_notifier.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../../core/utils/toast_service.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 
@@ -136,6 +137,7 @@ class AuthViewModel extends ChangeNotifier {
             'Access denied: This account belongs to the Client Portal. Please switch to the Client Portal tab.';
         _status = AuthStatus.failure;
         notifyListeners();
+        ToastService.showError(_errorMessage!);
         return false;
       }
 
@@ -144,6 +146,7 @@ class AuthViewModel extends ChangeNotifier {
             'Access denied: This account belongs to the Team Workspace. Please switch to the Team Portal tab.';
         _status = AuthStatus.failure;
         notifyListeners();
+        ToastService.showError(_errorMessage!);
         return false;
       }
 
@@ -158,16 +161,19 @@ class AuthViewModel extends ChangeNotifier {
       AuthStateNotifier.instance.setAuthenticated(res.user);
       _status = AuthStatus.success;
       notifyListeners();
+      ToastService.showSuccess(res.message ?? 'Login successful! Welcome back.');
       return true;
     } on ApiException catch (e) {
       _errorMessage = e.message;
       _status = AuthStatus.failure;
       notifyListeners();
+      ToastService.showError(e);
       return false;
     } catch (e) {
       _errorMessage = 'An unexpected error occurred: $e';
       _status = AuthStatus.failure;
       notifyListeners();
+      ToastService.showError(e);
       return false;
     }
   }

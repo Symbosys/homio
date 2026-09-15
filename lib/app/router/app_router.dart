@@ -55,7 +55,11 @@ export 'route_names.dart';
 /// Central routing logic and GoRouter configuration for Homio SaaS platform.
 /// Manages routes for both the Team/Admin CRM and the Client/Homeowner Portal.
 abstract class AppRouter {
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      GlobalKey<NavigatorState>();
+
   static final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: RouteNames.landingPath,
     refreshListenable: AuthStateNotifier.instance,
     redirect: (BuildContext context, GoRouterState state) {

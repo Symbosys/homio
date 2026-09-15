@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/auth/auth_state_notifier.dart';
 import '../../../core/responsive/breakpoints.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -71,7 +72,7 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.go('/login');
+              AuthStateNotifier.instance.logout();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),

@@ -441,20 +441,8 @@ class LoginFormCard extends StatelessWidget {
                     final success = await viewModel.login();
                     if (success && context.mounted) {
                       if (viewModel.isClientPortal) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Welcome to your Homeowner Portal (Villa 402)!'),
-                            backgroundColor: Color(0xFF10B981),
-                          ),
-                        );
                         context.goNamed(RouteNames.clientOverview);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sign in successful! Welcome to Homio Workspace.'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
                         context.goNamed(RouteNames.dashboardOverview);
                       }
                     }

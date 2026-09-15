@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/router/route_names.dart';
+import '../auth/auth_state_notifier.dart';
 import '../navigation/client_navigation_registry.dart';
 import '../navigation/client_sidebar_controller.dart';
 import '../theme/app_colors.dart';
@@ -882,9 +883,9 @@ class _ClientSidebarState extends State<ClientSidebar> {
           ? Center(
               child: IconButton(
                 iconSize: 20,
-                tooltip: 'Switch to CRM Admin',
-                icon: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF10B981)),
-                onPressed: () => context.goNamed(RouteNames.login),
+                tooltip: 'Logout',
+                icon: const Icon(Icons.logout_rounded, color: Color(0xFF10B981)),
+                onPressed: () => AuthStateNotifier.instance.logout(),
               ),
             )
           : Row(
@@ -928,7 +929,7 @@ class _ClientSidebarState extends State<ClientSidebar> {
                   ),
                 ),
                 Tooltip(
-                  message: 'Switch to Team CRM',
+                  message: 'Logout',
                   child: IconButton(
                     iconSize: 18,
                     splashRadius: 16,
@@ -936,7 +937,7 @@ class _ClientSidebarState extends State<ClientSidebar> {
                       Icons.logout_rounded,
                       color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                     ),
-                    onPressed: () => context.goNamed(RouteNames.login),
+                    onPressed: () => AuthStateNotifier.instance.logout(),
                   ),
                 ),
               ],

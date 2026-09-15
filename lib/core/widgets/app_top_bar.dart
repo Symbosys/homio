@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/navigation/admin_navigation_config.dart';
-import '../../app/router/route_names.dart';
+import '../auth/auth_state_notifier.dart';
 import '../navigation/navigation_menu_registry.dart';
 import '../navigation/sidebar_controller.dart';
 import '../responsive/breakpoints.dart';
@@ -282,21 +282,53 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: AppSpacing.xs),
 
               // 5. User Profile Icon Action
-              IconButton(
+              PopupMenuButton<String>(
                 tooltip: 'User Profile & Settings',
-                icon: const CircleAvatar(
+                offset: const Offset(0, 40),
+                onSelected: (val) {
+                  if (val == 'logout') {
+                    AuthStateNotifier.instance.logout();
+                  } else if (val == 'settings') {
+                    context.go('/admin/settings');
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Account Settings', style: TextStyle(fontSize: 12.5)),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout_rounded, size: 16, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Logout', style: TextStyle(fontSize: 12.5, color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+                child: CircleAvatar(
                   radius: 14,
                   backgroundColor: AppColors.primary,
                   child: Text(
-                    'VM',
-                    style: TextStyle(
+                    AuthStateNotifier.instance.currentUser?.firstName.isNotEmpty == true
+                        ? AuthStateNotifier.instance.currentUser!.firstName[0].toUpperCase()
+                        : 'A',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                onPressed: () => context.goNamed(RouteNames.login),
               ),
             ],
           ),

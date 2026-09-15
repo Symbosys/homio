@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/router/route_names.dart';
+import '../auth/auth_state_notifier.dart';
 import '../navigation/client_navigation_registry.dart';
 import '../navigation/client_sidebar_controller.dart';
 import '../responsive/breakpoints.dart';
@@ -220,21 +221,53 @@ class ClientTopBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 4),
 
           // Client Profile & Sign Out
-          IconButton(
-            tooltip: 'Client Profile (Rohit Sharma)',
-            icon: const CircleAvatar(
+          PopupMenuButton<String>(
+            tooltip: 'Account & Settings',
+            offset: const Offset(0, 40),
+            onSelected: (val) {
+              if (val == 'logout') {
+                AuthStateNotifier.instance.logout();
+              } else if (val == 'profile') {
+                context.goNamed(RouteNames.clientProfile);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'profile',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline_rounded, size: 16),
+                    SizedBox(width: 8),
+                    Text('Account Profile', style: TextStyle(fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout_rounded, size: 16, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Logout', style: TextStyle(fontSize: 12.5, color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+            child: CircleAvatar(
               radius: 14,
-              backgroundColor: Color(0xFF059669),
+              backgroundColor: const Color(0xFF059669),
               child: Text(
-                'RS',
-                style: TextStyle(
+                AuthStateNotifier.instance.currentUser?.firstName.isNotEmpty == true
+                    ? AuthStateNotifier.instance.currentUser!.firstName[0].toUpperCase()
+                    : 'U',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            onPressed: () => context.goNamed(RouteNames.login),
           ),
         ],
       ),

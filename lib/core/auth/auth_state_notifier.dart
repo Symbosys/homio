@@ -1,6 +1,9 @@
+import 'package:cached_query_flutter/cached_query_flutter.dart';
 import 'package:flutter/foundation.dart';
 import '../../features/auth/data/models/user_model.dart';
+import '../../features/auth/data/repositories/auth_repository.dart';
 import '../storage/local_storage.dart';
+import '../utils/toast_service.dart';
 
 class AuthStateNotifier extends ChangeNotifier {
   static final AuthStateNotifier instance = AuthStateNotifier._internal();
@@ -39,6 +42,20 @@ class AuthStateNotifier extends ChangeNotifier {
     _isAuthenticated = true;
     _currentUser = user;
     notifyListeners();
+  }
+
+  /// Complete logout flow: revoke token on backend, clear local storage, reset query cache, and trigger route redirect
+  Future<void> logout() async {
+    try {
+      final refreshToken = await LocalStorage.instance.getRefreshToken();
+      await AuthRepository().logout(refreshToken: refreshToken);
+    } catch (_) {
+      // Ignore network errors to guarantee clean local logout
+    } finally {
+      await setUnauthenticated();
+      CachedQuery.instance.deleteCache(key: 'current_user');
+      ToastService.showSuccess('You have been logged out successfully.');
+    }
   }
 
   /// Clear auth state upon logout or session invalidation
