@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/auth_state_notifier.dart';
 import '../../core/layout/client_portal_shell.dart';
 import '../../core/layout/dashboard_shell.dart';
 import '../../core/navigation/client_navigation_registry.dart';
@@ -56,6 +57,48 @@ export 'route_names.dart';
 abstract class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: RouteNames.landingPath,
+    refreshListenable: AuthStateNotifier.instance,
+    redirect: (BuildContext context, GoRouterState state) {
+      final auth = AuthStateNotifier.instance;
+      final loggedIn = auth.isAuthenticated;
+      final location = state.matchedLocation;
+      final isLoggingIn = location == RouteNames.loginPath;
+      final isLanding = location == RouteNames.landingPath;
+
+      // 1. Unauthenticated users:
+      // Block access to panels; redirect to /login
+      if (!loggedIn) {
+        if (!isLoggingIn && !isLanding) {
+          return RouteNames.loginPath;
+        }
+        return null;
+      }
+
+      // 2. Authenticated users:
+      // Block access to login page; redirect to respective panel
+      if (isLoggingIn) {
+        if (auth.currentUser?.userType == 'USER') {
+          return RouteNames.clientOverviewPath;
+        } else {
+          return RouteNames.dashboardOverviewPath;
+        }
+      }
+
+      // 3. Portal isolation:
+      // Client (USER) accounts cannot access admin routes
+      if (auth.currentUser?.userType == 'USER' && !location.startsWith('/client')) {
+        if (!isLanding) {
+          return RouteNames.clientOverviewPath;
+        }
+      }
+
+      // Admin accounts cannot access client portal routes
+      if (auth.currentUser?.userType == 'ADMIN' && location.startsWith('/client')) {
+        return RouteNames.dashboardOverviewPath;
+      }
+
+      return null;
+    },
     routes: [
       // 1. Public Landing Page
       GoRoute(

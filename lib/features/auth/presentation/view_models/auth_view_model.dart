@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../../core/auth/auth_state_notifier.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/api_exception.dart';
+import '../../../../core/storage/local_storage.dart';
+import '../../data/models/user_model.dart';
+import '../../data/repositories/auth_repository.dart';
 
 enum AuthStatus { initial, loading, success, failure }
 enum AuthPortalMode { teamCrm, clientPortal }
 
-/// ViewModel managing state and validation for the SaaS login experience.
+/// ViewModel managing state, validation, and API authentication.
 class AuthViewModel extends ChangeNotifier {
+  final AuthRepository _authRepository;
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -14,6 +21,14 @@ class AuthViewModel extends ChangeNotifier {
   String? _errorMessage;
   bool _rememberMe = true;
   bool _isPasswordVisible = false;
+  UserModel? _authenticatedUser;
+
+  AuthViewModel({AuthRepository? authRepository})
+      : _authRepository = authRepository ?? AuthRepository() {
+    // Fill initial demo credentials
+    emailController.text = AppConstants.demoEmail;
+    passwordController.text = AppConstants.demoPassword;
+  }
 
   AuthStatus get status => _status;
   AuthPortalMode get portalMode => _portalMode;
@@ -23,6 +38,7 @@ class AuthViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get rememberMe => _rememberMe;
   bool get isPasswordVisible => _isPasswordVisible;
+  UserModel? get authenticatedUser => _authenticatedUser;
 
   void setPortalMode(AuthPortalMode mode) {
     if (_portalMode != mode) {
@@ -82,6 +98,7 @@ class AuthViewModel extends ChangeNotifier {
     return null;
   }
 
+  /// Perform real authentication against the backend with portal verification
   Future<bool> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text;
@@ -107,12 +124,52 @@ class AuthViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    // Simulate authenticating against production API endpoint
-    await Future.delayed(const Duration(milliseconds: 1200));
+    try {
+      final res = await _authRepository.login(
+        email: email,
+        password: password,
+      );
 
-    _status = AuthStatus.success;
-    notifyListeners();
-    return true;
+      // Verify portal compatibility
+      if (_portalMode == AuthPortalMode.teamCrm && res.user.userType != 'ADMIN') {
+        _errorMessage =
+            'Access denied: This account belongs to the Client Portal. Please switch to the Client Portal tab.';
+        _status = AuthStatus.failure;
+        notifyListeners();
+        return false;
+      }
+
+      if (_portalMode == AuthPortalMode.clientPortal && res.user.userType != 'USER') {
+        _errorMessage =
+            'Access denied: This account belongs to the Team Workspace. Please switch to the Team Portal tab.';
+        _status = AuthStatus.failure;
+        notifyListeners();
+        return false;
+      }
+
+      // Persist session
+      await LocalStorage.instance.saveAuthSession(
+        accessToken: res.accessToken,
+        refreshToken: res.refreshToken,
+        userJson: res.user.toJson(),
+      );
+
+      _authenticatedUser = res.user;
+      AuthStateNotifier.instance.setAuthenticated(res.user);
+      _status = AuthStatus.success;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _status = AuthStatus.failure;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'An unexpected error occurred: $e';
+      _status = AuthStatus.failure;
+      notifyListeners();
+      return false;
+    }
   }
 
   @override

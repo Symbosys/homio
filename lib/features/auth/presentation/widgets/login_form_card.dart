@@ -299,6 +299,40 @@ class LoginFormCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
+              if (viewModel.errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          viewModel.errorMessage!,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFFEF4444),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+
               // Work Email Address
               AppTextField(
                 label: viewModel.isClientPortal ? 'Account Email Address' : 'Work Email Address',
