@@ -23,4 +23,3 @@ void main() async {
 
   runApp(const HomioApp());
 }
-
