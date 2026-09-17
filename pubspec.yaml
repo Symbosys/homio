@@ -44,6 +44,9 @@ dependencies:
   dio: ^5.7.0
   cached_query_flutter: ^3.0.0
   shared_preferences: ^2.3.3
+  image_picker: ^1.2.3
+  permission_handler: ^13.0.2
+  image: ^4.10.1
 
 dev_dependencies:
   flutter_test:

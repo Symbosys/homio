@@ -7,7 +7,8 @@ class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
     required this.label,
-    this.hint,
+    String? hint,
+    String? hintText,
     this.controller,
     this.initialValue,
     this.isPassword = false,
@@ -15,12 +16,13 @@ class AppTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffix,
     this.errorText,
+    this.validator,
     this.onChanged,
     this.onSubmitted,
     this.textInputAction = TextInputAction.next,
     this.enabled = true,
     this.isDense = false,
-  });
+  }) : hint = hint ?? hintText;
 
   final String label;
   final String? hint;
@@ -31,6 +33,7 @@ class AppTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final Widget? suffix;
   final String? errorText;
+  final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final TextInputAction textInputAction;
@@ -146,6 +149,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   keyboardType: widget.keyboardType,
                   textInputAction: widget.textInputAction,
                   enabled: widget.enabled,
+                  validator: widget.validator,
                   onChanged: widget.onChanged,
                   onFieldSubmitted: widget.onSubmitted,
                   style: GoogleFonts.plusJakartaSans(

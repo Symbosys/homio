@@ -47,6 +47,11 @@ import '../../features/marketplace/index.dart';
 import '../../features/after_sales/index.dart';
 import '../../features/organization/index.dart';
 import '../../features/system_admin/index.dart';
+import '../../features/platform_admin/presentation/layout/platform_admin_shell.dart';
+import '../../features/platform_admin/presentation/pages/platform_dashboard_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_subscriptions_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_organizations_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_onboard_org_page.dart';
 import '../navigation/admin_navigation_config.dart';
 import 'route_names.dart';
 
@@ -81,7 +86,9 @@ abstract class AppRouter {
       // 2. Authenticated users:
       // Block access to login page; redirect to respective panel
       if (isLoggingIn) {
-        if (auth.currentUser?.userType == 'USER') {
+        if (auth.currentUser?.userType == 'PLATFORM_ADMIN') {
+          return RouteNames.platformDashboardPath;
+        } else if (auth.currentUser?.userType == 'USER') {
           return RouteNames.clientOverviewPath;
         } else {
           return RouteNames.dashboardOverviewPath;
@@ -89,6 +96,22 @@ abstract class AppRouter {
       }
 
       // 3. Portal isolation:
+      // Platform Admin accounts should stay in /platform
+      if (auth.currentUser?.userType == 'PLATFORM_ADMIN' && !location.startsWith('/platform')) {
+        if (!isLanding) {
+          return RouteNames.platformDashboardPath;
+        }
+      }
+
+      // Non-Platform Admin accounts cannot access platform admin routes
+      if (auth.currentUser?.userType != 'PLATFORM_ADMIN' && location.startsWith('/platform')) {
+        if (auth.currentUser?.userType == 'USER') {
+          return RouteNames.clientOverviewPath;
+        } else {
+          return RouteNames.dashboardOverviewPath;
+        }
+      }
+
       // Client (USER) accounts cannot access admin routes
       if (auth.currentUser?.userType == 'USER' && !location.startsWith('/client')) {
         if (!isLanding) {
@@ -132,6 +155,35 @@ abstract class AppRouter {
           return ClientPortalShell(child: child);
         },
         routes: _buildAllClientRoutes(),
+      ),
+
+      // 5. Authenticated Platform Owner / Admin Shell (4-Tab Platform Console)
+      ShellRoute(
+        builder: (context, state, child) {
+          return PlatformAdminShell(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: RouteNames.platformDashboardPath,
+            name: RouteNames.platformDashboard,
+            builder: (context, state) => const PlatformDashboardPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformSubscriptionsPath,
+            name: RouteNames.platformSubscriptions,
+            builder: (context, state) => const PlatformSubscriptionsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformOrganizationsPath,
+            name: RouteNames.platformOrganizations,
+            builder: (context, state) => const PlatformOrganizationsPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformOnboardOrgPath,
+            name: RouteNames.platformOnboardOrg,
+            builder: (context, state) => const PlatformOnboardOrgPage(),
+          ),
+        ],
       ),
     ],
     errorBuilder: (context, state) => NotFoundPage(path: state.uri.path),

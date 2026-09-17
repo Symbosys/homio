@@ -664,6 +664,19 @@ abstract class RouteNames {
   static const String clientFeedback = 'clientFeedback';
   static const String clientFeedbackPath = '/client/feedback';
 
+  // Platform Admin Routes (SaaS Owner Panel)
+  static const String platformDashboard = 'platformDashboard';
+  static const String platformDashboardPath = '/platform/dashboard';
+
+  static const String platformSubscriptions = 'platformSubscriptions';
+  static const String platformSubscriptionsPath = '/platform/subscriptions';
+
+  static const String platformOrganizations = 'platformOrganizations';
+  static const String platformOrganizationsPath = '/platform/organizations';
+
+  static const String platformOnboardOrg = 'platformOnboardOrg';
+  static const String platformOnboardOrgPath = '/platform/organizations/onboard';
+
   /// Legacy Route Map preserving old URLs and redirecting to canonical routes
   static const Map<String, String> legacyRouteAliases = {
     '/milestones': projectsMilestones,

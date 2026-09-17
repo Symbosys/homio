@@ -1,4 +1,5 @@
 import 'package:cached_query_flutter/cached_query_flutter.dart';
+import '../../../../core/utils/query_cache_utils.dart';
 import '../../../../core/utils/toast_service.dart';
 import '../../data/models/user_management_models.dart';
 import '../../data/repositories/user_repository.dart';
@@ -99,30 +100,14 @@ class UserQueries {
   // ==========================================
 
   /// Invalidate and immediately refetch all user queries
-  void invalidateUsersCache() {
-    CachedQuery.instance.invalidateCache(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.usersList),
-    );
-    CachedQuery.instance.refetchQueries(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.usersList),
-    );
-  }
+  void invalidateUsersCache() =>
+      QueryCacheUtils.invalidateAndRefetch(UserQueryKeys.usersList);
 
   /// Invalidate and immediately refetch all role queries and user queries
-  void invalidateRolesCache() {
-    CachedQuery.instance.invalidateCache(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.rolesList),
-    );
-    CachedQuery.instance.refetchQueries(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.rolesList),
-    );
-    CachedQuery.instance.invalidateCache(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.usersList),
-    );
-    CachedQuery.instance.refetchQueries(
-      filterFn: (unencodedKey, key) => key.toString().contains(UserQueryKeys.usersList),
-    );
-  }
+  void invalidateRolesCache() => QueryCacheUtils.invalidateAndRefetchMultiple([
+        UserQueryKeys.rolesList,
+        UserQueryKeys.usersList,
+      ]);
 
   /// Mutation: Create user
   Mutation<UserApiItem, ({

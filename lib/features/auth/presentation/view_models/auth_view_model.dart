@@ -8,7 +8,7 @@ import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 
 enum AuthStatus { initial, loading, success, failure }
-enum AuthPortalMode { teamCrm, clientPortal }
+enum AuthPortalMode { teamCrm, clientPortal, platformAdmin }
 
 /// ViewModel managing state, validation, and API authentication.
 class AuthViewModel extends ChangeNotifier {
@@ -34,6 +34,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthStatus get status => _status;
   AuthPortalMode get portalMode => _portalMode;
   bool get isClientPortal => _portalMode == AuthPortalMode.clientPortal;
+  bool get isPlatformPortal => _portalMode == AuthPortalMode.platformAdmin;
   bool get isLoading => _status == AuthStatus.loading;
   bool get isSuccess => _status == AuthStatus.success;
   String? get errorMessage => _errorMessage;
@@ -45,7 +46,10 @@ class AuthViewModel extends ChangeNotifier {
     if (_portalMode != mode) {
       _portalMode = mode;
       _errorMessage = null;
-      if (mode == AuthPortalMode.clientPortal) {
+      if (mode == AuthPortalMode.platformAdmin) {
+        emailController.text = AppConstants.demoPlatformEmail;
+        passwordController.text = AppConstants.demoPlatformPassword;
+      } else if (mode == AuthPortalMode.clientPortal) {
         emailController.text = 'sarah.homeowner@gmail.com';
         passwordController.text = 'Client@2026';
       } else {
@@ -67,7 +71,10 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void fillDemoCredentials() {
-    if (_portalMode == AuthPortalMode.clientPortal) {
+    if (_portalMode == AuthPortalMode.platformAdmin) {
+      emailController.text = AppConstants.demoPlatformEmail;
+      passwordController.text = AppConstants.demoPlatformPassword;
+    } else if (_portalMode == AuthPortalMode.clientPortal) {
       emailController.text = 'sarah.homeowner@gmail.com';
       passwordController.text = 'Client@2026';
     } else {
@@ -132,7 +139,16 @@ class AuthViewModel extends ChangeNotifier {
       );
 
       // Verify portal compatibility
-      if (_portalMode == AuthPortalMode.teamCrm && res.user.userType != 'ADMIN') {
+      if (_portalMode == AuthPortalMode.platformAdmin && res.user.userType != 'PLATFORM_ADMIN') {
+        _errorMessage =
+            'Access denied: This account is not a Platform Admin.';
+        _status = AuthStatus.failure;
+        notifyListeners();
+        ToastService.showError(_errorMessage!);
+        return false;
+      }
+
+      if (_portalMode == AuthPortalMode.teamCrm && res.user.userType == 'USER') {
         _errorMessage =
             'Access denied: This account belongs to the Client Portal. Please switch to the Client Portal tab.';
         _status = AuthStatus.failure;

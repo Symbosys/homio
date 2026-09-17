@@ -10,6 +10,8 @@ abstract class AppConstants {
   // Demo credentials for evaluator convenience
   static const String demoEmail = 'alex@homioworkspace.com';
   static const String demoPassword = 'Password123!';
+  static const String demoPlatformEmail = 'superadmin@homio.com';
+  static const String demoPlatformPassword = 'Platform@2026';
 
   // Value proposition pillars
   static const List<Map<String, dynamic>> valuePillars = [

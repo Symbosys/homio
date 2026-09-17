@@ -44,16 +44,22 @@ class LoginFormCard extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: viewModel.isClientPortal
-                          ? const [Color(0xFF34D399), Color(0xFF10B981), Color(0xFF059669)]
-                          : const [Color(0xFF818CF8), Color(0xFF6366F1), Color(0xFF4F46E5)],
+                      colors: viewModel.isPlatformPortal
+                          ? const [Color(0xFFA855F7), Color(0xFF8B5CF6), Color(0xFF6D28D9)]
+                          : viewModel.isClientPortal
+                              ? const [Color(0xFF34D399), Color(0xFF10B981), Color(0xFF059669)]
+                              : const [Color(0xFF818CF8), Color(0xFF6366F1), Color(0xFF4F46E5)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: (viewModel.isClientPortal ? const Color(0xFF10B981) : const Color(0xFF6366F1))
+                        color: (viewModel.isPlatformPortal
+                                ? const Color(0xFF8B5CF6)
+                                : viewModel.isClientPortal
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF6366F1))
                             .withValues(alpha: 0.35),
                         blurRadius: 14,
                         offset: const Offset(0, 5),
@@ -61,7 +67,11 @@ class LoginFormCard extends StatelessWidget {
                     ],
                   ),
                   child: Icon(
-                    viewModel.isClientPortal ? Icons.home_repair_service_rounded : Icons.layers_rounded,
+                    viewModel.isPlatformPortal
+                        ? Icons.admin_panel_settings_rounded
+                        : viewModel.isClientPortal
+                            ? Icons.home_repair_service_rounded
+                            : Icons.layers_rounded,
                     color: Colors.white,
                     size: 22,
                   ),
@@ -69,7 +79,7 @@ class LoginFormCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // Portal Switcher Segmented Control
+              // Portal Switcher Segmented Control (3 Portals: Team, Client, Platform)
               Container(
                 padding: const EdgeInsets.all(3.5),
                 decoration: BoxDecoration(
@@ -78,19 +88,20 @@ class LoginFormCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
+                    // Tab 1: Team / CRM
                     Expanded(
                       child: InkWell(
                         onTap: () => viewModel.setPortalMode(AuthPortalMode.teamCrm),
                         borderRadius: BorderRadius.circular(7),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                           decoration: BoxDecoration(
-                            color: !viewModel.isClientPortal
+                            color: (!viewModel.isClientPortal && !viewModel.isPlatformPortal)
                                 ? (isDark ? const Color(0xFF334155) : Colors.white)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(7),
-                            boxShadow: !viewModel.isClientPortal
+                            boxShadow: (!viewModel.isClientPortal && !viewModel.isPlatformPortal)
                                 ? [
                                     BoxShadow(
                                       color: Colors.black.withValues(alpha: 0.08),
@@ -106,21 +117,23 @@ class LoginFormCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.business_center_rounded,
-                                size: 13,
-                                color: !viewModel.isClientPortal
+                                size: 12,
+                                color: (!viewModel.isClientPortal && !viewModel.isPlatformPortal)
                                     ? const Color(0xFF6366F1)
                                     : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 3),
                               Flexible(
                                 child: Text(
-                                  'Team / CRM',
+                                  'Team',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: !viewModel.isClientPortal ? FontWeight.w700 : FontWeight.w500,
-                                    color: !viewModel.isClientPortal
+                                    fontSize: 11,
+                                    fontWeight: (!viewModel.isClientPortal && !viewModel.isPlatformPortal)
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: (!viewModel.isClientPortal && !viewModel.isPlatformPortal)
                                         ? (isDark ? Colors.white : const Color(0xFF0F172A))
                                         : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   ),
@@ -131,13 +144,15 @@ class LoginFormCard extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                    // Tab 2: Client Portal
                     Expanded(
                       child: InkWell(
                         onTap: () => viewModel.setPortalMode(AuthPortalMode.clientPortal),
                         borderRadius: BorderRadius.circular(7),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                           decoration: BoxDecoration(
                             color: viewModel.isClientPortal
                                 ? (isDark ? const Color(0xFF334155) : Colors.white)
@@ -159,21 +174,76 @@ class LoginFormCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.home_rounded,
-                                size: 13,
+                                size: 12,
                                 color: viewModel.isClientPortal
                                     ? const Color(0xFF10B981)
                                     : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 3),
                               Flexible(
                                 child: Text(
-                                  'Client Portal',
+                                  'Client',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
+                                    fontSize: 11,
                                     fontWeight: viewModel.isClientPortal ? FontWeight.w700 : FontWeight.w500,
                                     color: viewModel.isClientPortal
+                                        ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Tab 3: Platform Admin
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => viewModel.setPortalMode(AuthPortalMode.platformAdmin),
+                        borderRadius: BorderRadius.circular(7),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: viewModel.isPlatformPortal
+                                ? (isDark ? const Color(0xFF334155) : Colors.white)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(7),
+                            boxShadow: viewModel.isPlatformPortal
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.admin_panel_settings_rounded,
+                                size: 12,
+                                color: viewModel.isPlatformPortal
+                                    ? const Color(0xFF8B5CF6)
+                                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  'Platform',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: viewModel.isPlatformPortal ? FontWeight.w700 : FontWeight.w500,
+                                    color: viewModel.isPlatformPortal
                                         ? (isDark ? Colors.white : const Color(0xFF0F172A))
                                         : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   ),
@@ -191,7 +261,11 @@ class LoginFormCard extends StatelessWidget {
 
               // Title
               Text(
-                viewModel.isClientPortal ? 'Client Portal' : 'Welcome back',
+                viewModel.isPlatformPortal
+                    ? 'Platform Admin'
+                    : viewModel.isClientPortal
+                        ? 'Client Portal'
+                        : 'Welcome back',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 21,
@@ -204,14 +278,15 @@ class LoginFormCard extends StatelessWidget {
 
               // Subtitle
               Text(
-                viewModel.isClientPortal
-                    ? 'Sign in to track your home interior & turnkey project'
-                    : 'Sign in to access your organization workspace',
+                viewModel.isPlatformPortal
+                    ? 'Sign in to manage organizations, plans, and platform operations.'
+                    : viewModel.isClientPortal
+                        ? 'Sign in to view your interior design project, approvals & milestones.'
+                        : 'Sign in to access your team workspace, pipelines & execution tools.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  fontSize: 12.5,
+                  color: isDark ? AppColors.darkTextSecondary : const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 12),
@@ -432,7 +507,11 @@ class LoginFormCard extends StatelessWidget {
               SizedBox(
                 height: 42,
                 child: AppButton(
-                  text: viewModel.isClientPortal ? 'Access Client Portal' : 'Sign in to Workspace',
+                  text: viewModel.isPlatformPortal
+                      ? 'Access Platform Admin'
+                      : viewModel.isClientPortal
+                          ? 'Access Client Portal'
+                          : 'Sign in to Workspace',
                   size: AppButtonSize.medium,
                   isFullWidth: true,
                   isLoading: viewModel.isLoading,
@@ -440,7 +519,9 @@ class LoginFormCard extends StatelessWidget {
                   onPressed: () async {
                     final success = await viewModel.login();
                     if (success && context.mounted) {
-                      if (viewModel.isClientPortal) {
+                      if (viewModel.isPlatformPortal) {
+                        context.go(RouteNames.platformDashboardPath);
+                      } else if (viewModel.isClientPortal) {
                         context.goNamed(RouteNames.clientOverview);
                       } else {
                         context.goNamed(RouteNames.dashboardOverview);
