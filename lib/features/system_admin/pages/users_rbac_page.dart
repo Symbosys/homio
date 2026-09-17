@@ -1300,7 +1300,6 @@ class _UsersRbacPageState extends State<UsersRbacPage> with SingleTickerProvider
     final emailCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
-    String selectedType = 'USER';
     String selectedStatus = 'ACTIVE';
     String? selectedRoleId;
 
@@ -1397,37 +1396,16 @@ class _UsersRbacPageState extends State<UsersRbacPage> with SingleTickerProvider
 
                     Text('2. Security & Role Assignment', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: selectedType,
-                            decoration: const InputDecoration(labelText: 'User Type', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'USER', child: Text('USER (Standard)')),
-                              DropdownMenuItem(value: 'ADMIN', child: Text('ADMIN (Full Access)')),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) selectedType = val;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            initialValue: selectedStatus,
-                            decoration: const InputDecoration(labelText: 'Initial Status', border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(value: 'ACTIVE', child: Text('ACTIVE')),
-                              DropdownMenuItem(value: 'INACTIVE', child: Text('INACTIVE')),
-                              DropdownMenuItem(value: 'PENDING_VERIFICATION', child: Text('PENDING_VERIFICATION')),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) selectedStatus = val;
-                            },
-                          ),
-                        ),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedStatus,
+                      decoration: const InputDecoration(labelText: 'Initial Status', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'ACTIVE', child: Text('ACTIVE')),
+                        DropdownMenuItem(value: 'INACTIVE', child: Text('INACTIVE')),
                       ],
+                      onChanged: (val) {
+                        if (val != null) selectedStatus = val;
+                      },
                     ),
                     const SizedBox(height: 12),
                     QueryBuilder(
@@ -1505,7 +1483,7 @@ class _UsersRbacPageState extends State<UsersRbacPage> with SingleTickerProvider
                           email: email,
                           phone: phone.isNotEmpty ? phone : null,
                           password: password,
-                          userType: selectedType,
+                          userType: 'ADMIN',
                           status: selectedStatus,
                           avatarUrl: null,
                           roleIds: selectedRoleId != null ? [selectedRoleId!] : null,
@@ -1528,88 +1506,217 @@ class _UsersRbacPageState extends State<UsersRbacPage> with SingleTickerProvider
   // EDIT USER MODAL
   // ==========================================================================
   void _showEditUserModal(BuildContext context, UserApiItem user) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final fNameCtrl = TextEditingController(text: user.firstName);
     final lNameCtrl = TextEditingController(text: user.lastName ?? '');
+    final emailCtrl = TextEditingController(text: user.email);
     final phoneCtrl = TextEditingController(text: user.phone ?? '');
     String selectedStatus = user.status;
-    String selectedType = user.userType;
+    String? selectedRoleId = user.roles.isNotEmpty ? user.roles.first.id : null;
 
     showDialog(
       context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) {
-        return AlertDialog(
-          title: Text('Edit User: ${user.fullName}'),
-          content: SizedBox(
-            width: 480,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(controller: fNameCtrl, decoration: const InputDecoration(labelText: 'First Name *', border: OutlineInputBorder())),
-                  const SizedBox(height: 12),
-                  TextField(controller: lNameCtrl, decoration: const InputDecoration(labelText: 'Last Name', border: OutlineInputBorder())),
-                  const SizedBox(height: 12),
-                  TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder())),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedStatus,
-                    decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'ACTIVE', child: Text('ACTIVE')),
-                      DropdownMenuItem(value: 'INACTIVE', child: Text('INACTIVE')),
-                      DropdownMenuItem(value: 'SUSPENDED', child: Text('SUSPENDED')),
-                      DropdownMenuItem(value: 'PENDING_VERIFICATION', child: Text('PENDING_VERIFICATION')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) selectedStatus = val;
-                    },
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Material(
+              color: Colors.transparent,
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: 680,
+                    maxHeight: MediaQuery.of(context).size.height * 0.9,
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedType,
-                    decoration: const InputDecoration(labelText: 'User Type', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'USER', child: Text('USER')),
-                      DropdownMenuItem(value: 'ADMIN', child: Text('ADMIN')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) selectedType = val;
-                    },
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 25)],
                   ),
-                ],
+                  child: Column(
+                    children: [
+                      // Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Edit User: ${user.fullName}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
+                                Text('Update profile details, contact information, and role assignment.', style: TextStyle(fontSize: 12, color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Form fields
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.all(24),
+                          children: [
+                            Text('1. Personal & Contact Info', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: fNameCtrl,
+                                    decoration: const InputDecoration(labelText: 'First Name *', border: OutlineInputBorder()),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: lNameCtrl,
+                                    decoration: const InputDecoration(labelText: 'Last Name', border: OutlineInputBorder()),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: emailCtrl,
+                                    readOnly: true,
+                                    enabled: false,
+                                    decoration: const InputDecoration(labelText: 'Email Address (Locked)', border: OutlineInputBorder()),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: phoneCtrl,
+                                    decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            Text('2. Security & Role Assignment', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              initialValue: selectedStatus,
+                              decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+                              items: const [
+                                DropdownMenuItem(value: 'ACTIVE', child: Text('ACTIVE')),
+                                DropdownMenuItem(value: 'INACTIVE', child: Text('INACTIVE')),
+                              ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setModalState(() => selectedStatus = val);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            QueryBuilder(
+                              query: _userQueries.getRolesQuery(),
+                              builder: (context, state) {
+                                final roles = state.data ?? [];
+                                return DropdownButtonFormField<String?>(
+                                  initialValue: selectedRoleId,
+                                  decoration: const InputDecoration(labelText: 'Assign Role', border: OutlineInputBorder()),
+                                  items: [
+                                    const DropdownMenuItem(value: null, child: Text('None (No Role)')),
+                                    for (final r in roles)
+                                      DropdownMenuItem(value: r.id, child: Text('${r.name} (${r.slug})')),
+                                  ],
+                                  onChanged: (val) => setModalState(() => selectedRoleId = val),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Footer
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        decoration: BoxDecoration(
+                          border: Border(top: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancel'),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () {
+                                final firstName = fNameCtrl.text.trim();
+                                final lastName = lNameCtrl.text.trim();
+                                final phone = phoneCtrl.text.trim();
+
+                                if (firstName.isEmpty) {
+                                  ToastService.showError('First Name is required.');
+                                  return;
+                                }
+
+                                if (phone.isNotEmpty && phone.length < 6) {
+                                  ToastService.showError('Phone number must be at least 6 digits.');
+                                  return;
+                                }
+
+                                Navigator.pop(ctx);
+
+                                final updateMutation = _userQueries.getUpdateUserMutation(
+                                  onUpdated: (updatedUser) {
+                                    if (mounted) {
+                                      setState(() {
+                                        if (_selectedUserDetail?.id == updatedUser.id) {
+                                          _selectedUserDetail = updatedUser;
+                                        }
+                                      });
+                                    }
+                                  },
+                                );
+
+                                updateMutation.mutate((
+                                  id: user.id,
+                                  firstName: firstName,
+                                  lastName: lastName.isNotEmpty ? lastName : null,
+                                  phone: phone.isNotEmpty ? phone : null,
+                                  status: selectedStatus,
+                                  userType: 'ADMIN',
+                                  avatarUrl: null,
+                                ));
+
+                                // If role changed, update assigned roles
+                                final currentRoleId = user.roles.isNotEmpty ? user.roles.first.id : null;
+                                if (selectedRoleId != currentRoleId) {
+                                  final roleMutation = _userQueries.getAssignUserRolesMutation();
+                                  roleMutation.mutate((
+                                    id: user.id,
+                                    roleIds: selectedRoleId != null ? [selectedRoleId!] : [],
+                                  ));
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                              child: const Text('Save Changes'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                final mutation = _userQueries.getUpdateUserMutation(
-                  onUpdated: (updatedUser) {
-                    if (mounted) {
-                      setState(() {
-                        if (_selectedUserDetail?.id == updatedUser.id) {
-                          _selectedUserDetail = updatedUser;
-                        }
-                      });
-                    }
-                  },
-                );
-                mutation.mutate((
-                  id: user.id,
-                  firstName: fNameCtrl.text.trim(),
-                  lastName: lNameCtrl.text.trim().isNotEmpty ? lNameCtrl.text.trim() : null,
-                  phone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
-                  status: selectedStatus,
-                  userType: selectedType,
-                  avatarUrl: null,
-                ));
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-              child: const Text('Save Changes'),
-            ),
-          ],
+            );
+          },
         );
       },
     );

@@ -470,6 +470,14 @@ abstract class NavigationMenuRegistry {
           tooltip: 'Digital guide store, home decor affiliates, and Rs. 500 property paywall',
           subItems: [
             NavigationSubMenuItem(
+              id: 'marketplace_management',
+              title: 'Marketplace Operations',
+              icon: Icons.storefront_rounded,
+              routeName: RouteNames.marketplaceManagement,
+              routePath: RouteNames.marketplaceManagementPath,
+              description: 'Dynamic category tabs, product catalog & selling setup',
+            ),
+            NavigationSubMenuItem(
               id: 'shop_digital_store',
               title: 'Digital Guides Store',
               icon: Icons.menu_book_rounded,

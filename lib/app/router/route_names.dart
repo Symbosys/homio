@@ -230,7 +230,8 @@ abstract class RouteNames {
   static const String marketplaceProperties = '/marketplace/properties';
   static const String marketplaceMaterials = '/marketplace/materials';
   static const String marketplaceOrders = '/marketplace/orders';
-  static const String marketplaceManagement = '/marketplace/management';
+  static const String marketplaceManagement = 'marketplaceManagement';
+  static const String marketplaceManagementPath = '/marketplace/management';
 
   static const String shopDigitalStore = 'shopDigitalStore';
   static const String shopDigitalStorePath = '/shopping/digital-store';
@@ -676,6 +677,16 @@ abstract class RouteNames {
 
   static const String platformOnboardOrg = 'platformOnboardOrg';
   static const String platformOnboardOrgPath = '/platform/organizations/onboard';
+
+  // Platform Marketplace Governance
+  static const String platformCategories = 'platformCategories';
+  static const String platformCategoriesPath = '/platform/marketplace/categories';
+
+  static const String platformProperties = 'platformProperties';
+  static const String platformPropertiesPath = '/platform/marketplace/properties';
+
+  static const String platformSellerApprovals = 'platformSellerApprovals';
+  static const String platformSellerApprovalsPath = '/platform/marketplace/seller-approvals';
 
   /// Legacy Route Map preserving old URLs and redirecting to canonical routes
   static const Map<String, String> legacyRouteAliases = {

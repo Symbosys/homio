@@ -8,6 +8,9 @@ export 'domain/marketplace_domain_models.dart';
 // Data & Repository
 export 'data/marketplace_mock_data.dart';
 export 'data/marketplace_repository.dart';
+export 'data/models/org_marketplace_models.dart';
+export 'data/repositories/org_marketplace_repository.dart';
+export 'presentation/queries/org_marketplace_queries.dart';
 
 // Shared Enterprise Widgets & Modals
 export 'widgets/marketplace_header.dart';
@@ -30,10 +33,17 @@ export 'widgets/order_vendor_assign_dialog.dart';
 export 'widgets/approval_review_dialog.dart';
 export 'widgets/marketplace_config_dialog.dart';
 
-// Primary Operations Pages
+// Primary Operations Pages & Dynamic Hub
+export 'presentation/pages/marketplace_dynamic_hub_page.dart';
+export 'presentation/dialogs/org_digital_product_dialog.dart';
+export 'presentation/dialogs/org_home_decor_dialog.dart';
+export 'presentation/dialogs/org_property_dialog.dart';
+export 'presentation/dialogs/org_material_dialog.dart';
+export 'presentation/widgets/marketplace_image_picker_field.dart';
 export 'digital/marketplace_digital_page.dart';
 export 'decor/marketplace_decor_page.dart';
 export 'properties/marketplace_properties_page.dart';
 export 'materials/marketplace_materials_page.dart';
 export 'orders/marketplace_orders_page.dart';
 export 'management/marketplace_management_page.dart';
+

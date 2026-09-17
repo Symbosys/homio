@@ -149,6 +149,49 @@ class PlatformSidebar extends StatelessWidget {
                   isActive: currentRoute == RouteNames.platformOnboardOrgPath,
                   isDark: isDark,
                 ),
+                const SizedBox(height: 16),
+
+                // Marketplace Category Label
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text(
+                    'MARKETPLACE GOVERNANCE',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                _buildNavItem(
+                  context,
+                  title: 'Categories',
+                  icon: Icons.category_rounded,
+                  route: RouteNames.platformCategoriesPath,
+                  isActive: currentRoute == RouteNames.platformCategoriesPath,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 4),
+                _buildNavItem(
+                  context,
+                  title: 'Property Verifications',
+                  icon: Icons.verified_rounded,
+                  route: RouteNames.platformPropertiesPath,
+                  isActive: currentRoute == RouteNames.platformPropertiesPath,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 4),
+                _buildNavItem(
+                  context,
+                  title: 'Seller Approvals',
+                  icon: Icons.how_to_reg_rounded,
+                  route: RouteNames.platformSellerApprovalsPath,
+                  isActive: currentRoute == RouteNames.platformSellerApprovalsPath,
+                  isDark: isDark,
+                ),
               ],
             ),
           ),

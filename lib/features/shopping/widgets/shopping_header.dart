@@ -26,6 +26,7 @@ class ShoppingHeader extends StatelessWidget {
     final textSecondaryColor = AppColors.getTextSecondary(context);
 
     final tabs = [
+      {'label': 'Marketplace Operations', 'route': RouteNames.marketplaceManagementPath, 'icon': Icons.storefront_rounded},
       {'label': 'Digital Guides Store', 'route': RouteNames.shopDigitalStorePath, 'icon': Icons.menu_book_rounded},
       {'label': 'Home Decor & Materials', 'route': RouteNames.shopDecorAffiliatesPath, 'icon': Icons.chair_rounded},
       {'label': 'Rental & Real Estate (₹500 Paywall)', 'route': RouteNames.shopPropertiesPath, 'icon': Icons.apartment_rounded},

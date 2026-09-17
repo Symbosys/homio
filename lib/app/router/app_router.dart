@@ -37,7 +37,6 @@ import '../../features/execution/index.dart';
 import '../../features/projects/index.dart';
 import '../../features/designs/index.dart';
 import '../../features/service_booking/index.dart';
-import '../../features/shopping/index.dart';
 import '../../features/communication/index.dart';
 import '../../features/ai_suite/index.dart';
 import '../../features/operations/index.dart';
@@ -52,6 +51,9 @@ import '../../features/platform_admin/presentation/pages/platform_dashboard_page
 import '../../features/platform_admin/presentation/pages/platform_subscriptions_page.dart';
 import '../../features/platform_admin/presentation/pages/platform_organizations_page.dart';
 import '../../features/platform_admin/presentation/pages/platform_onboard_org_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_categories_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_properties_page.dart';
+import '../../features/platform_admin/presentation/pages/platform_seller_approvals_page.dart';
 import '../navigation/admin_navigation_config.dart';
 import 'route_names.dart';
 
@@ -182,6 +184,21 @@ abstract class AppRouter {
             path: RouteNames.platformOnboardOrgPath,
             name: RouteNames.platformOnboardOrg,
             builder: (context, state) => const PlatformOnboardOrgPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformCategoriesPath,
+            name: RouteNames.platformCategories,
+            builder: (context, state) => const PlatformCategoriesPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformPropertiesPath,
+            name: RouteNames.platformProperties,
+            builder: (context, state) => const PlatformPropertiesPage(),
+          ),
+          GoRoute(
+            path: RouteNames.platformSellerApprovalsPath,
+            name: RouteNames.platformSellerApprovals,
+            builder: (context, state) => const PlatformSellerApprovalsPage(),
           ),
         ],
       ),
@@ -439,49 +456,33 @@ abstract class AppRouter {
                   }
 
                   // Shopping & Marketplace Submenus
-                  if (sub.routeName == RouteNames.shopDigitalStore) {
-                    return const DigitalStorePage();
-                  }
-                  if (sub.routeName == RouteNames.shopDecorAffiliates) {
-                    return const DecorAffiliatesPage();
-                  }
-                  if (sub.routeName == RouteNames.shopProperties) {
-                    return const PropertiesPage();
-                  }
-                  if (sub.routeName == RouteNames.shopMaterials) {
-                    return const MaterialsPage();
-                  }
-
-                  // Marketplace Operations Submenus
-                  if (sub.routeName == 'marketplace_digital' ||
+                  if (sub.routeName == RouteNames.shopDigitalStore ||
+                      sub.routeName == RouteNames.shopDecorAffiliates ||
+                      sub.routeName == RouteNames.shopProperties ||
+                      sub.routeName == RouteNames.shopMaterials ||
+                      sub.routeName == 'marketplace_digital' ||
                       sub.routePath == RouteNames.marketplaceDigital ||
-                      sub.routePath == '/marketplace/digital-store') {
-                    return const MarketplaceDigitalPage();
-                  }
-                  if (sub.routeName == 'marketplace_decor' ||
+                      sub.routePath == '/marketplace/digital-store' ||
+                      sub.routeName == 'marketplace_decor' ||
                       sub.routePath == RouteNames.marketplaceDecor ||
-                      sub.routePath == '/marketplace/home-decor') {
-                    return const MarketplaceDecorPage();
-                  }
-                  if (sub.routeName == 'marketplace_properties' ||
+                      sub.routePath == '/marketplace/home-decor' ||
+                      sub.routeName == 'marketplace_properties' ||
                       sub.routePath == RouteNames.marketplaceProperties ||
-                      sub.routePath == '/marketplace/properties') {
-                    return const MarketplacePropertiesPage();
-                  }
-                  if (sub.routeName == 'marketplace_materials' ||
+                      sub.routePath == '/marketplace/properties' ||
+                      sub.routeName == 'marketplace_materials' ||
                       sub.routePath == RouteNames.marketplaceMaterials ||
-                      sub.routePath == '/marketplace/materials') {
-                    return const MarketplaceMaterialsPage();
+                      sub.routeName == RouteNames.marketplaceManagement ||
+                      sub.routeName == 'marketplace_management' ||
+                      sub.routePath == RouteNames.marketplaceManagementPath ||
+                      sub.routePath == '/marketplace/management') {
+                    return MarketplaceDynamicHubPage(
+                      initialCategorySlug: state.uri.queryParameters['category'],
+                    );
                   }
                   if (sub.routeName == 'marketplace_orders' ||
                       sub.routePath == RouteNames.marketplaceOrders ||
                       sub.routePath == '/marketplace/orders') {
                     return const MarketplaceOrdersPage();
-                  }
-                  if (sub.routeName == 'marketplace_management' ||
-                      sub.routePath == RouteNames.marketplaceManagement ||
-                      sub.routePath == '/marketplace/management') {
-                    return const MarketplaceManagementPage();
                   }
 
                   // Communication Hub Submenus
@@ -964,7 +965,7 @@ abstract class AppRouter {
       return const MarketplaceOrdersPage();
     }
     if (id == 'marketplace_management' || path == '/marketplace/management') {
-      return const MarketplaceManagementPage();
+      return const MarketplaceDynamicHubPage();
     }
 
     // AI Studio fast path / ID resolution
@@ -1446,7 +1447,7 @@ abstract class AppRouter {
 
       case 'marketplace_management':
       case '/marketplace/management':
-        return const MarketplaceManagementPage();
+        return const MarketplaceDynamicHubPage();
 
       // 14. AI Studio
       case 'ai_overview':
