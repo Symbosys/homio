@@ -39,6 +39,7 @@ export 'presentation/dialogs/org_digital_product_dialog.dart';
 export 'presentation/dialogs/org_home_decor_dialog.dart';
 export 'presentation/dialogs/org_property_dialog.dart';
 export 'presentation/dialogs/org_material_dialog.dart';
+export 'presentation/dialogs/org_product_detail_sheet.dart';
 export 'presentation/widgets/marketplace_image_picker_field.dart';
 export 'digital/marketplace_digital_page.dart';
 export 'decor/marketplace_decor_page.dart';

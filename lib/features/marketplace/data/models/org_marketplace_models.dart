@@ -44,6 +44,9 @@ class OrgDigitalProductModel {
   final String status;
   final bool isFeatured;
   final int totalSalesCount;
+  final int totalPurchases;
+  final double rating;
+  final int reviewsCount;
   final double totalRevenueEarned;
   final PlatformMarketplaceCategoryModel? category;
   final DateTime? createdAt;
@@ -72,6 +75,9 @@ class OrgDigitalProductModel {
     this.status = 'DRAFT',
     this.isFeatured = false,
     this.totalSalesCount = 0,
+    this.totalPurchases = 0,
+    this.rating = 0.0,
+    this.reviewsCount = 0,
     this.totalRevenueEarned = 0.0,
     this.category,
     this.createdAt,
@@ -101,7 +107,10 @@ class OrgDigitalProductModel {
       taxRate: (json['taxRate'] as num?)?.toDouble() ?? 18.0,
       status: json['status'] as String? ?? 'DRAFT',
       isFeatured: json['isFeatured'] as bool? ?? false,
-      totalSalesCount: (json['totalSalesCount'] as num?)?.toInt() ?? 0,
+      totalSalesCount: (json['totalSalesCount'] as num?)?.toInt() ?? (json['totalPurchases'] as num?)?.toInt() ?? 0,
+      totalPurchases: (json['totalPurchases'] as num?)?.toInt() ?? (json['totalSalesCount'] as num?)?.toInt() ?? 0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewsCount: (json['reviewsCount'] as num?)?.toInt() ?? 0,
       totalRevenueEarned: (json['totalRevenueEarned'] as num?)?.toDouble() ?? 0.0,
       category: json['category'] != null && json['category'] is Map<String, dynamic>
           ? PlatformMarketplaceCategoryModel.fromJson(json['category'] as Map<String, dynamic>)
@@ -259,15 +268,20 @@ class OrgPropertyListingModel {
   final int? totalFloors;
   final String furnishingStatus;
   final int coveredParkingSlots;
+  final DateTime? availableFrom;
   final String? addressLine;
   final String locality;
   final String city;
   final String state;
   final String? pinCode;
+  final double? latitude;
+  final double? longitude;
   final double price;
   final double maintenanceMonthly;
   final bool isNegotiable;
   final double contactUnlockFee;
+  final int contactUnlockDurationDays;
+  final int totalContactUnlocks;
   final String ownerName;
   final String ownerPhone;
   final String? ownerEmail;
@@ -302,15 +316,20 @@ class OrgPropertyListingModel {
     this.totalFloors,
     this.furnishingStatus = 'Unfurnished',
     this.coveredParkingSlots = 0,
+    this.availableFrom,
     this.addressLine,
     required this.locality,
     required this.city,
     required this.state,
     this.pinCode,
+    this.latitude,
+    this.longitude,
     required this.price,
     this.maintenanceMonthly = 0.0,
     this.isNegotiable = true,
     this.contactUnlockFee = 500.0,
+    this.contactUnlockDurationDays = 30,
+    this.totalContactUnlocks = 0,
     required this.ownerName,
     required this.ownerPhone,
     this.ownerEmail,
@@ -347,15 +366,20 @@ class OrgPropertyListingModel {
       totalFloors: (json['totalFloors'] as num?)?.toInt(),
       furnishingStatus: json['furnishingStatus'] as String? ?? 'Unfurnished',
       coveredParkingSlots: (json['coveredParkingSlots'] as num?)?.toInt() ?? 0,
+      availableFrom: json['availableFrom'] != null ? DateTime.tryParse(json['availableFrom'] as String) : null,
       addressLine: json['addressLine'] as String?,
       locality: json['locality'] as String? ?? '',
       city: json['city'] as String? ?? '',
       state: json['state'] as String? ?? '',
       pinCode: json['pinCode'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       maintenanceMonthly: (json['maintenanceMonthly'] as num?)?.toDouble() ?? 0.0,
       isNegotiable: json['isNegotiable'] as bool? ?? true,
       contactUnlockFee: (json['contactUnlockFee'] as num?)?.toDouble() ?? 500.0,
+      contactUnlockDurationDays: (json['contactUnlockDurationDays'] as num?)?.toInt() ?? 30,
+      totalContactUnlocks: (json['totalContactUnlocks'] as num?)?.toInt() ?? (json['totalUnlocks'] as num?)?.toInt() ?? 0,
       ownerName: json['ownerName'] as String? ?? '',
       ownerPhone: json['ownerPhone'] as String? ?? '',
       ownerEmail: json['ownerEmail'] as String?,
@@ -365,7 +389,7 @@ class OrgPropertyListingModel {
       images: _extractImageList(json['images']),
       status: json['status'] as String? ?? 'DRAFT',
       isFeatured: json['isFeatured'] as bool? ?? false,
-      totalUnlocks: (json['totalUnlocks'] as num?)?.toInt() ?? 0,
+      totalUnlocks: (json['totalUnlocks'] as num?)?.toInt() ?? (json['totalContactUnlocks'] as num?)?.toInt() ?? 0,
       totalUnlockRevenue: (json['totalUnlockRevenue'] as num?)?.toDouble() ?? 0.0,
       category: json['category'] != null && json['category'] is Map<String, dynamic>
           ? PlatformMarketplaceCategoryModel.fromJson(json['category'] as Map<String, dynamic>)
@@ -404,6 +428,8 @@ class OrgMaterialProductModel {
   final int stockAvailableUnits;
   final String status;
   final bool isFeatured;
+  final double rating;
+  final int ordersCount;
   final int totalOrders;
   final double totalVolumeSold;
   final PlatformMarketplaceCategoryModel? category;
@@ -438,6 +464,8 @@ class OrgMaterialProductModel {
     this.stockAvailableUnits = 0,
     this.status = 'DRAFT',
     this.isFeatured = false,
+    this.rating = 0.0,
+    this.ordersCount = 0,
     this.totalOrders = 0,
     this.totalVolumeSold = 0.0,
     this.category,
@@ -474,7 +502,9 @@ class OrgMaterialProductModel {
       stockAvailableUnits: (json['stockAvailableUnits'] as num?)?.toInt() ?? 0,
       status: json['status'] as String? ?? 'DRAFT',
       isFeatured: json['isFeatured'] as bool? ?? false,
-      totalOrders: (json['totalOrders'] as num?)?.toInt() ?? 0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      ordersCount: (json['ordersCount'] as num?)?.toInt() ?? (json['totalOrders'] as num?)?.toInt() ?? 0,
+      totalOrders: (json['totalOrders'] as num?)?.toInt() ?? (json['ordersCount'] as num?)?.toInt() ?? 0,
       totalVolumeSold: (json['totalVolumeSold'] as num?)?.toDouble() ?? 0.0,
       category: json['category'] != null && json['category'] is Map<String, dynamic>
           ? PlatformMarketplaceCategoryModel.fromJson(json['category'] as Map<String, dynamic>)

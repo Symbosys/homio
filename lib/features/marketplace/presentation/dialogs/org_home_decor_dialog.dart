@@ -1,3 +1,4 @@
+import 'package:cached_query_flutter/cached_query_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,20 +44,34 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _skuCtrl;
-  late final TextEditingController _descCtrl;
   late final TextEditingController _brandCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _tagsCtrl;
   late final TextEditingController _dimensionsCtrl;
   late final TextEditingController _materialCtrl;
   late final TextEditingController _colorCtrl;
+  late final TextEditingController _roomTypeCtrl;
   late final TextEditingController _mrpCtrl;
   late final TextEditingController _sellingPriceCtrl;
+  late final TextEditingController _taxRateCtrl;
   late final TextEditingController _stockCtrl;
+  late final TextEditingController _minOrderCtrl;
+  late final TextEditingController _ownerCommissionRateCtrl;
+  late final TextEditingController _samplePriceCtrl;
+  late final TextEditingController _affiliateUrlCtrl;
+  late final TextEditingController _affiliateCommissionCtrl;
 
   Uint8List? _selectedCoverBytes;
   String? _selectedCoverFileName;
   String? _initialCoverUrl;
+  String _ownershipType = 'SELF_OWNED';
+  String? _selectedVendorId;
+  String? _affiliatePartner;
+  bool _sampleAvailable = false;
+  bool _isAffiliateEnabled = false;
   bool _inStock = true;
   bool _isActive = true;
+  bool _isFeatured = false;
   bool _isSubmitting = false;
 
   bool get isEdit => widget.product != null;
@@ -67,16 +82,31 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
     final p = widget.product;
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _skuCtrl = TextEditingController(text: p?.sku ?? '');
-    _descCtrl = TextEditingController(text: p?.description ?? '');
     _brandCtrl = TextEditingController(text: p?.brandName ?? '');
+    _descCtrl = TextEditingController(text: p?.description ?? '');
+    _tagsCtrl = TextEditingController(text: p?.tags.join(', ') ?? '');
     _dimensionsCtrl = TextEditingController(text: p?.dimensions ?? '');
     _materialCtrl = TextEditingController(text: p?.material ?? '');
     _colorCtrl = TextEditingController(text: p?.color ?? '');
+    _roomTypeCtrl = TextEditingController(text: p?.roomType ?? 'Living Room');
     _mrpCtrl = TextEditingController(text: p?.mrp != null ? p!.mrp.toStringAsFixed(2) : '');
     _sellingPriceCtrl = TextEditingController(text: p?.sellingPrice != null ? p!.sellingPrice.toStringAsFixed(2) : '');
+    _taxRateCtrl = TextEditingController(text: p?.taxRate != null ? p!.taxRate.toStringAsFixed(1) : '18.0');
     _stockCtrl = TextEditingController(text: p?.stockCount != null ? p!.stockCount.toString() : '10');
+    _minOrderCtrl = TextEditingController(text: (p?.minOrderQuantity ?? 1).toString());
+    _ownerCommissionRateCtrl = TextEditingController(text: p?.ownerCommissionRate != null ? p!.ownerCommissionRate!.toStringAsFixed(1) : '');
+    _samplePriceCtrl = TextEditingController(text: p?.samplePrice != null ? p!.samplePrice.toStringAsFixed(2) : '');
+    _affiliateUrlCtrl = TextEditingController(text: p?.affiliateUrl ?? '');
+    _affiliateCommissionCtrl = TextEditingController(text: p?.commissionRate != null ? p!.commissionRate.toStringAsFixed(1) : '');
+    
+    _ownershipType = p?.ownershipType ?? 'SELF_OWNED';
+    _selectedVendorId = p?.vendorId;
+    _sampleAvailable = p?.sampleAvailable ?? false;
+    _isAffiliateEnabled = p?.isAffiliateEnabled ?? false;
+    _affiliatePartner = p?.affiliatePartner;
     _inStock = p?.inStock ?? true;
     _isActive = p?.status == 'PUBLISHED' || p?.status == 'ACTIVE' || p == null;
+    _isFeatured = p?.isFeatured ?? false;
     _initialCoverUrl = p?.coverImageUrl;
   }
 
@@ -84,14 +114,22 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
   void dispose() {
     _nameCtrl.dispose();
     _skuCtrl.dispose();
-    _descCtrl.dispose();
     _brandCtrl.dispose();
+    _descCtrl.dispose();
+    _tagsCtrl.dispose();
     _dimensionsCtrl.dispose();
     _materialCtrl.dispose();
     _colorCtrl.dispose();
+    _roomTypeCtrl.dispose();
     _mrpCtrl.dispose();
     _sellingPriceCtrl.dispose();
+    _taxRateCtrl.dispose();
     _stockCtrl.dispose();
+    _minOrderCtrl.dispose();
+    _ownerCommissionRateCtrl.dispose();
+    _samplePriceCtrl.dispose();
+    _affiliateUrlCtrl.dispose();
+    _affiliateCommissionCtrl.dispose();
     super.dispose();
   }
 
@@ -105,21 +143,45 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
       final sellingPriceVal = _sellingPriceCtrl.text.trim().isNotEmpty
           ? double.tryParse(_sellingPriceCtrl.text.trim()) ?? mrpVal
           : mrpVal;
+      final taxVal = double.tryParse(_taxRateCtrl.text.trim()) ?? 18.0;
       final stockVal = int.tryParse(_stockCtrl.text.trim()) ?? 0;
+      final minOrderVal = int.tryParse(_minOrderCtrl.text.trim()) ?? 1;
+      final samplePriceVal = double.tryParse(_samplePriceCtrl.text.trim()) ?? 0.0;
+      final commRateVal = double.tryParse(_affiliateCommissionCtrl.text.trim()) ?? 0.0;
+      final ownerCommVal = double.tryParse(_ownerCommissionRateCtrl.text.trim());
+      final tagsList = _tagsCtrl.text
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
 
       final dataMap = <String, dynamic>{
         'categoryId': widget.category.id,
         'name': _nameCtrl.text.trim(),
         'sku': _skuCtrl.text.trim().isNotEmpty ? _skuCtrl.text.trim() : 'DEC-${DateTime.now().millisecondsSinceEpoch % 100000}',
-        'description': _descCtrl.text.trim(),
+        'ownershipType': _ownershipType,
+        'vendorId': _ownershipType == 'VENDOR_OWNED' ? _selectedVendorId : null,
+        'ownerCommissionRate': _ownershipType == 'VENDOR_OWNED' ? ownerCommVal : null,
         'brandName': _brandCtrl.text.trim().isNotEmpty ? _brandCtrl.text.trim() : null,
-        'dimensions': _dimensionsCtrl.text.trim().isNotEmpty ? _dimensionsCtrl.text.trim() : null,
+        'description': _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
+        'tags': tagsList,
         'material': _materialCtrl.text.trim().isNotEmpty ? _materialCtrl.text.trim() : null,
         'color': _colorCtrl.text.trim().isNotEmpty ? _colorCtrl.text.trim() : null,
+        'dimensions': _dimensionsCtrl.text.trim().isNotEmpty ? _dimensionsCtrl.text.trim() : null,
+        'roomType': _roomTypeCtrl.text.trim().isNotEmpty ? _roomTypeCtrl.text.trim() : null,
         'mrp': mrpVal,
         'sellingPrice': sellingPriceVal,
+        'taxRate': taxVal,
         'stockCount': stockVal,
+        'minOrderQuantity': minOrderVal,
         'inStock': _inStock,
+        'sampleAvailable': _sampleAvailable,
+        'samplePrice': _sampleAvailable ? samplePriceVal : 0.0,
+        'isAffiliateEnabled': _isAffiliateEnabled,
+        'affiliatePartner': _isAffiliateEnabled ? _affiliatePartner : null,
+        'affiliateUrl': _isAffiliateEnabled && _affiliateUrlCtrl.text.trim().isNotEmpty ? _affiliateUrlCtrl.text.trim() : null,
+        'commissionRate': _isAffiliateEnabled ? commRateVal : 0.0,
+        'isFeatured': _isFeatured,
         'status': _isActive ? 'PUBLISHED' : 'DRAFT',
       };
 
@@ -252,7 +314,79 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        // Name & SKU Row
+                        // Ownership & Vendor Association
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Ownership & Fulfillment',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  ChoiceChip(
+                                    label: const Text('Self-Owned / In-House'),
+                                    selected: _ownershipType == 'SELF_OWNED',
+                                    onSelected: (sel) {
+                                      if (sel) setState(() => _ownershipType = 'SELF_OWNED');
+                                    },
+                                  ),
+                                  const SizedBox(width: 10),
+                                  ChoiceChip(
+                                    label: const Text('Vendor / Supplier Owned'),
+                                    selected: _ownershipType == 'VENDOR_OWNED',
+                                    onSelected: (sel) {
+                                      if (sel) setState(() => _ownershipType = 'VENDOR_OWNED');
+                                    },
+                                  ),
+                                ],
+                              ),
+                              if (_ownershipType == 'VENDOR_OWNED') ...[
+                                const SizedBox(height: AppSpacing.md),
+                                QueryBuilder(
+                                  query: _queries.getVendorsQuery(),
+                                  builder: (context, vState) {
+                                    final vendors = vState.data ?? <OrgVendorModel>[];
+                                    return DropdownButtonFormField<String>(
+                                      initialValue: _selectedVendorId,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Select Registered Vendor *',
+                                      ),
+                                      items: vendors.map((v) {
+                                        return DropdownMenuItem<String>(
+                                          value: v.id,
+                                          child: Text('${v.companyName} (${v.taxId ?? "Supplier"})'),
+                                        );
+                                      }).toList(),
+                                      onChanged: (val) => setState(() => _selectedVendorId = val),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                TextFormField(
+                                  controller: _ownerCommissionRateCtrl,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Owner Commission Rate (%)',
+                                    hintText: 'e.g. 15.0',
+                                    suffixText: '%',
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // Name, SKU & Brand
                         Row(
                           children: [
                             Expanded(
@@ -274,8 +408,18 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                               child: TextFormField(
                                 controller: _skuCtrl,
                                 decoration: const InputDecoration(
-                                  labelText: 'SKU / Model Code',
+                                  labelText: 'SKU / Code',
                                   hintText: 'e.g. DECOR-TBL-001',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _brandCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Brand Name',
+                                  hintText: 'e.g. Urban Living',
                                 ),
                               ),
                             ),
@@ -294,33 +438,44 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Brand, Dimensions
+                        // Tags & Room Type
                         Row(
                           children: [
                             Expanded(
+                              flex: 2,
                               child: TextFormField(
-                                controller: _brandCtrl,
+                                controller: _tagsCtrl,
                                 decoration: const InputDecoration(
-                                  labelText: 'Brand / Manufacturer',
-                                  hintText: 'e.g. Urban Living',
+                                  labelText: 'Search Tags (comma-separated)',
+                                  hintText: 'Wood, Coffee Table, Nordic, Living Room',
                                 ),
                               ),
                             ),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
-                              child: TextFormField(
-                                controller: _dimensionsCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Dimensions',
-                                  hintText: '120cm x 60cm x 45cm',
-                                ),
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _roomTypeCtrl.text.isNotEmpty ? _roomTypeCtrl.text : 'Living Room',
+                                decoration: const InputDecoration(labelText: 'Room Placement'),
+                                items: const [
+                                  DropdownMenuItem(value: 'Living Room', child: Text('Living Room')),
+                                  DropdownMenuItem(value: 'Bedroom', child: Text('Bedroom')),
+                                  DropdownMenuItem(value: 'Dining Room', child: Text('Dining Room')),
+                                  DropdownMenuItem(value: 'Kitchen', child: Text('Kitchen')),
+                                  DropdownMenuItem(value: 'Bathroom', child: Text('Bathroom')),
+                                  DropdownMenuItem(value: 'Home Office', child: Text('Home Office')),
+                                  DropdownMenuItem(value: 'Outdoor / Balcony', child: Text('Outdoor / Balcony')),
+                                  DropdownMenuItem(value: 'General', child: Text('General')),
+                                ],
+                                onChanged: (val) {
+                                  if (val != null) _roomTypeCtrl.text = val;
+                                },
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Material & Color
+                        // Material, Color, Dimensions
                         Row(
                           children: [
                             Expanded(
@@ -328,7 +483,7 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                                 controller: _materialCtrl,
                                 decoration: const InputDecoration(
                                   labelText: 'Material Spec',
-                                  hintText: 'Teak Wood, Brass Accents',
+                                  hintText: 'Teak Wood, Brass',
                                 ),
                               ),
                             ),
@@ -338,7 +493,17 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                                 controller: _colorCtrl,
                                 decoration: const InputDecoration(
                                   labelText: 'Color / Finish',
-                                  hintText: 'Walnut Brown, Matte Black',
+                                  hintText: 'Walnut Brown, Matte',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _dimensionsCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Dimensions',
+                                  hintText: '120x60x45 cm',
                                 ),
                               ),
                             ),
@@ -346,7 +511,7 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Pricing & Stock Row
+                        // Pricing, Tax & Inventory Row
                         Row(
                           children: [
                             Expanded(
@@ -378,10 +543,22 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: TextFormField(
+                                controller: _taxRateCtrl,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(
+                                  labelText: 'Tax Rate (%)',
+                                  hintText: '18.0',
+                                  suffixText: '%',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
                                 controller: _stockCtrl,
                                 keyboardType: TextInputType.number,
                                 decoration: const InputDecoration(
-                                  labelText: 'Stock Qty *',
+                                  labelText: 'Stock Units *',
                                 ),
                                 validator: (val) {
                                   if (val == null || val.trim().isEmpty) return 'Stock required';
@@ -389,11 +566,133 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                                 },
                               ),
                             ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _minOrderCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Min Order Qty',
+                                  hintText: '1',
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Status Switches
+                        // Sample Ordering Options
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Checkbox(
+                                value: _sampleAvailable,
+                                onChanged: (val) => setState(() => _sampleAvailable = val ?? false),
+                                activeColor: const Color(0xFFEC4899),
+                              ),
+                              Text(
+                                'Physical Sample Available for Client Demo',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                              if (_sampleAvailable) ...[
+                                const SizedBox(width: AppSpacing.lg),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _samplePriceCtrl,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Sample Cost Price (₹)',
+                                      prefixText: '₹ ',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Affiliate Partner Monetization
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _isAffiliateEnabled,
+                                    onChanged: (val) => setState(() => _isAffiliateEnabled = val ?? false),
+                                    activeColor: const Color(0xFFEC4899),
+                                  ),
+                                  Text(
+                                    'Enable External Affiliate Store Link & Commission',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                              if (_isAffiliateEnabled) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: DropdownButtonFormField<String>(
+                                        initialValue: _affiliatePartner ?? 'PEPPERFRY',
+                                        decoration: const InputDecoration(labelText: 'Affiliate Partner'),
+                                        items: const [
+                                          DropdownMenuItem(value: 'AMAZON', child: Text('Amazon')),
+                                          DropdownMenuItem(value: 'PEPPERFRY', child: Text('Pepperfry')),
+                                          DropdownMenuItem(value: 'URBAN_LADDER', child: Text('Urban Ladder')),
+                                          DropdownMenuItem(value: 'WEST_ELM', child: Text('West Elm')),
+                                          DropdownMenuItem(value: 'IKEA', child: Text('IKEA')),
+                                          DropdownMenuItem(value: 'CUSTOM', child: Text('Custom Partner')),
+                                        ],
+                                        onChanged: (val) => setState(() => _affiliatePartner = val),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(
+                                      flex: 2,
+                                      child: TextFormField(
+                                        controller: _affiliateUrlCtrl,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Affiliate / Referral Link',
+                                          hintText: 'https://...',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _affiliateCommissionCtrl,
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        decoration: const InputDecoration(
+                                          labelText: 'Commission (%)',
+                                          hintText: '8.5',
+                                          suffixText: '%',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Status & Featured Row
                         Row(
                           children: [
                             Switch(
@@ -401,21 +700,35 @@ class _OrgHomeDecorDialogState extends State<OrgHomeDecorDialog> {
                               onChanged: (val) => setState(() => _inStock = val),
                               activeThumbColor: const Color(0xFF10B981),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
                               _inStock ? 'In Stock' : 'Out of Stock',
                               style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
                             ),
-                            const SizedBox(width: AppSpacing.xl),
+                            const SizedBox(width: AppSpacing.lg),
                             Switch(
                               value: _isActive,
                               onChanged: (val) => setState(() => _isActive = val),
                               activeThumbColor: const Color(0xFF10B981),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
                               _isActive ? 'Published' : 'Draft',
                               style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isFeatured,
+                                  onChanged: (val) => setState(() => _isFeatured = val ?? false),
+                                  activeColor: const Color(0xFFEC4899),
+                                ),
+                                Text(
+                                  'Featured',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ],
                             ),
                           ],
                         ),

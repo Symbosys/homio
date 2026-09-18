@@ -43,20 +43,44 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _skuCtrl;
+  late final TextEditingController _authorCtrl;
   late final TextEditingController _descCtrl;
-  late final TextEditingController _fileFormatCtrl;
+  late final TextEditingController _tagsCtrl;
   late final TextEditingController _fileUrlCtrl;
   late final TextEditingController _priceCtrl;
   late final TextEditingController _mrpCtrl;
+  late final TextEditingController _taxRateCtrl;
   late final TextEditingController _fileSizeCtrl;
+  late final TextEditingController _expiryHoursCtrl;
+  late final TextEditingController _maxDownloadsCtrl;
+  late final TextEditingController _ratingCtrl;
+  late final TextEditingController _reviewsCountCtrl;
+  late final TextEditingController _totalPurchasesCtrl;
 
+  String _fileFormat = 'PDF';
   Uint8List? _selectedCoverBytes;
   String? _selectedCoverFileName;
   String? _initialCoverUrl;
   bool _isActive = true;
+  bool _isFeatured = false;
   bool _isSubmitting = false;
 
   bool get isEdit => widget.product != null;
+
+  static const List<String> _digitalFormats = [
+    'PDF',
+    'EPUB',
+    'ZIP',
+    'DWG',
+    'DXF',
+    'RVT',
+    'SKP',
+    'OBJ',
+    'FBX',
+    'DOCX',
+    'XLSX',
+    'OTHER',
+  ];
 
   @override
   void initState() {
@@ -64,13 +88,23 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
     final p = widget.product;
     _nameCtrl = TextEditingController(text: p?.name ?? '');
     _skuCtrl = TextEditingController(text: p?.sku ?? '');
+    _authorCtrl = TextEditingController(text: p?.authorName ?? '');
     _descCtrl = TextEditingController(text: p?.description ?? '');
-    _fileFormatCtrl = TextEditingController(text: p?.fileFormat ?? 'PDF / CAD');
+    _tagsCtrl = TextEditingController(text: p?.tags.join(', ') ?? '');
+    _fileFormat = p?.fileFormat ?? 'PDF';
+    if (!_digitalFormats.contains(_fileFormat)) _fileFormat = 'OTHER';
     _fileUrlCtrl = TextEditingController(text: p?.fileUrl ?? '');
     _priceCtrl = TextEditingController(text: p?.sellingPrice != null ? p!.sellingPrice.toStringAsFixed(2) : '0');
     _mrpCtrl = TextEditingController(text: p?.mrp != null ? p!.mrp.toStringAsFixed(2) : '0');
+    _taxRateCtrl = TextEditingController(text: p?.taxRate != null ? p!.taxRate.toStringAsFixed(1) : '18.0');
     _fileSizeCtrl = TextEditingController(text: p?.fileSize ?? '5 MB');
+    _expiryHoursCtrl = TextEditingController(text: (p?.downloadLinkExpiryHours ?? 48).toString());
+    _maxDownloadsCtrl = TextEditingController(text: (p?.maxDownloads ?? 5).toString());
+    _ratingCtrl = TextEditingController(text: p?.rating != null ? p!.rating.toStringAsFixed(1) : '0.0');
+    _reviewsCountCtrl = TextEditingController(text: (p?.reviewsCount ?? 0).toString());
+    _totalPurchasesCtrl = TextEditingController(text: (p?.totalPurchases ?? 0).toString());
     _isActive = p?.status == 'PUBLISHED' || p?.status == 'ACTIVE' || p == null;
+    _isFeatured = p?.isFeatured ?? false;
     _initialCoverUrl = p?.coverImageUrl;
   }
 
@@ -78,12 +112,19 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
   void dispose() {
     _nameCtrl.dispose();
     _skuCtrl.dispose();
+    _authorCtrl.dispose();
     _descCtrl.dispose();
-    _fileFormatCtrl.dispose();
+    _tagsCtrl.dispose();
     _fileUrlCtrl.dispose();
     _priceCtrl.dispose();
     _mrpCtrl.dispose();
+    _taxRateCtrl.dispose();
     _fileSizeCtrl.dispose();
+    _expiryHoursCtrl.dispose();
+    _maxDownloadsCtrl.dispose();
+    _ratingCtrl.dispose();
+    _reviewsCountCtrl.dispose();
+    _totalPurchasesCtrl.dispose();
     super.dispose();
   }
 
@@ -95,17 +136,37 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
     try {
       final priceVal = double.tryParse(_priceCtrl.text.trim()) ?? 0.0;
       final mrpVal = double.tryParse(_mrpCtrl.text.trim()) ?? priceVal;
+      final taxVal = double.tryParse(_taxRateCtrl.text.trim()) ?? 18.0;
+      final expiryVal = int.tryParse(_expiryHoursCtrl.text.trim()) ?? 48;
+      final maxDlVal = int.tryParse(_maxDownloadsCtrl.text.trim()) ?? 5;
+      final ratingVal = double.tryParse(_ratingCtrl.text.trim()) ?? 0.0;
+      final reviewsVal = int.tryParse(_reviewsCountCtrl.text.trim()) ?? 0;
+      final purchasesVal = int.tryParse(_totalPurchasesCtrl.text.trim()) ?? 0;
+      final tagsList = _tagsCtrl.text
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
 
       final dataMap = <String, dynamic>{
         'categoryId': widget.category.id,
         'name': _nameCtrl.text.trim(),
         'sku': _skuCtrl.text.trim().isNotEmpty ? _skuCtrl.text.trim() : 'DIG-${DateTime.now().millisecondsSinceEpoch % 100000}',
-        'description': _descCtrl.text.trim(),
-        'fileFormat': _fileFormatCtrl.text.trim(),
-        'fileSize': _fileSizeCtrl.text.trim(),
+        'authorName': _authorCtrl.text.trim().isNotEmpty ? _authorCtrl.text.trim() : null,
+        'description': _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
+        'tags': tagsList,
+        'fileFormat': _fileFormat,
+        'fileSize': _fileSizeCtrl.text.trim().isNotEmpty ? _fileSizeCtrl.text.trim() : null,
         'fileUrl': _fileUrlCtrl.text.trim(),
         'sellingPrice': priceVal,
         'mrp': mrpVal,
+        'taxRate': taxVal,
+        'downloadLinkExpiryHours': expiryVal,
+        'maxDownloads': maxDlVal,
+        'rating': ratingVal,
+        'reviewsCount': reviewsVal,
+        'totalPurchases': purchasesVal,
+        'isFeatured': _isFeatured,
         'status': _isActive ? 'PUBLISHED' : 'DRAFT',
       };
 
@@ -145,7 +206,7 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
       shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 600,
+          maxWidth: 720,
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
         child: Padding(
@@ -164,7 +225,7 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEdit ? 'Edit Digital Asset' : 'Add Digital Asset / Handbook',
+                          isEdit ? 'Edit Digital Asset / Handbook' : 'Add Digital Asset / Publication',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -191,7 +252,7 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Marketplace Vertical: Digital Asset',
+                              'Marketplace Vertical: Digital Assets',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
@@ -216,9 +277,9 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Image Picker
+                        // Cover Image Picker
                         MarketplaceImagePickerField(
-                          label: 'Digital Product Thumbnail / Cover',
+                          label: 'Digital Asset Cover / Book Mockup Image',
                           initialUrl: _initialCoverUrl,
                           selectedBytes: _selectedCoverBytes,
                           selectedFileName: _selectedCoverFileName,
@@ -238,7 +299,7 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        // Title & SKU
+                        // Title, SKU & Author
                         Row(
                           children: [
                             Expanded(
@@ -246,8 +307,8 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                               child: TextFormField(
                                 controller: _nameCtrl,
                                 decoration: const InputDecoration(
-                                  labelText: 'Title / Guide Name *',
-                                  hintText: 'e.g. Modern Minimalist Interior Design Handbook',
+                                  labelText: 'Asset / Publication Title *',
+                                  hintText: 'e.g. Modern Villa Architecture Guide 2026',
                                 ),
                                 validator: (val) {
                                   if (val == null || val.trim().isEmpty) return 'Title is required';
@@ -260,8 +321,18 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                               child: TextFormField(
                                 controller: _skuCtrl,
                                 decoration: const InputDecoration(
-                                  labelText: 'SKU / Identifier',
-                                  hintText: 'DIG-VSTD-01',
+                                  labelText: 'SKU / Asset Code',
+                                  hintText: 'DIG-ARCH-001',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _authorCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Author / Creator',
+                                  hintText: 'Homio Studio',
                                 ),
                               ),
                             ),
@@ -280,19 +351,33 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Format & Size Row
+                        // Tags
+                        TextFormField(
+                          controller: _tagsCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Search Tags (comma-separated)',
+                            hintText: 'Architecture, Interior, Vastu, PDF, 3D',
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Format (Enum Dropdown) & Size Row
                         Row(
                           children: [
                             Expanded(
-                              child: TextFormField(
-                                controller: _fileFormatCtrl,
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _fileFormat,
                                 decoration: const InputDecoration(
-                                  labelText: 'File Format *',
-                                  hintText: 'e.g. PDF, CAD, 3DS',
+                                  labelText: 'Digital File Format (Enum) *',
                                 ),
-                                validator: (val) {
-                                  if (val == null || val.trim().isEmpty) return 'Format is required';
-                                  return null;
+                                items: _digitalFormats.map((f) {
+                                  return DropdownMenuItem<String>(
+                                    value: f,
+                                    child: Text(f),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) setState(() => _fileFormat = val);
                                 },
                               ),
                             ),
@@ -314,8 +399,8 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                         TextFormField(
                           controller: _fileUrlCtrl,
                           decoration: const InputDecoration(
-                            labelText: 'Download URL / Drive Link *',
-                            hintText: 'https://...',
+                            labelText: 'Download URL / Secure Asset Link *',
+                            hintText: 'https://storage.homio.app/...',
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) return 'File URL is required';
@@ -324,7 +409,49 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Price & Active Switch Row
+                        // Access Limits: Expiry, Max Downloads, Tax Rate
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _expiryHoursCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Download Link Expiry (Hours)',
+                                  hintText: '48',
+                                  suffixText: 'hrs',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _maxDownloadsCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Max Download Count Limit',
+                                  hintText: '5',
+                                  suffixText: 'times',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _taxRateCtrl,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                decoration: const InputDecoration(
+                                  labelText: 'GST / Tax Rate (%)',
+                                  hintText: '18.0',
+                                  suffixText: '%',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Price & MRP
                         Row(
                           children: [
                             Expanded(
@@ -349,28 +476,110 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                                 controller: _mrpCtrl,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 decoration: const InputDecoration(
-                                  labelText: 'MRP / Retail Price (₹)',
+                                  labelText: 'MRP / List Price (₹)',
                                   prefixText: '₹ ',
                                 ),
                               ),
                             ),
-                            const SizedBox(width: AppSpacing.md),
-                            Row(
-                              children: [
-                                Switch(
-                                  value: _isActive,
-                                  onChanged: (val) => setState(() => _isActive = val),
-                                  activeThumbColor: const Color(0xFF10B981),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _isActive ? 'Active' : 'Draft',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // Admin Metrics & Manual Overrides Container
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                            borderRadius: AppRadius.md,
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.admin_panel_settings_rounded, size: 16, color: Color(0xFF6366F1)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Admin Metrics & Social Proof Settings',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _ratingCtrl,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      decoration: const InputDecoration(
+                                        labelText: 'Rating (0.0 - 5.0)',
+                                        hintText: '4.8',
+                                        prefixIcon: Icon(Icons.star_rounded, size: 18, color: Color(0xFFF59E0B)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _reviewsCountCtrl,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Reviews / Rating Count',
+                                        hintText: '50',
+                                        prefixIcon: Icon(Icons.reviews_rounded, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _totalPurchasesCtrl,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Total Purchases / Downloads',
+                                        hintText: '250',
+                                        prefixIcon: Icon(Icons.shopping_bag_rounded, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Status & Featured
+                        Row(
+                          children: [
+                            Switch(
+                              value: _isActive,
+                              onChanged: (val) => setState(() => _isActive = val),
+                              activeThumbColor: const Color(0xFF10B981),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _isActive ? 'Published in Store' : 'Draft / Private',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(width: AppSpacing.xl),
+                            Switch(
+                              value: _isFeatured,
+                              onChanged: (val) => setState(() => _isFeatured = val),
+                              activeThumbColor: const Color(0xFF6366F1),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Featured Spotlight Asset',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -409,7 +618,7 @@ class _OrgDigitalProductDialogState extends State<OrgDigitalProductDialog> {
                             ? 'Saving...'
                             : isEdit
                                 ? 'Update Digital Asset'
-                                : 'Publish Digital Asset',
+                                : 'Create Digital Asset',
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(

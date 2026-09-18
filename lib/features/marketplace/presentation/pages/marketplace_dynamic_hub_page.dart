@@ -10,6 +10,7 @@ import '../dialogs/org_digital_product_dialog.dart';
 import '../dialogs/org_home_decor_dialog.dart';
 import '../dialogs/org_property_dialog.dart';
 import '../dialogs/org_material_dialog.dart';
+import '../dialogs/org_product_detail_sheet.dart';
 
 class MarketplaceDynamicHubPage extends StatefulWidget {
   final String? initialCategorySlug;
@@ -70,10 +71,10 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
         OrgPropertyDialog.show(context, category: category);
         break;
       case 'MATERIALS':
+      case 'OTHER':
+      default:
         OrgMaterialDialog.show(context, category: category);
         break;
-      default:
-        OrgDigitalProductDialog.show(context, category: category);
     }
   }
 
@@ -432,9 +433,9 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
       case 'PROPERTIES':
         return _buildPropertyCatalogView(isDark, category);
       case 'MATERIALS':
-        return _buildMaterialCatalogView(isDark, category);
+      case 'OTHER':
       default:
-        return _buildDigitalAssetCatalogView(isDark, category);
+        return _buildMaterialCatalogView(isDark, category);
     }
   }
 
@@ -578,6 +579,11 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      tooltip: 'View Full Specs',
+                      onPressed: () => OrgProductDetailSheet.showDigital(context, category: category, product: item),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       tooltip: 'Edit Asset',
@@ -754,6 +760,11 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      tooltip: 'View Full Specs',
+                      onPressed: () => OrgProductDetailSheet.showHomeDecor(context, category: category, product: item),
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       tooltip: 'Edit Product',
                       onPressed: () => OrgHomeDecorDialog.show(context, category: category, product: item),
@@ -911,6 +922,11 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      tooltip: 'View Full Specs',
+                      onPressed: () => OrgProductDetailSheet.showProperty(context, category: category, product: item),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       tooltip: 'Edit Property',
@@ -1075,6 +1091,11 @@ class _MarketplaceDynamicHubPageState extends State<MarketplaceDynamicHubPage> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      tooltip: 'View Full Specs',
+                      onPressed: () => OrgProductDetailSheet.showMaterial(context, category: category, product: item),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       tooltip: 'Edit Material',
