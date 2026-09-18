@@ -3,6 +3,10 @@
 // Domain & Data
 export 'domain/hrms_enums.dart';
 export 'domain/hrms_domain_models.dart';
+export 'data/models/hrms_employee_api_model.dart';
+export 'data/models/hrms_salary_api_model.dart';
+export 'data/repositories/hrms_api_repository.dart';
+export 'presentation/queries/hrms_queries.dart';
 export 'data/hrms_mock_data.dart';
 export 'data/hrms_repository.dart';
 
@@ -23,6 +27,7 @@ export 'widgets/leave_application_dialog.dart';
 export 'widgets/travel_log_dialog.dart';
 export 'widgets/performance_review_dialog.dart';
 export 'widgets/payslip_detail_modal.dart';
+export 'widgets/salary_revision_dialog.dart';
 export 'widgets/resignation_dialog.dart';
 export 'widgets/clearance_checklist_widget.dart';
 
